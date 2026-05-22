@@ -9,10 +9,10 @@ interface PlayerGridProps {
 export function PlayerGrid({ players, onSelect }: PlayerGridProps) {
   return (
     <>
-      {/* Mobile: horizontal snap carousel */}
-      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 sm:hidden [&::-webkit-scrollbar]:hidden">
+      {/* Mobile: full-width snap carousel, one card at a time */}
+      <div className="-mx-4 flex snap-x snap-mandatory overflow-x-auto pb-2 sm:hidden [&::-webkit-scrollbar]:hidden">
         {players.map((player) => (
-          <div key={player.id} className="w-[72vw] shrink-0 snap-center">
+          <div key={player.id} className="w-screen shrink-0 snap-center px-4">
             <PlayerCard player={player} onClick={() => onSelect(player)} />
           </div>
         ))}
