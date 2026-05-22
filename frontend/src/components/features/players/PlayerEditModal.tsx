@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { Camera, Save, Trash2 } from "lucide-react";
 import { AttributeTag } from "./AttributeTag";
 import { Button } from "../../ui/Button";
@@ -32,7 +32,7 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
     setForm(player ? { ...player } : { ...blank, name: initialName });
   }, [initialName, player, open]);
 
-  async function handlePhoto(event: React.ChangeEvent<HTMLInputElement>) {
+  async function handlePhoto(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (!file) return;
     setUploading(true);
