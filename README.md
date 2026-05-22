@@ -27,3 +27,12 @@ uv run uvicorn app.main:app --reload
 ```
 
 The backend seeds the two read-only venues on startup.
+
+## Coolify
+
+Create two applications from the same repository:
+
+- Frontend: base directory `/frontend`, port `3000`, static site enabled.
+- Backend: base directory `/backend`, port `8000`, static site disabled.
+
+Set `VITE_API_BASE_URL` on the frontend to the public backend URL plus `/api/v1`.
