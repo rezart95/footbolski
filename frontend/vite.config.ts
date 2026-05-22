@@ -9,8 +9,8 @@ export default defineConfig({
       registerType: "autoUpdate",
       includeAssets: ["manifest.json"],
       manifest: {
-        name: "Pitchup",
-        short_name: "Pitchup",
+        name: "Footbolski",
+        short_name: "Footbolski",
         display: "standalone",
         start_url: "/",
         background_color: "#0A1A0F",

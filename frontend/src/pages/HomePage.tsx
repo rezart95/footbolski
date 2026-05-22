@@ -5,12 +5,14 @@ import { EventCard } from "../components/features/events/EventCard";
 import { JoinButton } from "../components/features/registration/JoinButton";
 import { RegistrationList } from "../components/features/registration/RegistrationList";
 import { WaitlistSection } from "../components/features/registration/WaitlistSection";
+import { TeamSplitButton } from "../components/features/teams/TeamSplitButton";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Notice } from "../components/ui/Notice";
 import { useEvents, useUpcomingEvent } from "../hooks/useEvents";
 import { useRegistrationActions, useRegistrations } from "../hooks/useRegistrations";
 import { useSession } from "../hooks/useSession";
+import { useTeamActions } from "../hooks/useTeams";
 import { errorMessage } from "../lib/errors";
 
 export function HomePage() {
@@ -24,6 +26,7 @@ export function HomePage() {
   const event = upcoming.data ?? fallbackEvent;
   const { data: registrations = [] } = useRegistrations(event?.id);
   const actions = useRegistrationActions(event?.id ?? "pending");
+  const teamActions = useTeamActions(event?.id ?? "pending");
 
   const confirmed = registrations.filter((item) => item.list_status === "confirmed");
   const waitlist = registrations.filter((item) => item.list_status === "waitlist");
@@ -31,6 +34,8 @@ export function HomePage() {
     () => registrations.find((item) => item.display_name.toLowerCase() === sessionName.toLowerCase()),
     [registrations, sessionName]
   );
+  const creator = event ? sessionName.toLowerCase() === event.created_by_name.toLowerCase() : false;
+  const canSplit = creator && !!event && event.confirmed_count === event.max_players && !event.teams_generated;
 
   function leave() {
     if (mine && event) {
@@ -59,10 +64,12 @@ export function HomePage() {
           />
           <RegistrationList
             busy={actions.payment.isPending}
+            maxPlayers={event.max_players}
             registrations={confirmed}
             onTogglePaid={(registration) => actions.payment.mutate({ id: registration.id, paid: !registration.has_paid })}
           />
           <WaitlistSection registrations={waitlist} />
+          <TeamSplitButton busy={teamActions.generate.isPending} visible={canSplit} onGenerate={() => teamActions.generate.mutate(sessionName)} />
         </>
       ) : (
         <EmptyState

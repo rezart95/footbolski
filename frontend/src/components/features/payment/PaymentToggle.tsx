@@ -1,5 +1,4 @@
 import { CheckCircle2, Circle } from "lucide-react";
-import { Button } from "../../ui/Button";
 
 interface PaymentToggleProps {
   paid: boolean;
@@ -9,13 +8,19 @@ interface PaymentToggleProps {
 
 export function PaymentToggle({ paid, onToggle, disabled }: PaymentToggleProps) {
   return (
-    <Button
-      aria-label={paid ? "Mark unpaid" : "Mark paid"}
-      className={paid ? "text-pitch-400" : "text-white/45"}
+    <button
+      aria-label={paid ? "Undo payment" : "I paid"}
+      className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold transition ${
+        paid
+          ? "bg-pitch-400/20 text-pitch-400"
+          : "bg-white/8 text-white/30 hover:bg-white/12 hover:text-white/60"
+      }`}
       disabled={disabled}
-      icon={paid ? <CheckCircle2 size={22} /> : <Circle size={22} />}
       onClick={onToggle}
-      variant="ghost"
-    />
+      type="button"
+    >
+      {paid ? <CheckCircle2 size={13} /> : <Circle size={13} />}
+      {paid ? "Paid" : "Paid?"}
+    </button>
   );
 }
