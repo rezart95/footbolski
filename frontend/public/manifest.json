@@ -1,0 +1,8 @@
+{
+  "name": "Pitchup",
+  "short_name": "Pitchup",
+  "display": "standalone",
+  "start_url": "/",
+  "background_color": "#0A1A0F",
+  "theme_color": "#0A1A0F"
+}

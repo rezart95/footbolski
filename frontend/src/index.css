@@ -1,0 +1,35 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    min-height: 100%;
+    background: #0a1a0f;
+  }
+
+  body {
+    min-height: 100%;
+    margin: 0;
+    background:
+      radial-gradient(circle at top left, rgba(61, 219, 106, 0.08), transparent 32rem),
+      linear-gradient(180deg, #0a1a0f 0%, #111d14 100%);
+    color: white;
+    font-family: theme("fontFamily.body");
+  }
+
+  button,
+  input,
+  select {
+    font: inherit;
+  }
+}
+
+@layer components {
+  .tap-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
