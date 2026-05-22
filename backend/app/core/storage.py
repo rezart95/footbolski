@@ -1,6 +1,19 @@
+import json
 from io import BytesIO
 
 from app.core.config import get_settings
+
+_PUBLIC_READ_POLICY_TEMPLATE = json.dumps({
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {"AWS": "*"},
+            "Action": ["s3:GetObject"],
+            "Resource": ["arn:aws:s3:::{bucket}/*"],
+        }
+    ],
+})
 
 
 class StorageClient:
@@ -22,9 +35,12 @@ class StorageClient:
 
     async def ensure_bucket(self) -> None:
         client = await self.client()
-        exists = await client.bucket_exists(self.settings.minio_bucket)
+        bucket = self.settings.minio_bucket
+        exists = await client.bucket_exists(bucket)
         if not exists:
-            await client.make_bucket(self.settings.minio_bucket)
+            await client.make_bucket(bucket)
+        policy = _PUBLIC_READ_POLICY_TEMPLATE.replace("{bucket}", bucket)
+        await client.set_bucket_policy(bucket, policy)
 
     async def put_bytes(self, path: str, data: bytes, content_type: str) -> str:
         await self.ensure_bucket()
