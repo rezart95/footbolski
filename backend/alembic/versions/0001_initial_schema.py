@@ -12,12 +12,12 @@ depends_on = None
 
 def upgrade() -> None:
     op.execute('CREATE EXTENSION IF NOT EXISTS "pgcrypto"')
-    event_status = postgresql.ENUM("upcoming", "cancelled", "completed", name="event_status")
-    list_status = postgresql.ENUM("confirmed", "waitlist", name="list_status")
-    player_position = postgresql.ENUM("GK", "DEF", "MID", "ATT", name="player_position")
-    event_status.create(op.get_bind(), checkfirst=True)
-    list_status.create(op.get_bind(), checkfirst=True)
-    player_position.create(op.get_bind(), checkfirst=True)
+    event_status = postgresql.ENUM("upcoming", "cancelled", "completed", name="event_status", create_type=False)
+    list_status = postgresql.ENUM("confirmed", "waitlist", name="list_status", create_type=False)
+    player_position = postgresql.ENUM("GK", "DEF", "MID", "ATT", name="player_position", create_type=False)
+    postgresql.ENUM("upcoming", "cancelled", "completed", name="event_status").create(op.get_bind(), checkfirst=True)
+    postgresql.ENUM("confirmed", "waitlist", name="list_status").create(op.get_bind(), checkfirst=True)
+    postgresql.ENUM("GK", "DEF", "MID", "ATT", name="player_position").create(op.get_bind(), checkfirst=True)
 
     op.create_table(
         "venues",
