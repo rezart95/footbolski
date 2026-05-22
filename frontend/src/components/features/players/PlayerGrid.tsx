@@ -8,10 +8,22 @@ interface PlayerGridProps {
 
 export function PlayerGrid({ players, onSelect }: PlayerGridProps) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-      {players.map((player) => (
-        <PlayerCard key={player.id} player={player} onClick={() => onSelect(player)} />
-      ))}
-    </div>
+    <>
+      {/* Mobile: horizontal snap carousel */}
+      <div className="flex snap-x snap-mandatory gap-3 overflow-x-auto pb-2 sm:hidden [&::-webkit-scrollbar]:hidden">
+        {players.map((player) => (
+          <div key={player.id} className="w-[72vw] shrink-0 snap-center">
+            <PlayerCard player={player} onClick={() => onSelect(player)} />
+          </div>
+        ))}
+      </div>
+
+      {/* sm+: regular grid */}
+      <div className="hidden grid-cols-2 gap-3 sm:grid md:grid-cols-3 xl:grid-cols-4">
+        {players.map((player) => (
+          <PlayerCard key={player.id} player={player} onClick={() => onSelect(player)} />
+        ))}
+      </div>
+    </>
   );
 }

@@ -1,9 +1,11 @@
-import { FormEvent, useEffect, useState } from "react";
-import { Save, Trash2 } from "lucide-react";
+import { FormEvent, useEffect, useRef, useState } from "react";
+import { Camera, Save, Trash2 } from "lucide-react";
 import { AttributeTag } from "./AttributeTag";
 import { Button } from "../../ui/Button";
 import { Field, Input } from "../../ui/Field";
 import { Modal } from "../../ui/Modal";
+import { uploadPlayerPhoto } from "../../../services/players.service";
+import { colorFromName, initials } from "../../../lib/utils";
 import type { Player, PlayerAttribute, PlayerPosition } from "../../../types/player.types";
 
 const attributes: PlayerAttribute[] = ["fast", "technical", "physical", "leader", "aerial", "creative", "defensive", "clinical"];
@@ -23,10 +25,25 @@ const blank = { name: "", photo_url: null, skill_rating: 5, primary_position: "M
 
 export function PlayerEditModal({ player, initialName = "", open, onClose, onSave, onDelete, busy }: PlayerEditModalProps) {
   const [form, setForm] = useState<Omit<Player, "id">>(blank);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setForm(player ? { ...player } : { ...blank, name: initialName });
   }, [initialName, player, open]);
+
+  async function handlePhoto(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { url } = await uploadPlayerPhoto(file);
+      setForm((f) => ({ ...f, photo_url: url }));
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
+  }
 
   function toggleAttribute(attribute: PlayerAttribute) {
     setForm((current) => {
@@ -46,6 +63,31 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
   return (
     <Modal title={player ? "Edit Player" : "Add Player"} open={open} onClose={onClose}>
       <form className="grid gap-4" onSubmit={submit}>
+        {/* Photo upload */}
+        <div className="flex justify-center">
+          <button
+            className="group relative h-24 w-24 overflow-hidden rounded-full focus:outline-none"
+            disabled={uploading}
+            onClick={() => fileRef.current?.click()}
+            type="button"
+          >
+            {form.photo_url ? (
+              <img alt="" className="h-full w-full object-cover" src={form.photo_url} />
+            ) : (
+              <div className={`flex h-full w-full items-center justify-center font-display text-3xl font-bold text-pitch-950 ${colorFromName(form.name || "?")}`}>
+                {initials(form.name || "?")}
+              </div>
+            )}
+            <div className="absolute inset-0 flex items-center justify-center bg-pitch-950/60 opacity-0 transition group-hover:opacity-100">
+              {uploading ? (
+                <span className="text-xs font-bold text-white">Uploading…</span>
+              ) : (
+                <Camera size={22} className="text-white" />
+              )}
+            </div>
+          </button>
+          <input accept="image/*" className="hidden" ref={fileRef} type="file" onChange={handlePhoto} />
+        </div>
         <Field label="Name">
           <Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
         </Field>
