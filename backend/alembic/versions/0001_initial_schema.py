@@ -15,9 +15,9 @@ def upgrade() -> None:
     event_status = postgresql.ENUM("upcoming", "cancelled", "completed", name="event_status")
     list_status = postgresql.ENUM("confirmed", "waitlist", name="list_status")
     player_position = postgresql.ENUM("GK", "DEF", "MID", "ATT", name="player_position")
-    event_status.create(op.get_bind())
-    list_status.create(op.get_bind())
-    player_position.create(op.get_bind())
+    event_status.create(op.get_bind(), checkfirst=True)
+    list_status.create(op.get_bind(), checkfirst=True)
+    player_position.create(op.get_bind(), checkfirst=True)
 
     op.create_table(
         "venues",
