@@ -17,7 +17,7 @@ class Registration(Base):
     event_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("events.id"), nullable=False)
     player_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("players.id"))
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    list_status: Mapped[ListStatus] = mapped_column(Enum(ListStatus, name="list_status"))
+    list_status: Mapped[ListStatus] = mapped_column(Enum(ListStatus, name="list_status", values_callable=lambda x: [e.value for e in x]))
     position: Mapped[int]
     has_paid: Mapped[bool] = mapped_column(default=False)
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

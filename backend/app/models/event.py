@@ -19,7 +19,7 @@ class Event(Base):
     max_players: Mapped[int]
     created_by_name: Mapped[str] = mapped_column(String(255), nullable=False)
     status: Mapped[EventStatus] = mapped_column(
-        Enum(EventStatus, name="event_status"),
+        Enum(EventStatus, name="event_status", values_callable=lambda x: [e.value for e in x]),
         default=EventStatus.UPCOMING,
     )
     teams_generated: Mapped[bool] = mapped_column(default=False)
