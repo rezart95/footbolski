@@ -1,11 +1,13 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { addDays, format } from "date-fns";
 import { CalendarPlus } from "lucide-react";
 import { useCreateEvent, useVenues } from "../../../hooks/useEvents";
 import { useSession } from "../../../hooks/useSession";
+import { errorMessage } from "../../../lib/errors";
 import { Button } from "../../ui/Button";
 import { Field, Input, Select } from "../../ui/Field";
 import { Modal } from "../../ui/Modal";
+import { Notice } from "../../ui/Notice";
 
 interface CreateEventModalProps {
   open: boolean;
@@ -30,6 +32,12 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
   const venue = useMemo(() => venues.find((item) => item.id === venueId) ?? venues[0], [venueId, venues]);
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
+
+  useEffect(() => {
+    if (!venueId && venues.length > 0) {
+      setVenueId(venues[0].id);
+    }
+  }, [venueId, venues]);
 
   function submit(event: FormEvent) {
     event.preventDefault();
@@ -60,7 +68,8 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
             ))}
           </Select>
         </Field>
-        {isError ? <p className="text-sm font-semibold text-red-200">Backend is offline. Start the API to load venues.</p> : null}
+        {isError ? <Notice tone="error">Backend is offline. Venues load from the API, so start the backend before creating matches.</Notice> : null}
+        {createEvent.isError ? <Notice tone="error">{errorMessage(createEvent.error, "Could not create event.")}</Notice> : null}
         <Field label="Date">
           <Input type="date" value={date || nextDateForDay(venue?.default_day ?? null)} onChange={(event) => setDate(event.target.value)} />
         </Field>

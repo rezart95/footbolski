@@ -9,7 +9,7 @@ const labels: Record<EventStatus, string> = {
 
 const styles: Record<EventStatus, string> = {
   upcoming: "bg-pitch-400/15 text-pitch-400",
-  cancelled: "bg-white/10 text-white/45",
+  cancelled: "border border-red-200/25 bg-red-500/15 text-red-100",
   completed: "bg-sky-400/15 text-sky-200"
 };
 

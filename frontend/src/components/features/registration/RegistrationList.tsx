@@ -10,15 +10,15 @@ interface RegistrationListProps {
 
 export function RegistrationList({ registrations, onTogglePaid, busy }: RegistrationListProps) {
   return (
-    <section className="grid gap-3">
+    <section className="surface grid gap-3 rounded-lg p-4">
       <div className="flex items-baseline justify-between">
         <h2 className="font-display text-xl font-bold">Confirmed Players</h2>
         <p className="text-sm text-white/55">{registrations.length} confirmed</p>
       </div>
       <div className="grid gap-2">
         {registrations.map((registration) => (
-          <div className="flex items-center gap-3 rounded-lg bg-white/[0.04] p-2" key={registration.id}>
-            <span className="grid h-9 w-9 place-items-center rounded-md bg-white/10 font-mono text-sm font-black">{registration.position}</span>
+          <div className="flex items-center gap-3 rounded-lg bg-pitch-950/35 p-2" key={registration.id}>
+            <span className="grid h-9 w-9 place-items-center rounded-md bg-white/10 font-mono text-sm font-black text-white/75">{registration.position}</span>
             <p className={cn("min-w-0 flex-1 truncate font-semibold", registration.has_paid ? "text-pitch-400" : "text-white/80")}>
               {registration.display_name}
             </p>

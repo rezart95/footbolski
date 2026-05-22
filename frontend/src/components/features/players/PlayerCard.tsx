@@ -9,7 +9,7 @@ interface PlayerCardProps {
 
 export function PlayerCard({ player, onClick }: PlayerCardProps) {
   return (
-    <button className="grid min-h-56 gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-3 text-left" onClick={onClick} type="button">
+    <button className="surface grid min-h-56 gap-3 rounded-lg p-3 text-left transition hover:border-pitch-400/35" onClick={onClick} type="button">
       <div className="flex items-start gap-3">
         {player.photo_url ? (
           <img alt="" className="h-16 w-16 rounded-lg object-cover" src={player.photo_url} />
@@ -20,7 +20,7 @@ export function PlayerCard({ player, onClick }: PlayerCardProps) {
         )}
         <div className="min-w-0 flex-1">
           <h3 className="truncate font-display text-lg font-bold">{player.name}</h3>
-          <p className="mt-1 inline-flex rounded-md bg-white/10 px-2 py-1 font-mono text-xs font-black">{player.primary_position}</p>
+          <p className="mt-1 inline-flex rounded-md bg-pitch-400/15 px-2 py-1 font-mono text-xs font-black text-pitch-400">{player.primary_position}</p>
         </div>
       </div>
       <div className="grid grid-cols-10 gap-1">

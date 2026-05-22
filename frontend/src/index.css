@@ -14,8 +14,9 @@
     min-height: 100%;
     margin: 0;
     background:
-      radial-gradient(circle at top left, rgba(61, 219, 106, 0.08), transparent 32rem),
-      linear-gradient(180deg, #0a1a0f 0%, #111d14 100%);
+      radial-gradient(circle at 20% 0%, rgba(61, 219, 106, 0.11), transparent 30rem),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.035) 25%, transparent 25%) 0 0 / 26px 26px,
+      linear-gradient(180deg, #08140c 0%, #0f1d13 52%, #09120c 100%);
     color: white;
     font-family: theme("fontFamily.body");
   }
@@ -31,5 +32,11 @@
   .tap-target {
     min-height: 48px;
     min-width: 48px;
+  }
+
+  .surface {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.035));
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
   }
 }

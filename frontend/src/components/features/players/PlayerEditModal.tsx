@@ -11,6 +11,7 @@ const positions: PlayerPosition[] = ["GK", "DEF", "MID", "ATT"];
 
 interface PlayerEditModalProps {
   player?: Player | null;
+  initialName?: string;
   open: boolean;
   onClose: () => void;
   onSave: (payload: Omit<Player, "id">) => void;
@@ -20,12 +21,12 @@ interface PlayerEditModalProps {
 
 const blank = { name: "", photo_url: null, skill_rating: 5, primary_position: "MID" as PlayerPosition, attributes: [] };
 
-export function PlayerEditModal({ player, open, onClose, onSave, onDelete, busy }: PlayerEditModalProps) {
+export function PlayerEditModal({ player, initialName = "", open, onClose, onSave, onDelete, busy }: PlayerEditModalProps) {
   const [form, setForm] = useState<Omit<Player, "id">>(blank);
 
   useEffect(() => {
-    setForm(player ? { ...player } : blank);
-  }, [player, open]);
+    setForm(player ? { ...player } : { ...blank, name: initialName });
+  }, [initialName, player, open]);
 
   function toggleAttribute(attribute: PlayerAttribute) {
     setForm((current) => {

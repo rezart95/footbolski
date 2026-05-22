@@ -7,14 +7,21 @@ import { RegistrationList } from "../components/features/registration/Registrati
 import { WaitlistSection } from "../components/features/registration/WaitlistSection";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
-import { useUpcomingEvent } from "../hooks/useEvents";
+import { Notice } from "../components/ui/Notice";
+import { useEvents, useUpcomingEvent } from "../hooks/useEvents";
 import { useRegistrationActions, useRegistrations } from "../hooks/useRegistrations";
 import { useSession } from "../hooks/useSession";
+import { errorMessage } from "../lib/errors";
 
 export function HomePage() {
   const [creating, setCreating] = useState(new URLSearchParams(location.search).get("create") === "1");
   const { sessionName } = useSession();
-  const { data: event, isLoading } = useUpcomingEvent();
+  const upcoming = useUpcomingEvent();
+  const events = useEvents();
+  const fallbackEvent = events.data
+    ?.filter((item) => item.status === "upcoming")
+    .sort((a, b) => `${a.event_date}T${a.event_time}`.localeCompare(`${b.event_date}T${b.event_time}`))[0];
+  const event = upcoming.data ?? fallbackEvent;
   const { data: registrations = [] } = useRegistrations(event?.id);
   const actions = useRegistrationActions(event?.id ?? "pending");
 
@@ -31,7 +38,7 @@ export function HomePage() {
     }
   }
 
-  if (isLoading) {
+  if (upcoming.isLoading && events.isLoading) {
     return <EmptyState title="Loading the next match" detail="Checking the pitch calendar." />;
   }
 
@@ -39,7 +46,10 @@ export function HomePage() {
     <div className="grid gap-5">
       {event ? (
         <>
+          {upcoming.isError ? <Notice tone="info">Showing the first upcoming event from the events list because the primary upcoming query did not respond.</Notice> : null}
           <EventCard event={event} large />
+          {actions.join.isError ? <Notice tone="error">{errorMessage(actions.join.error, "Could not join this event.")}</Notice> : null}
+          {actions.leave.isError ? <Notice tone="error">{errorMessage(actions.leave.error, "Could not leave this event.")}</Notice> : null}
           <JoinButton
             busy={actions.join.isPending || actions.leave.isPending}
             event={event}
@@ -57,10 +67,11 @@ export function HomePage() {
       ) : (
         <EmptyState
           title="No upcoming event"
-          detail="Create the next kickabout and the group can join from here."
+          detail="Only real backend events appear here. Create one once the API is connected."
           action={<Button onClick={() => setCreating(true)}>Create One</Button>}
         />
       )}
+      {!event && (upcoming.isError || events.isError) ? <Notice tone="error">Backend is not returning events yet. Check the backend URL and database connection.</Notice> : null}
       <Button className="fixed bottom-28 right-4 z-30 rounded-full shadow-glow" icon={<Plus size={20} />} onClick={() => setCreating(true)}>
         Create
       </Button>
