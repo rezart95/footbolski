@@ -8,6 +8,7 @@ import { queryClient } from "./lib/queryClient";
 import { HomePage } from "./pages/HomePage";
 import { EventDetailPage } from "./pages/EventDetailPage";
 import { EventsListPage } from "./pages/EventsListPage";
+import { PitchPage } from "./pages/PitchPage";
 import { PlayersPage } from "./pages/PlayersPage";
 import "./index.css";
 
@@ -21,6 +22,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="/events" element={<EventsListPage />} />
             <Route path="/events/:id" element={<EventDetailPage />} />
             <Route path="/events/new" element={<Navigate to="/?create=1" replace />} />
+            <Route path="/pitch" element={<PitchPage />} />
             <Route path="/players" element={<PlayersPage />} />
           </Routes>
         </AppShell>
