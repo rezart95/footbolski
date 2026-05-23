@@ -93,9 +93,9 @@ async def generate_teams(session: AsyncSession, event_id: uuid.UUID, creator_nam
     # Compute slot positions for each team (mirrors slotsForFormation in TS)
     def slots_for_formation(formation: str, top_half: bool) -> list[dict]:
         rows = [int(x) for x in formation.split("-")]
-        row_y = [76.0, 52.0, 28.0] if top_half else [24.0, 48.0, 72.0]
+        row_y = [24.0, 48.0, 72.0] if top_half else [76.0, 52.0, 28.0]
         roles = [PlayerPosition.DEF, PlayerPosition.MID, PlayerPosition.ATT]
-        result = [{"x": 50.0, "y": 94.0 if top_half else 6.0, "role": PlayerPosition.GK}]
+        result = [{"x": 50.0, "y": 6.0 if top_half else 94.0, "role": PlayerPosition.GK}]
         for row_idx, count in enumerate(rows):
             for j in range(count):
                 x = ((j + 1) / (count + 1)) * 100.0

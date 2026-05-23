@@ -6,8 +6,8 @@ export function formationsFor(playersPerSide: number) {
 
 export function slotsForFormation(formation: string, topHalf: boolean) {
   const rows = formation.split("-").map(Number);
-  const rowY = topHalf ? [76, 52, 28] : [24, 48, 72];
-  const slots = [{ x: 50, y: topHalf ? 94 : 6, role: "GK" }];
+  const rowY = topHalf ? [24, 48, 72] : [76, 52, 28];
+  const slots = [{ x: 50, y: topHalf ? 6 : 94, role: "GK" }];
 
   rows.forEach((count, rowIndex) => {
     Array.from({ length: count }).forEach((_, index) => {
