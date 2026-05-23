@@ -1,5 +1,7 @@
 export function formationsFor(playersPerSide: number) {
-  return playersPerSide === 7 ? ["2-2-2", "3-2-1", "2-3-1", "1-3-2", "2-1-3"] : ["2-2-1", "2-1-2", "1-2-2", "3-1-1"];
+  if (playersPerSide >= 7) return ["2-2-2", "3-2-1", "2-3-1"];
+  if (playersPerSide === 6) return ["2-2-1", "3-1-1", "2-1-2"];
+  return ["2-1-1", "1-2-1", "2-2"];
 }
 
 export function slotsForFormation(formation: string, topHalf: boolean) {

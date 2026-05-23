@@ -81,11 +81,11 @@ async def generate_teams(session: AsyncSession, event_id: uuid.UUID, creator_nam
 
     # Default formation based on outfield players (= players_per_side - 1 GK)
     def default_formation(n_outfield: int) -> str:
-        if n_outfield == 6:
+        if n_outfield >= 6:
             return "2-2-2"
-        if n_outfield in (4, 5):
+        if n_outfield == 5:
             return "2-2-1"
-        return "-".join(["2"] * max(1, n_outfield // 2))
+        return "2-1-1"
 
     formation_a = default_formation(len(team_a_regs) - 1)
     formation_b = default_formation(len(team_b_regs) - 1)
