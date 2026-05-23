@@ -32,7 +32,7 @@ export function PitchPage() {
   if (splitEvents.length === 0) {
     return (
       <EmptyState
-        description="Generate a team split from an event to see the pitch."
+        detail="Generate a team split from an event to see the pitch."
         title="No teams yet"
       />
     );
@@ -64,9 +64,7 @@ export function PitchPage() {
           playersPerSide={selectedEvent.venue.players_per_side}
           teams={teams}
         />
-      ) : (
-        <EmptyState description="Loading teams…" title="" />
-      )}
+      ) : null}
     </div>
   );
 }
