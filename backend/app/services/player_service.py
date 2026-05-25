@@ -1,10 +1,10 @@
 import uuid
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Event, EventStatus, Player, Registration
+from app.models import Player, Registration
 from app.schemas.player import PlayerCreate, PlayerUpdate
 
 
@@ -38,13 +38,10 @@ async def update_player(session: AsyncSession, player_id: uuid.UUID, payload: Pl
 
 async def delete_player(session: AsyncSession, player_id: uuid.UUID) -> None:
     player = await get_player(session, player_id)
-    stmt = (
-        select(func.count())
-        .select_from(Registration)
-        .join(Event)
-        .where(Registration.player_id == player_id, Event.status == EventStatus.UPCOMING)
+    # Remove registrations first (FK has no CASCADE, and we allow deletion
+    # even when the player is linked to upcoming events)
+    await session.execute(
+        Registration.__table__.delete().where(Registration.player_id == player_id)
     )
-    if int(await session.scalar(stmt) or 0) > 0:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Player is registered for an active event")
     await session.delete(player)
     await session.commit()
