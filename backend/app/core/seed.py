@@ -275,12 +275,13 @@ async def seed_venues(session: AsyncSession) -> None:
 
 
 async def seed_players(session: AsyncSession) -> None:
+    # Only seed on first run (when the table is empty) so that
+    # players deleted through the UI are not re-created on restart.
+    from sqlalchemy import func
+    count = await session.scalar(select(func.count()).select_from(Player))
+    if count and count > 0:
+        return
     for payload in PLAYERS:
-        exists = await session.scalar(select(Player).where(Player.name == payload["name"]))
-        if exists:
-            for key, value in payload.items():
-                setattr(exists, key, value)
-        else:
-            session.add(Player(**payload))
+        session.add(Player(**payload))
     await session.commit()
 
