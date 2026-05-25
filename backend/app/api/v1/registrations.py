@@ -3,7 +3,7 @@ import uuid
 from fastapi import APIRouter, Response, status
 
 from app.dependencies import SessionDep
-from app.schemas.registration import PaymentUpdate, RegistrationCreate, RegistrationLeave, RegistrationRead
+from app.schemas.registration import GuestProfileUpdate, PaymentUpdate, RegistrationCreate, RegistrationLeave, RegistrationRead
 from app.services import registration_service
 
 router = APIRouter(prefix="/events/{event_id}/registrations", tags=["registrations"])
@@ -31,5 +31,22 @@ async def unregister(
 
 
 @router.patch("/{registration_id}/payment", response_model=RegistrationRead)
-async def toggle_payment(registration_id: uuid.UUID, payload: PaymentUpdate, session: SessionDep):
+async def update_payment(
+    event_id: uuid.UUID,
+    registration_id: uuid.UUID,
+    payload: PaymentUpdate,
+    session: SessionDep,
+):
     return await registration_service.set_payment(session, registration_id, payload.has_paid)
+
+
+@router.patch("/{registration_id}/guest-profile", response_model=RegistrationRead)
+async def update_guest_profile(
+    event_id: uuid.UUID,
+    registration_id: uuid.UUID,
+    payload: GuestProfileUpdate,
+    session: SessionDep,
+):
+    """Set or update the attribute profile for a guest player (no linked player profile)."""
+    return await registration_service.update_guest_profile(session, event_id, registration_id, payload.guest_profile)
+

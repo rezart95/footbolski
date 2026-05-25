@@ -6,8 +6,51 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.models import ListStatus, PlayerPosition, Registration, Team, TeamPlayer, Venue
+from app.models.player import Player
 from app.schemas.team import FormationUpdate
 from app.services.event_service import get_event
+# ---------------------------------------------------------------------------
+# Composite scoring
+# ---------------------------------------------------------------------------
+# Weights for each attribute.  skill_rating is the overall anchor;
+# the rest fine-tune balance across physical and technical dimensions.
+_ATTR_WEIGHTS: dict[str, float] = {
+    "skill_rating": 3.0,
+    "speed": 1.0,
+    "technique": 1.5,
+    "defending": 1.0,
+    "shooting": 1.0,
+    "aerial": 0.5,
+    "stamina": 1.0,
+    "work_rate": 1.0,
+}
+_TOTAL_WEIGHT: float = sum(_ATTR_WEIGHTS.values())  # 10.0
+
+
+def _composite(player: Player | None, guest_profile: dict | None = None) -> float:
+    """Return a weighted composite score 1-10 for a player.
+
+    Priority: linked Player profile > guest_profile dict > default 5.0.
+    For any attribute missing from a profile, the overall skill_rating is used
+    as the fallback so partial profiles still sort sensibly.
+    """
+    if player is not None:
+        base = float(player.skill_rating)
+        total = sum(
+            w * float(getattr(player, attr) if getattr(player, attr) is not None else base)
+            for attr, w in _ATTR_WEIGHTS.items()
+        )
+        return total / _TOTAL_WEIGHT
+
+    if guest_profile:
+        base = float(guest_profile.get("skill_rating") or 5)
+        total = sum(
+            w * float(guest_profile.get(attr) or base)
+            for attr, w in _ATTR_WEIGHTS.items()
+        )
+        return total / _TOTAL_WEIGHT
+
+    return 5.0
 
 
 async def get_teams(session: AsyncSession, event_id: uuid.UUID) -> list[Team] | None:
@@ -49,22 +92,39 @@ async def generate_teams(session: AsyncSession, event_id: uuid.UUID, creator_nam
     venue = await session.get(Venue, event.venue_id)
     players_per_side: int = venue.players_per_side if venue else 7
 
-    # Sort by skill rating descending (unlinked players treated as average = 5)
-    def skill(reg: Registration) -> float:
-        return float(reg.player.skill_rating) if reg.player else 5.0
+    # --- AI split (Claude) or algorithmic fallback ---
+    from app.agent.agent_router import run_split
+    split = await run_split(str(event_id), regs=regs)
 
-    regs_sorted = sorted(regs, key=skill, reverse=True)
+    if "team_a" in split and "team_b" in split:
+        # Map player names returned by Claude/algorithm back to registrations.
+        # Match by player.name first, then display_name (case-insensitive).
+        def _reg_name(r: Registration) -> str:
+            return (r.player.name if r.player else r.display_name).casefold()
 
-    # Snake draft: picks go A, B, B, A, A, B, B, A, …
-    team_a_regs: list[Registration] = []
-    team_b_regs: list[Registration] = []
-    for i, reg in enumerate(regs_sorted):
-        pair = i // 2
-        pos_in_pair = i % 2
-        if pair % 2 == 0:
-            (team_a_regs if pos_in_pair == 0 else team_b_regs).append(reg)
-        else:
-            (team_b_regs if pos_in_pair == 0 else team_a_regs).append(reg)
+        name_to_reg = {_reg_name(r): r for r in regs}
+
+        team_a_regs = [name_to_reg[n.casefold()] for n in split["team_a"] if n.casefold() in name_to_reg]
+        team_b_regs = [name_to_reg[n.casefold()] for n in split["team_b"] if n.casefold() in name_to_reg]
+
+        # Safety: any reg not matched by name goes to the shorter team
+        assigned = set(id(r) for r in team_a_regs + team_b_regs)
+        for r in regs:
+            if id(r) not in assigned:
+                (team_a_regs if len(team_a_regs) <= len(team_b_regs) else team_b_regs).append(r)
+    else:
+        # Pure fallback: sort by composite score and snake-draft
+        def score(reg: Registration) -> float:
+            return _composite(reg.player, reg.guest_profile)
+
+        regs_sorted = sorted(regs, key=score, reverse=True)
+        team_a_regs, team_b_regs = [], []
+        for i, reg in enumerate(regs_sorted):
+            pair = i // 2
+            if pair % 2 == 0:
+                (team_a_regs if i % 2 == 0 else team_b_regs).append(reg)
+            else:
+                (team_b_regs if i % 2 == 0 else team_a_regs).append(reg)
 
     # Sort each team: GK first, then DEF, MID, ATT
     _position_order = {PlayerPosition.GK: 0, PlayerPosition.DEF: 1, PlayerPosition.MID: 2, PlayerPosition.ATT: 3}

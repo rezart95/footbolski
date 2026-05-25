@@ -87,3 +87,23 @@ async def set_payment(session: AsyncSession, registration_id: uuid.UUID, paid: b
     await session.commit()
     await session.refresh(registration)
     return registration
+
+
+async def update_guest_profile(
+    session: AsyncSession,
+    event_id: uuid.UUID,
+    registration_id: uuid.UUID,
+    guest_profile,  # GuestProfile | None — avoid circular import; validated upstream
+) -> Registration:
+    registration = await session.get(Registration, registration_id)
+    if not registration or registration.event_id != event_id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Registration not found")
+    if registration.player_id is not None:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "This player is already linked to a profile — edit their profile instead.",
+        )
+    registration.guest_profile = guest_profile.model_dump(exclude_none=True) if guest_profile else None
+    await session.commit()
+    await session.refresh(registration)
+    return registration

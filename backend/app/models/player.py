@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum, String, func
+from sqlalchemy import DateTime, Enum, SmallInteger, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -21,6 +21,23 @@ class Player(Base):
         default=PlayerPosition.MID,
     )
     attributes: Mapped[list[str]] = mapped_column(JSONB, default=list)
+
+    # Physical profile
+    age: Mapped[int | None] = mapped_column(SmallInteger)
+    height_cm: Mapped[int | None] = mapped_column(SmallInteger)
+    build: Mapped[str | None] = mapped_column(String(50))
+    preferred_role: Mapped[str | None] = mapped_column(String(100))
+
+    # Attribute ratings (1–10)
+    speed: Mapped[int | None] = mapped_column(SmallInteger)
+    technique: Mapped[int | None] = mapped_column(SmallInteger)
+    defending: Mapped[int | None] = mapped_column(SmallInteger)
+    shooting: Mapped[int | None] = mapped_column(SmallInteger)
+    aerial: Mapped[int | None] = mapped_column(SmallInteger)
+    stamina: Mapped[int | None] = mapped_column(SmallInteger)
+    work_rate: Mapped[int | None] = mapped_column(SmallInteger)
+    notes: Mapped[str | None] = mapped_column(Text)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

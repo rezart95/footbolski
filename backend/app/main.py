@@ -7,7 +7,7 @@ import app.models  # noqa: F401
 from app.api.v1.router import api_router
 from app.core.config import get_settings
 from app.core.database import Base, SessionLocal, engine
-from app.core.seed import seed_venues
+from app.core.seed import seed_players, seed_venues
 
 
 @asynccontextmanager
@@ -18,6 +18,7 @@ async def lifespan(app: FastAPI):
             await conn.run_sync(Base.metadata.create_all)
     async with SessionLocal() as session:
         await seed_venues(session)
+        await seed_players(session)
     yield
 
 

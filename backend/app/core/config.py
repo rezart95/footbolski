@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     minio_public_url: str = "http://localhost:9000"
     cors_origins: str = "http://localhost:5174"
     environment: str = "development"
+    claude_api_key: str | None = None
+    claude_model: str = "claude-sonnet-4-6"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

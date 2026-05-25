@@ -13,6 +13,22 @@ class PlayerBase(BaseModel):
     primary_position: PlayerPosition = PlayerPosition.MID
     attributes: list[str] = Field(default_factory=list, max_length=4)
 
+    # Physical profile
+    age: int | None = Field(default=None, ge=10, le=80)
+    height_cm: int | None = Field(default=None, ge=140, le=220)
+    build: str | None = Field(default=None, max_length=50)
+    preferred_role: str | None = Field(default=None, max_length=100)
+
+    # Attribute ratings 1–10
+    speed: int | None = Field(default=None, ge=1, le=10)
+    technique: int | None = Field(default=None, ge=1, le=10)
+    defending: int | None = Field(default=None, ge=1, le=10)
+    shooting: int | None = Field(default=None, ge=1, le=10)
+    aerial: int | None = Field(default=None, ge=1, le=10)
+    stamina: int | None = Field(default=None, ge=1, le=10)
+    work_rate: int | None = Field(default=None, ge=1, le=10)
+    notes: str | None = Field(default=None, max_length=500)
+
 
 class PlayerCreate(PlayerBase):
     pass

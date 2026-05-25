@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, Enum, ForeignKey, String, UniqueConstraint, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,6 +22,7 @@ class Registration(Base):
     position: Mapped[int]
     has_paid: Mapped[bool] = mapped_column(default=False)
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    guest_profile: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     registered_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     event: Mapped["Event"] = relationship(back_populates="registrations")
