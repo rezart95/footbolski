@@ -137,6 +137,13 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
             />
           </Field>
         </div>
+        <Field label="Build">
+          <Input
+            placeholder="e.g. athletic, strong…"
+            value={form.build ?? ""}
+            onChange={(e) => setForm({ ...form, build: e.target.value || null })}
+          />
+        </Field>
         <Field label="Preferred role">
           <Input
             placeholder="e.g. Midfield / attack"

@@ -24,9 +24,9 @@ export function PlayerCard({ player, onClick }: PlayerCardProps) {
   ].filter(Boolean).join(" · ");
 
   return (
-    <button className="surface flex flex-col overflow-hidden rounded-xl text-left transition hover:border-pitch-400/35" onClick={onClick} type="button">
-      {/* Photo / avatar – square crop */}
-      <div className="relative aspect-square w-full">
+    <button className="surface flex w-full flex-col overflow-hidden rounded-xl text-left transition hover:border-pitch-400/35" onClick={onClick} type="button">
+      {/* Photo / avatar */}
+      <div className="relative h-36 w-full">
         {player.photo_url ? (
           <img alt={player.name} className="h-full w-full object-cover" src={player.photo_url} />
         ) : (

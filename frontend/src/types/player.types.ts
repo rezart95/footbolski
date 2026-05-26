@@ -19,6 +19,7 @@ export interface Player {
   attributes: PlayerAttribute[];
   age?: number | null;
   height_cm?: number | null;
+  build?: string | null;
   preferred_role?: string | null;
   speed?: number | null;
   technique?: number | null;
@@ -37,6 +38,7 @@ export interface PlayerPayload {
   attributes: PlayerAttribute[];
   age?: number | null;
   height_cm?: number | null;
+  build?: string | null;
   preferred_role?: string | null;
   speed?: number | null;
   technique?: number | null;
