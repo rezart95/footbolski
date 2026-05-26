@@ -21,7 +21,20 @@ interface PlayerEditModalProps {
   busy?: boolean;
 }
 
-const blank = { name: "", photo_url: null, skill_rating: 5, primary_position: "MID" as PlayerPosition, attributes: [] };
+const blank = {
+  name: "", photo_url: null, skill_rating: 5, primary_position: "MID" as PlayerPosition, attributes: [],
+  age: null as number | null,
+  height_cm: null as number | null,
+  build: null as string | null,
+  preferred_role: null as string | null,
+  speed: null as number | null,
+  technique: null as number | null,
+  defending: null as number | null,
+  shooting: null as number | null,
+  aerial: null as number | null,
+  stamina: null as number | null,
+  work_rate: null as number | null,
+};
 
 export function PlayerEditModal({ player, initialName = "", open, onClose, onSave, onDelete, busy }: PlayerEditModalProps) {
   const [form, setForm] = useState<Omit<Player, "id">>(blank);
@@ -106,6 +119,56 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
             <AttributeTag attribute={attribute} active={form.attributes.includes(attribute)} key={attribute} onClick={() => toggleAttribute(attribute)} />
           ))}
         </div>
+        {/* Physical info */}
+        <p className="text-xs font-bold uppercase text-white/40">Physical</p>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Age">
+            <Input
+              max={70} min={14} placeholder="–" type="number"
+              value={form.age ?? ""}
+              onChange={(e) => setForm({ ...form, age: e.target.value ? Number(e.target.value) : null })}
+            />
+          </Field>
+          <Field label="Height (cm)">
+            <Input
+              max={220} min={140} placeholder="–" type="number"
+              value={form.height_cm ?? ""}
+              onChange={(e) => setForm({ ...form, height_cm: e.target.value ? Number(e.target.value) : null })}
+            />
+          </Field>
+        </div>
+        <Field label="Preferred role">
+          <Input
+            placeholder="e.g. Midfield / attack"
+            value={form.preferred_role ?? ""}
+            onChange={(e) => setForm({ ...form, preferred_role: e.target.value || null })}
+          />
+        </Field>
+
+        {/* Attribute ratings */}
+        <p className="text-xs font-bold uppercase text-white/40">Ratings</p>
+        <Field label={`Speed ${form.speed ?? "–"}/10`}>
+          <Input min={1} max={10} type="range" value={form.speed ?? 5} onChange={(e) => setForm({ ...form, speed: Number(e.target.value) })} />
+        </Field>
+        <Field label={`Technique ${form.technique ?? "–"}/10`}>
+          <Input min={1} max={10} type="range" value={form.technique ?? 5} onChange={(e) => setForm({ ...form, technique: Number(e.target.value) })} />
+        </Field>
+        <Field label={`Defending ${form.defending ?? "–"}/10`}>
+          <Input min={1} max={10} type="range" value={form.defending ?? 5} onChange={(e) => setForm({ ...form, defending: Number(e.target.value) })} />
+        </Field>
+        <Field label={`Shooting ${form.shooting ?? "–"}/10`}>
+          <Input min={1} max={10} type="range" value={form.shooting ?? 5} onChange={(e) => setForm({ ...form, shooting: Number(e.target.value) })} />
+        </Field>
+        <Field label={`Aerial ${form.aerial ?? "–"}/10`}>
+          <Input min={1} max={10} type="range" value={form.aerial ?? 5} onChange={(e) => setForm({ ...form, aerial: Number(e.target.value) })} />
+        </Field>
+        <Field label={`Stamina ${form.stamina ?? "–"}/10`}>
+          <Input min={1} max={10} type="range" value={form.stamina ?? 5} onChange={(e) => setForm({ ...form, stamina: Number(e.target.value) })} />
+        </Field>
+        <Field label={`Work rate ${form.work_rate ?? "–"}/10`}>
+          <Input min={1} max={10} type="range" value={form.work_rate ?? 5} onChange={(e) => setForm({ ...form, work_rate: Number(e.target.value) })} />
+        </Field>
+
         <div className="grid grid-cols-[1fr_auto] gap-2">
           <Button disabled={busy} icon={<Save size={18} />} type="submit">Save</Button>
           {player && onDelete ? <Button disabled={busy} icon={<Trash2 size={18} />} onClick={onDelete} type="button" variant="danger" /> : null}

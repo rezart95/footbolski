@@ -17,6 +17,16 @@ export interface Player {
   skill_rating: number;
   primary_position: PlayerPosition;
   attributes: PlayerAttribute[];
+  age?: number | null;
+  height_cm?: number | null;
+  preferred_role?: string | null;
+  speed?: number | null;
+  technique?: number | null;
+  defending?: number | null;
+  shooting?: number | null;
+  aerial?: number | null;
+  stamina?: number | null;
+  work_rate?: number | null;
 }
 
 export interface PlayerPayload {
@@ -25,4 +35,14 @@ export interface PlayerPayload {
   skill_rating: number;
   primary_position: PlayerPosition;
   attributes: PlayerAttribute[];
+  age?: number | null;
+  height_cm?: number | null;
+  preferred_role?: string | null;
+  speed?: number | null;
+  technique?: number | null;
+  defending?: number | null;
+  shooting?: number | null;
+  aerial?: number | null;
+  stamina?: number | null;
+  work_rate?: number | null;
 }
