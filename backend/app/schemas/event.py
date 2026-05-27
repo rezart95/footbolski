@@ -19,6 +19,11 @@ class CreatorAction(BaseModel):
     created_by_name: str = Field(min_length=1, max_length=255)
 
 
+class SwapOption(BaseModel):
+    swap: str
+    reason: str
+
+
 class EventRead(BaseModel):
     id: uuid.UUID
     venue: VenueRead
@@ -30,5 +35,7 @@ class EventRead(BaseModel):
     teams_generated: bool
     confirmed_count: int
     waitlist_count: int
+    ai_reasoning: str | None = None
+    ai_swap_options: list[SwapOption] | None = None
 
     model_config = ConfigDict(from_attributes=True)

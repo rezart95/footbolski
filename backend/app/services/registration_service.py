@@ -27,8 +27,17 @@ async def _next_position(session: AsyncSession, event_id: uuid.UUID, status_: Li
 
 
 async def _matching_player(session: AsyncSession, name: str) -> Player | None:
+    # Exact match first
     stmt = select(Player).where(func.lower(Player.name) == name.casefold()).limit(1)
-    return await session.scalar(stmt)
+    player = await session.scalar(stmt)
+    if player:
+        return player
+    # Fall back to first-word match (e.g. "Marcin Matysik" -> "Marcin")
+    first = name.split()[0].casefold()
+    if first != name.casefold():
+        stmt = select(Player).where(func.lower(Player.name) == first).limit(1)
+        player = await session.scalar(stmt)
+    return player
 
 
 async def register(session: AsyncSession, event_id: uuid.UUID, name: str) -> Registration:

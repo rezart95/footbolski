@@ -31,6 +31,8 @@ async def as_read(session: AsyncSession, event: Event) -> dict:
         "teams_generated": event.teams_generated,
         "confirmed_count": await _count(session, event.id, ListStatus.CONFIRMED),
         "waitlist_count": await _count(session, event.id, ListStatus.WAITLIST),
+        "ai_reasoning": event.ai_reasoning,
+        "ai_swap_options": event.ai_swap_options,
     }
 
 

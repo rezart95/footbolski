@@ -1,15 +1,18 @@
 import { ExternalLink } from "lucide-react";
 import { useParams } from "react-router-dom";
+import { AIInsightsPanel } from "../components/features/teams/AIInsightsPanel";
 import { TeamDisplay } from "../components/features/teams/TeamDisplay";
 import { TeamSplitButton } from "../components/features/teams/TeamSplitButton";
 import { RegistrationList } from "../components/features/registration/RegistrationList";
 import { WaitlistSection } from "../components/features/registration/WaitlistSection";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
+import { Notice } from "../components/ui/Notice";
 import { useCancelEvent, useEvent } from "../hooks/useEvents";
 import { useRegistrationActions, useRegistrations } from "../hooks/useRegistrations";
 import { useSession } from "../hooks/useSession";
 import { useTeamActions, useTeams } from "../hooks/useTeams";
+import { errorMessage } from "../lib/errors";
 
 export function EventDetailPage() {
   const { id = "" } = useParams();
@@ -60,7 +63,15 @@ export function EventDetailPage() {
       />
       <WaitlistSection registrations={waitlist} />
       <TeamSplitButton busy={teamActions.generate.isPending} visible={canSplit} onGenerate={() => teamActions.generate.mutate(sessionName)} />
+      {teamActions.generate.isError ? (
+        <Notice tone="error">
+          {errorMessage(teamActions.generate.error, "AI team split failed. Please try again.")}
+        </Notice>
+      ) : null}
       {teams?.length ? <TeamDisplay editable={creator} playersPerSide={event.venue.players_per_side} teams={teams} /> : null}
+      {event.ai_reasoning ? (
+        <AIInsightsPanel reasoning={event.ai_reasoning} swapOptions={event.ai_swap_options} />
+      ) : null}
     </div>
   );
 }

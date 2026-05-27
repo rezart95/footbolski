@@ -1,15 +1,11 @@
-"""Team-split agent entrypoint.
-
-When CLAUDE_API_KEY is configured the split is powered by Claude (using
-TEAM_SPLIT_SYSTEM_PROMPT). Otherwise falls back to a composite-score
-snake-draft algorithm.
-"""
+"""Team-split agent entrypoint powered by Claude AI."""
 from __future__ import annotations
 
 import json
 import re
 import uuid
 
+from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 
@@ -70,13 +66,14 @@ async def _ai_split(payloads: list[dict], api_key: str, model: str) -> dict:
 
     user_message = (
         "Here is the confirmed player list for this event. "
-        "Please split them into two balanced teams.\n\n"
+        "Please split them into two balanced teams.\n"
+        "Respond with the JSON object only — no preamble, no markdown tables, no reasoning before the JSON.\n\n"
         f"```json\n{json.dumps(payloads, indent=2, default=str)}\n```"
     )
 
     response = await client.messages.create(
         model=model,
-        max_tokens=1024,
+        max_tokens=2048,
         system=TEAM_SPLIT_SYSTEM_PROMPT,
         messages=[{"role": "user", "content": user_message}],
     )
@@ -85,60 +82,20 @@ async def _ai_split(payloads: list[dict], api_key: str, model: str) -> dict:
 
     # Strip markdown code fences if Claude wraps the response
     json_match = re.search(r"```(?:json)?\s*([\s\S]+?)```", raw)
-    clean = json_match.group(1).strip() if json_match else raw.strip()
+    if json_match:
+        clean = json_match.group(1).strip()
+    else:
+        # Try to extract bare JSON object from the response
+        obj_match = re.search(r"(\{[\s\S]+\})", raw)
+        clean = obj_match.group(1).strip() if obj_match else raw.strip()
 
-    result = json.loads(clean)
+    try:
+        result = json.loads(clean)
+    except json.JSONDecodeError:
+        raise ValueError(f"Claude returned non-JSON response:\n{raw!r}")
+
     result["_source"] = "claude"
     return result
-
-
-# ---------------------------------------------------------------------------
-# Algorithmic fallback (composite-score snake draft)
-# ---------------------------------------------------------------------------
-
-def _algorithmic_split(entries: list[dict]) -> dict:
-    """Snake-draft split based on composite scores."""
-    sorted_entries = sorted(entries, key=lambda e: e["score"], reverse=True)
-
-    team_a: list[dict] = []
-    team_b: list[dict] = []
-    for i, entry in enumerate(sorted_entries):
-        pair = i // 2
-        if pair % 2 == 0:
-            (team_a if i % 2 == 0 else team_b).append(entry)
-        else:
-            (team_b if i % 2 == 0 else team_a).append(entry)
-
-    score_a = sum(e["score"] for e in team_a)
-    score_b = sum(e["score"] for e in team_b)
-
-    # Find the swap that most closes the gap
-    best_swap = None
-    best_gap = abs(score_a - score_b)
-    for ea in team_a:
-        for eb in team_b:
-            gap = abs((score_a - ea["score"] + eb["score"]) - (score_b - eb["score"] + ea["score"]))
-            if gap < best_gap:
-                best_gap = gap
-                best_swap = {
-                    "swap": f"{ea['payload']['name']} (Team A) ↔ {eb['payload']['name']} (Team B)",
-                    "reason": f"Reduces score gap from {abs(score_a - score_b):.1f} to {gap:.1f}.",
-                }
-
-    return {
-        "team_a": [e["payload"]["name"] for e in team_a],
-        "team_b": [e["payload"]["name"] for e in team_b],
-        "team_a_score": round(score_a, 1),
-        "team_b_score": round(score_b, 1),
-        "score_gap": round(abs(score_a - score_b), 1),
-        "reasoning": (
-            f"Algorithmic snake-draft using weighted composite scores "
-            f"(overall × 3, technique × 1.5, speed / defending / shooting / stamina / work_rate × 1, aerial × 0.5). "
-            f"Team A: {score_a:.1f} | Team B: {score_b:.1f} | Gap: {abs(score_a - score_b):.1f}."
-        ),
-        "swap_options": [best_swap] if best_swap else [],
-        "_source": "algorithm",
-    }
 
 
 # ---------------------------------------------------------------------------
@@ -146,19 +103,17 @@ def _algorithmic_split(entries: list[dict]) -> dict:
 # ---------------------------------------------------------------------------
 
 async def run_split(event_id: str, regs: list | None = None) -> dict:
-    """Return a balanced team split for the confirmed players of an event.
+    """Return a Claude-powered balanced team split for the confirmed players.
 
-    Args:
-        event_id: UUID string of the event.
-        regs: Pre-loaded list of Registration objects (with .player eager-loaded).
-              If omitted, registrations are fetched from the DB.
-
-    Uses Claude when CLAUDE_API_KEY is set; falls back to the algorithmic
-    snake-draft otherwise.
-
-    Returns keys: team_a, team_b, reasoning, swap_options, _source.
+    Raises HTTP 503 if Claude is not configured or the call fails.
     """
     settings = get_settings()
+
+    if not settings.claude_api_key:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI team split is unavailable: CLAUDE_API_KEY is not configured.",
+        )
 
     if regs is None:
         eid = uuid.UUID(event_id)
@@ -178,7 +133,10 @@ async def run_split(event_id: str, regs: list | None = None) -> dict:
             )
 
     if not regs:
-        return {"error": "No confirmed registrations found for this event."}
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="No confirmed registrations found for this event.",
+        )
 
     entries = [
         {
@@ -190,11 +148,14 @@ async def run_split(event_id: str, regs: list | None = None) -> dict:
     ]
     payloads = [e["payload"] for e in entries]
 
-    if settings.claude_api_key:
-        try:
-            return await _ai_split(payloads, settings.claude_api_key, settings.claude_model)
-        except Exception as exc:
-            import logging
-            logging.getLogger(__name__).warning("Claude split failed (%s), using algorithm fallback.", exc)
-
-    return _algorithmic_split(entries)
+    try:
+        return await _ai_split(payloads, settings.claude_api_key, settings.claude_model)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).error("Claude split failed: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="AI team split failed. Please try again in a moment.",
+        ) from exc

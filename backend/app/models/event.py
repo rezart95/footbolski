@@ -1,8 +1,9 @@
 import uuid
 from datetime import date, datetime, time
+from typing import Any
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, String, Time, func
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Date, DateTime, Enum, ForeignKey, String, Text, Time, func
+from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -24,6 +25,8 @@ class Event(Base):
     )
     teams_generated: Mapped[bool] = mapped_column(default=False)
     teams_locked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    ai_reasoning: Mapped[str | None] = mapped_column(Text)
+    ai_swap_options: Mapped[list[Any] | None] = mapped_column(JSON)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     venue: Mapped["Venue"] = relationship(back_populates="events")

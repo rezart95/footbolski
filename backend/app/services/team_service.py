@@ -96,6 +96,12 @@ async def generate_teams(session: AsyncSession, event_id: uuid.UUID, creator_nam
     from app.agent.agent_router import run_split
     split = await run_split(str(event_id), regs=regs)
 
+    # Persist AI reasoning on the event for transparency
+    if split.get("reasoning"):
+        event.ai_reasoning = split["reasoning"]
+    if split.get("swap_options"):
+        event.ai_swap_options = split["swap_options"]
+
     if "team_a" in split and "team_b" in split:
         # Map player names returned by Claude/algorithm back to registrations.
         # Match by player.name first, then display_name (case-insensitive).

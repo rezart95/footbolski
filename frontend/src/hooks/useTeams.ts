@@ -13,7 +13,10 @@ export function useTeams(eventId?: string) {
 
 export function useTeamActions(eventId: string) {
   const queryClient = useQueryClient();
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["teams", eventId] });
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["teams", eventId] });
+    queryClient.invalidateQueries({ queryKey: ["events", eventId] });
+  };
 
   return {
     generate: useMutation({ mutationFn: (name: string) => generateTeams(eventId, name), onSuccess: invalidate }),

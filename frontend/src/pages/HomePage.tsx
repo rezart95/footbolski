@@ -1,6 +1,4 @@
 import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
-import { CreateEventModal } from "../components/features/events/CreateEventModal";
 import { EventCard } from "../components/features/events/EventCard";
 import { JoinButton } from "../components/features/registration/JoinButton";
 import { RegistrationList } from "../components/features/registration/RegistrationList";
@@ -16,7 +14,6 @@ import { useTeamActions } from "../hooks/useTeams";
 import { errorMessage } from "../lib/errors";
 
 export function HomePage() {
-  const [creating, setCreating] = useState(new URLSearchParams(location.search).get("create") === "1");
   const { sessionName } = useSession();
   const upcoming = useUpcomingEvent();
   const events = useEvents();
@@ -75,14 +72,10 @@ export function HomePage() {
         <EmptyState
           title="No upcoming event"
           detail="Only real backend events appear here. Create one once the API is connected."
-          action={<Button onClick={() => setCreating(true)}>Create One</Button>}
+          action={<Button onClick={() => {}}>Create One</Button>}
         />
       )}
       {!event && (upcoming.isError || events.isError) ? <Notice tone="error">Backend is not returning events yet. Check the backend URL and database connection.</Notice> : null}
-      <Button className="fixed bottom-28 right-4 z-30 rounded-full shadow-glow" icon={<Plus size={20} />} onClick={() => setCreating(true)}>
-        Create
-      </Button>
-      <CreateEventModal open={creating} onClose={() => setCreating(false)} />
     </div>
   );
 }

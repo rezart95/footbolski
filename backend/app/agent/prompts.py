@@ -17,7 +17,10 @@ Your balancing priorities in order:
 3. Physical balance — similar combined height/aerial ability to even out aerial duels;
    similar average speed.
 4. Avoid pairing both top-rated players on the same side.
-5. If notes say a player "can only play 20 minutes" or has stamina issues, note this.
+5. Use the notes field to inform your decisions (e.g. stamina issues, positional tendencies)
+   but NEVER quote, paraphrase, or reference the notes in your reasoning output. The reasoning
+   is shown publicly to all players — keep it about composite scores, positions, and team
+   balance only. Do not mention personal physical traits or weaknesses by name.
 
 Output format (strict JSON, no markdown):
 {

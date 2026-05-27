@@ -10,6 +10,11 @@ export interface Venue {
   max_players: number;
 }
 
+export interface SwapOption {
+  swap: string;
+  reason: string;
+}
+
 export interface EventSummary {
   id: string;
   venue: Venue;
@@ -21,6 +26,8 @@ export interface EventSummary {
   teams_generated: boolean;
   confirmed_count: number;
   waitlist_count: number;
+  ai_reasoning: string | null;
+  ai_swap_options: SwapOption[] | null;
 }
 
 export interface EventPayload {
