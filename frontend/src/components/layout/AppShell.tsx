@@ -3,7 +3,6 @@ import { useState } from "react";
 import { TopBar } from "./TopBar";
 import { BottomNav } from "./BottomNav";
 import { NameEntryModal } from "../features/session/NameEntryModal";
-import { UpdatePrompt } from "../ui/UpdatePrompt";
 
 interface AppShellProps {
   children: ReactNode;
@@ -14,7 +13,6 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <div className="min-h-screen pb-28">
-      <UpdatePrompt />
       <TopBar onEditName={() => setEditingName(true)} />
       <main className="mx-auto max-w-5xl px-4 py-5">{children}</main>
       <BottomNav />

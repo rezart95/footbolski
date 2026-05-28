@@ -12,6 +12,18 @@ import { PitchPage } from "./pages/PitchPage";
 import { PlayersPage } from "./pages/PlayersPage";
 import "./index.css";
 
+// Reload the page whenever a new service worker takes control so users
+// always get the latest version without needing to clear browser data.
+if ("serviceWorker" in navigator) {
+  let reloading = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (!reloading) {
+      reloading = true;
+      window.location.reload();
+    }
+  });
+}
+
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
