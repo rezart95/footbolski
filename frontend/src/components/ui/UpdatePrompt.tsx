@@ -5,11 +5,7 @@ export function UpdatePrompt() {
   const {
     needRefresh: [needRefresh],
     updateServiceWorker,
-  } = useRegisterSW({
-    onRegisteredSW(_swUrl, _r) {
-      // SW registered — no action needed
-    },
-  });
+  } = useRegisterSW();
 
   if (!needRefresh) return null;
 
