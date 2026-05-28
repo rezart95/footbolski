@@ -1,6 +1,5 @@
 import { CheckCircle2, ExternalLink } from "lucide-react";
-import { useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { AIInsightsPanel } from "../components/features/teams/AIInsightsPanel";
 import { TeamDisplay } from "../components/features/teams/TeamDisplay";
 import { TeamSplitButton } from "../components/features/teams/TeamSplitButton";
@@ -17,7 +16,6 @@ import { errorMessage } from "../lib/errors";
 
 export function EventDetailPage() {
   const { id = "" } = useParams();
-  const navigate = useNavigate();
   const { sessionName } = useSession();
   const { data: event, isLoading } = useEvent(id);
   const { data: registrations = [] } = useRegistrations(id);
@@ -25,11 +23,6 @@ export function EventDetailPage() {
   const registrationActions = useRegistrationActions(id);
   const teamActions = useTeamActions(id);
   const cancel = useCancelEvent(id);
-
-  // Redirect to pitch the moment generation starts
-  useEffect(() => {
-    if (teamActions.generate.isPending) navigate("/pitch");
-  }, [teamActions.generate.isPending, navigate]);
 
   if (isLoading) {
     return <EmptyState title="Loading event" />;

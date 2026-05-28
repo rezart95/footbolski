@@ -1,5 +1,6 @@
 import { Wand2 } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "../../ui/Button";
 import { TeamSplitWarningModal } from "./TeamSplitWarningModal";
 
@@ -10,6 +11,7 @@ interface TeamSplitButtonProps {
 }
 
 export function TeamSplitButton({ visible, busy, onGenerate }: TeamSplitButtonProps) {
+  const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
 
   if (!visible) return null;
@@ -24,8 +26,9 @@ export function TeamSplitButton({ visible, busy, onGenerate }: TeamSplitButtonPr
         open={confirming}
         onCancel={() => setConfirming(false)}
         onConfirm={() => {
-          onGenerate();
           setConfirming(false);
+          navigate("/pitch");
+          onGenerate();
         }}
       />
     </>
