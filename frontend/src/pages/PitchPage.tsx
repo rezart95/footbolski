@@ -14,7 +14,9 @@ export function PitchPage() {
   const { sessionName } = useSession();
   const isGenerating = useIsMutating({ mutationKey: ["generate-teams"] }) > 0;
 
-  const splitEvents = (events as EventSummary[]).filter((e) => e.teams_generated);
+  const splitEvents = (events as EventSummary[]).filter(
+    (e) => e.teams_generated && e.status === "upcoming",
+  );
 
   const [selectedId, setSelectedId] = useState<string>("");
 
@@ -50,8 +52,8 @@ export function PitchPage() {
     }
     return (
       <EmptyState
-        detail="Generate a team split from an event to see the pitch."
-        title="No teams yet"
+        detail="The organiser hasn't split the teams yet. Check back closer to match day."
+        title="Waiting for the next split"
       />
     );
   }

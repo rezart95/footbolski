@@ -1,4 +1,4 @@
-import { CheckCircle2, ExternalLink } from "lucide-react";
+import { CheckCircle2, ExternalLink, TimerOff } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { AIInsightsPanel } from "../components/features/teams/AIInsightsPanel";
 import { TeamDisplay } from "../components/features/teams/TeamDisplay";
@@ -39,6 +39,7 @@ export function EventDetailPage() {
     sn === event.created_by_name.split(" ")[0].toLowerCase();
   const canSplit = creator && event.confirmed_count === event.max_players && !event.teams_generated;
   const teamsGenerated = creator && event.teams_generated;
+  const isCompleted = event.status === "completed";
 
   return (
     <div className="grid gap-5">
@@ -50,7 +51,7 @@ export function EventDetailPage() {
               {event.event_date} at {event.event_time.slice(0, 5)}
             </p>
           </div>
-          {creator ? <Button onClick={() => cancel.mutate(sessionName)} variant="danger">Cancel</Button> : null}
+          {creator && !isCompleted ? <Button onClick={() => cancel.mutate(sessionName)} variant="danger">Cancel</Button> : null}
         </div>
         {event.venue.address ? (
           <a className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-pitch-400" href={`https://maps.google.com/?q=${event.venue.address}`}>
@@ -58,13 +59,24 @@ export function EventDetailPage() {
           </a>
         ) : null}
       </section>
+
+      {isCompleted ? (
+        <div className="flex items-center gap-3 rounded-lg border border-sky-400/25 bg-sky-400/5 p-4">
+          <TimerOff className="shrink-0 text-sky-400" size={20} />
+          <div>
+            <p className="font-semibold text-sky-300">Match has ended</p>
+            {creator ? <p className="text-xs text-white/45">Payment status below — tap a player to mark as paid</p> : null}
+          </div>
+        </div>
+      ) : null}
+
       <RegistrationList
         busy={registrationActions.payment.isPending}
         maxPlayers={event.max_players}
         registrations={confirmed}
         onTogglePaid={(registration) => registrationActions.payment.mutate({ id: registration.id, paid: !registration.has_paid })}
       />
-      <WaitlistSection registrations={waitlist} />
+      {!isCompleted ? <WaitlistSection registrations={waitlist} /> : null}
       <TeamSplitButton
         busy={teamActions.generate.isPending}
         visible={canSplit}

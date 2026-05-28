@@ -1,5 +1,5 @@
 import uuid
-from datetime import date
+from datetime import date, datetime, timedelta
 
 from fastapi import HTTPException, status
 from sqlalchemy import desc, func, select
@@ -19,6 +19,16 @@ async def _count(session: AsyncSession, event_id: uuid.UUID, list_status: ListSt
     return int(await session.scalar(stmt) or 0)
 
 
+def _effective_status(event: Event) -> EventStatus:
+    """Return completed if the match (+ 90 min) has already passed, even if DB still says upcoming."""
+    if event.status != EventStatus.UPCOMING:
+        return event.status
+    match_end = datetime.combine(event.event_date, event.event_time) + timedelta(minutes=90)
+    if datetime.now() > match_end:
+        return EventStatus.COMPLETED
+    return EventStatus.UPCOMING
+
+
 async def as_read(session: AsyncSession, event: Event) -> dict:
     return {
         "id": event.id,
@@ -27,7 +37,7 @@ async def as_read(session: AsyncSession, event: Event) -> dict:
         "event_time": event.event_time,
         "max_players": event.max_players,
         "created_by_name": event.created_by_name,
-        "status": event.status,
+        "status": _effective_status(event),
         "teams_generated": event.teams_generated,
         "confirmed_count": await _count(session, event.id, ListStatus.CONFIRMED),
         "waitlist_count": await _count(session, event.id, ListStatus.WAITLIST),
