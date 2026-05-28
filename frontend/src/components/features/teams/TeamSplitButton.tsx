@@ -11,9 +11,8 @@ interface TeamSplitButtonProps {
 
 export function TeamSplitButton({ visible, busy, onGenerate }: TeamSplitButtonProps) {
   const [confirming, setConfirming] = useState(false);
-  if (!visible) {
-    return null;
-  }
+
+  if (!visible) return null;
 
   return (
     <>

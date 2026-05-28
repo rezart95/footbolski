@@ -66,7 +66,9 @@ async def get_teams(session: AsyncSession, event_id: uuid.UUID) -> list[Team] | 
 
 async def generate_teams(session: AsyncSession, event_id: uuid.UUID, creator_name: str) -> list[Team]:
     event = await get_event(session, event_id)
-    if event.created_by_name.casefold() != creator_name.casefold():
+    name = creator_name.casefold()
+    stored = event.created_by_name.casefold()
+    if name != stored and name != stored.split()[0]:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the event creator can split teams")
     if event.teams_generated:
         raise HTTPException(status.HTTP_409_CONFLICT, "Teams have already been generated")
@@ -101,6 +103,7 @@ async def generate_teams(session: AsyncSession, event_id: uuid.UUID, creator_nam
         event.ai_reasoning = split["reasoning"]
     if split.get("swap_options"):
         event.ai_swap_options = split["swap_options"]
+    session.add(event)  # ensure dirty fields are flushed
 
     if "team_a" in split and "team_b" in split:
         # Map player names returned by Claude/algorithm back to registrations.
@@ -148,7 +151,7 @@ async def generate_teams(session: AsyncSession, event_id: uuid.UUID, creator_nam
     # Default formation based on outfield players (= players_per_side - 1 GK)
     def default_formation(n_outfield: int) -> str:
         if n_outfield >= 6:
-            return "2-2-2"
+            return "2-3-1"
         if n_outfield == 5:
             return "2-2-1"
         return "2-1-1"

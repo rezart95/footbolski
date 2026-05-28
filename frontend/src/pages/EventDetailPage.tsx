@@ -1,5 +1,6 @@
-import { ExternalLink } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { CheckCircle2, ExternalLink } from "lucide-react";
+import { useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { AIInsightsPanel } from "../components/features/teams/AIInsightsPanel";
 import { TeamDisplay } from "../components/features/teams/TeamDisplay";
 import { TeamSplitButton } from "../components/features/teams/TeamSplitButton";
@@ -16,6 +17,7 @@ import { errorMessage } from "../lib/errors";
 
 export function EventDetailPage() {
   const { id = "" } = useParams();
+  const navigate = useNavigate();
   const { sessionName } = useSession();
   const { data: event, isLoading } = useEvent(id);
   const { data: registrations = [] } = useRegistrations(id);
@@ -23,6 +25,11 @@ export function EventDetailPage() {
   const registrationActions = useRegistrationActions(id);
   const teamActions = useTeamActions(id);
   const cancel = useCancelEvent(id);
+
+  // Redirect to pitch the moment generation starts
+  useEffect(() => {
+    if (teamActions.generate.isPending) navigate("/pitch");
+  }, [teamActions.generate.isPending, navigate]);
 
   if (isLoading) {
     return <EmptyState title="Loading event" />;
@@ -34,8 +41,11 @@ export function EventDetailPage() {
 
   const confirmed = registrations.filter((item) => item.list_status === "confirmed");
   const waitlist = registrations.filter((item) => item.list_status === "waitlist");
-  const creator = sessionName.toLowerCase() === event.created_by_name.toLowerCase();
+  const sn = sessionName.toLowerCase();
+  const creator = sn === event.created_by_name.toLowerCase() ||
+    sn === event.created_by_name.split(" ")[0].toLowerCase();
   const canSplit = creator && event.confirmed_count === event.max_players && !event.teams_generated;
+  const teamsGenerated = creator && event.teams_generated;
 
   return (
     <div className="grid gap-5">
@@ -62,7 +72,17 @@ export function EventDetailPage() {
         onTogglePaid={(registration) => registrationActions.payment.mutate({ id: registration.id, paid: !registration.has_paid })}
       />
       <WaitlistSection registrations={waitlist} />
-      <TeamSplitButton busy={teamActions.generate.isPending} visible={canSplit} onGenerate={() => teamActions.generate.mutate(sessionName)} />
+      <TeamSplitButton
+        busy={teamActions.generate.isPending}
+        visible={canSplit}
+        onGenerate={() => teamActions.generate.mutate(sessionName)}
+      />
+      {teamsGenerated ? (
+        <div className="flex items-center gap-3 rounded-lg border border-pitch-400/25 bg-pitch-400/5 p-4">
+          <CheckCircle2 className="shrink-0 text-pitch-400" size={20} />
+          <p className="text-sm font-semibold text-pitch-400">Teams have been generated for this event</p>
+        </div>
+      ) : null}
       {teamActions.generate.isError ? (
         <Notice tone="error">
           {errorMessage(teamActions.generate.error, "AI team split failed. Please try again.")}

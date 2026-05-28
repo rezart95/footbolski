@@ -107,9 +107,13 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
     teams.find((t) => t.color === "white") ?? teams[1],
   ].filter(Boolean) as Team[];
 
+  const validFormations = formationsFor(playersPerSide);
   const [formations, setFormations] = useState<Record<string, string>>(() =>
     Object.fromEntries(
-      orderedTeams.map((t) => [t.id, t.formation ?? formationsFor(playersPerSide)[0]]),
+      orderedTeams.map((t) => [
+        t.id,
+        t.formation && validFormations.includes(t.formation) ? t.formation : validFormations[0],
+      ]),
     ),
   );
 

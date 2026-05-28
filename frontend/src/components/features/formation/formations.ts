@@ -1,6 +1,6 @@
 export function formationsFor(playersPerSide: number) {
-  if (playersPerSide >= 7) return ["2-2-2", "3-2-1", "2-3-1"];
-  if (playersPerSide === 6) return ["2-2-1", "3-1-1", "2-1-2"];
+  if (playersPerSide >= 7) return ["2-3-1", "3-2-1"];
+  if (playersPerSide === 6) return ["3-1-1", "2-1-2"];
   return ["2-1-1", "1-2-1", "2-2"];
 }
 

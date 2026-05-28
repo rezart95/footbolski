@@ -31,7 +31,9 @@ export function HomePage() {
     () => registrations.find((item) => item.display_name.toLowerCase() === sessionName.toLowerCase()),
     [registrations, sessionName]
   );
-  const creator = event ? sessionName.toLowerCase() === event.created_by_name.toLowerCase() : false;
+  const creator = event
+    ? (() => { const sn = sessionName.toLowerCase(); return sn === event.created_by_name.toLowerCase() || sn === event.created_by_name.split(" ")[0].toLowerCase(); })()
+    : false;
   const canSplit = creator && !!event && event.confirmed_count === event.max_players && !event.teams_generated;
 
   function leave() {

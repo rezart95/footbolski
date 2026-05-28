@@ -15,11 +15,15 @@ export function useTeamActions(eventId: string) {
   const queryClient = useQueryClient();
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["teams", eventId] });
-    queryClient.invalidateQueries({ queryKey: ["events", eventId] });
+    queryClient.invalidateQueries({ queryKey: ["events"] }); // invalidates list + single event
   };
 
   return {
-    generate: useMutation({ mutationFn: (name: string) => generateTeams(eventId, name), onSuccess: invalidate }),
-    formation: useMutation({ mutationFn: (payload: FormationPayload) => updateFormation(eventId, payload), onSuccess: invalidate })
+    generate: useMutation({
+      mutationKey: ["generate-teams", eventId],
+      mutationFn: (name: string) => generateTeams(eventId, name),
+      onSuccess: invalidate,
+    }),
+    formation: useMutation({ mutationFn: (payload: FormationPayload) => updateFormation(eventId, payload), onSuccess: invalidate }),
   };
 }
