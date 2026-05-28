@@ -18,7 +18,11 @@ export function HomePage() {
   const upcoming = useUpcomingEvent();
   const events = useEvents();
   const fallbackEvent = events.data
-    ?.filter((item) => item.status === "upcoming")
+    ?.filter((item) => {
+      if (item.status !== "upcoming") return false;
+      const eventDateTime = new Date(`${item.event_date.split("T")[0]}T${item.event_time}`);
+      return eventDateTime.getTime() > Date.now() - 90 * 60 * 1000; // allow up to 90 min into match
+    })
     .sort((a, b) => `${a.event_date}T${a.event_time}`.localeCompare(`${b.event_date}T${b.event_time}`))[0];
   const event = upcoming.data ?? fallbackEvent;
   const { data: registrations = [] } = useRegistrations(event?.id);

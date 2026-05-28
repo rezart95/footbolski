@@ -1,8 +1,8 @@
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 from fastapi import HTTPException, status
-from sqlalchemy import desc, func, select
+from sqlalchemy import and_, desc, func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
@@ -65,10 +65,18 @@ async def list_events(
 
 
 async def upcoming_event(session: AsyncSession) -> dict | None:
+    # Exclude events whose match + 90 min has already passed (server may be in UTC)
+    cutoff = datetime.now() - timedelta(minutes=90)
     stmt = (
         select(Event)
         .options(selectinload(Event.venue))
-        .where(Event.status == EventStatus.UPCOMING, Event.event_date >= date.today())
+        .where(
+            Event.status == EventStatus.UPCOMING,
+            or_(
+                Event.event_date > cutoff.date(),
+                and_(Event.event_date == cutoff.date(), Event.event_time > cutoff.time()),
+            ),
+        )
         .order_by(Event.event_date, Event.event_time)
         .limit(1)
     )
