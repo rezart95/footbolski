@@ -3,8 +3,10 @@ import uuid
 from fastapi import APIRouter, Response, status
 
 from app.dependencies import SessionDep
+from app.models.reminder import ReminderChannel
 from app.schemas.registration import GuestProfileUpdate, PaymentUpdate, RegistrationCreate, RegistrationLeave, RegistrationRead
-from app.services import registration_service
+from app.schemas.reminder import ReminderRequest, ReminderResult
+from app.services import reminder_service, registration_service
 
 router = APIRouter(prefix="/events/{event_id}/registrations", tags=["registrations"])
 
@@ -49,4 +51,19 @@ async def update_guest_profile(
 ):
     """Set or update the attribute profile for a guest player (no linked player profile)."""
     return await registration_service.update_guest_profile(session, event_id, registration_id, payload.guest_profile)
+
+
+@router.post("/{registration_id}/remind", response_model=ReminderResult)
+async def remind(
+    event_id: uuid.UUID,
+    registration_id: uuid.UUID,
+    payload: ReminderRequest,
+    session: SessionDep,
+):
+    return await reminder_service.send_reminder(
+        session,
+        event_id=event_id,
+        registration_id=registration_id,
+        channel=ReminderChannel(payload.channel),
+    )
 
