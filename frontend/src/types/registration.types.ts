@@ -10,6 +10,7 @@ export interface Registration {
   has_paid: boolean;
   paid_at: string | null;
   registered_at: string;
+  guest_profile?: Record<string, unknown> | null;
 }
 
 export interface RegistrationPayload {

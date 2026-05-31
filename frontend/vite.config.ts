@@ -7,9 +7,12 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
-      workbox: {
-        skipWaiting: true,
-        clientsClaim: true,
+      strategies: "injectManifest",
+      srcDir: "src",
+      filename: "sw.ts",
+      injectRegister: "auto",
+      injectManifest: {
+        globPatterns: ["**/*.{js,css,html,png,svg,ico,webmanifest}"]
       },
       includeAssets: ["manifest.json"],
       manifest: {

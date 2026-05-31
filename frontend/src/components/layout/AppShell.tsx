@@ -3,6 +3,7 @@ import { useState } from "react";
 import { TopBar } from "./TopBar";
 import { BottomNav } from "./BottomNav";
 import { NameEntryModal } from "../features/session/NameEntryModal";
+import { usePushAutoEnable } from "../../hooks/usePushAutoEnable";
 
 interface AppShellProps {
   children: ReactNode;
@@ -10,6 +11,7 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const [editingName, setEditingName] = useState(false);
+  usePushAutoEnable();
 
   return (
     <div className="min-h-screen pb-28">
@@ -20,3 +22,4 @@ export function AppShell({ children }: AppShellProps) {
     </div>
   );
 }
+

@@ -29,6 +29,9 @@ class PlayerBase(BaseModel):
     work_rate: int | None = Field(default=None, ge=1, le=10)
     notes: str | None = Field(default=None, max_length=500)
 
+    # Contact
+    phone_number: str | None = Field(default=None, max_length=32)
+
 
 class PlayerCreate(PlayerBase):
     pass
