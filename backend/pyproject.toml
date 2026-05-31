@@ -14,7 +14,10 @@ dependencies = [
   "pydantic-settings>=2.6.1",
   "python-multipart>=0.0.17",
   "sqlalchemy>=2.0.36",
-  "uvicorn[standard]>=0.32.1"
+  "uvicorn[standard]>=0.32.1",
+  "pywebpush>=2.0.0",
+  "twilio>=9.3.0",
+  "phonenumbers>=8.13.50"
 ]
 
 [tool.uv]
