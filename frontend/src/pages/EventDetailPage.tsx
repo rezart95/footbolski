@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { AIInsightsPanel } from "../components/features/teams/AIInsightsPanel";
 import { TeamDisplay } from "../components/features/teams/TeamDisplay";
 import { TeamSplitButton } from "../components/features/teams/TeamSplitButton";
+import { JoinButton } from "../components/features/registration/JoinButton";
 import { RegistrationList } from "../components/features/registration/RegistrationList";
 import { WaitlistSection } from "../components/features/registration/WaitlistSection";
 import { Button } from "../components/ui/Button";
@@ -14,7 +15,7 @@ import { useRegistrationActions, useRegistrations } from "../hooks/useRegistrati
 import { useSession } from "../hooks/useSession";
 import { useTeamActions, useTeams } from "../hooks/useTeams";
 import { errorMessage } from "../lib/errors";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 export function EventDetailPage() {
   const { id = "" } = useParams();
@@ -28,6 +29,10 @@ export function EventDetailPage() {
   const cancel = useCancelEvent(id);
   const deleteEvent = useDeleteEvent(id);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const mine = useMemo(
+    () => registrations.find((r) => r.display_name.toLowerCase() === sessionName.toLowerCase()),
+    [registrations, sessionName]
+  );
 
   if (isLoading) {
     return <EmptyState title="Loading event" />;
@@ -45,8 +50,11 @@ export function EventDetailPage() {
   const canSplit = creator && event.confirmed_count === event.max_players && !event.teams_generated;
   const teamsGenerated = creator && event.teams_generated;
   const isCompleted = event.status === "completed";
-
   const isCancelled = event.status === "cancelled";
+
+  function leave() {
+    if (mine) registrationActions.leave.mutate({ id: mine.id, name: sessionName });
+  }
 
   return (
     <div className="grid gap-5">
@@ -107,6 +115,18 @@ export function EventDetailPage() {
           </div>
         </div>
       ) : null}
+
+      {!isCompleted && !isCancelled ? (
+        <JoinButton
+          busy={registrationActions.join.isPending || registrationActions.leave.isPending}
+          event={event}
+          registration={mine}
+          onJoin={() => registrationActions.join.mutate(sessionName)}
+          onLeave={leave}
+        />
+      ) : null}
+      {registrationActions.join.isError ? <Notice tone="error">{errorMessage(registrationActions.join.error, "Could not join this event.")}</Notice> : null}
+      {registrationActions.leave.isError ? <Notice tone="error">{errorMessage(registrationActions.leave.error, "Could not leave this event.")}</Notice> : null}
 
       <RegistrationList
         busy={registrationActions.payment.isPending}
