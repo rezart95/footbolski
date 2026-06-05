@@ -8,7 +8,7 @@ Depends_on: None
 
 from alembic import op
 
-revision = "0006_per_creator_event_date_constraint"
+revision = "0006_creator_date_unique"
 down_revision = "0005_notifications"
 branch_labels = None
 depends_on = None
