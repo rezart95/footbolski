@@ -6,6 +6,10 @@ A mobile-first coordination app for a private recreational football group. Handl
 
 ---
 
+https://github.com/user-attachments/assets/6f5f9d99-40d6-4831-8edd-f702bd5f726d
+
+
+
 ## Features
 
 ### Sessions & Identity
