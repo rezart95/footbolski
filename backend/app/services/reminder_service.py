@@ -113,7 +113,7 @@ async def send_reminder(
     if registration.has_paid:
         raise HTTPException(status.HTTP_409_CONFLICT, "This player has already paid")
     if not registration.player_id:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Guests cannot receive reminders")
+        raise HTTPException(status.HTTP_409_CONFLICT, "This player has no player card — ask them to create one in the Players tab before sending a reminder")
 
     await _enforce_cooldown(session, registration_id)
 

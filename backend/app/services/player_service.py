@@ -1,7 +1,7 @@
 import uuid
 
 from fastapi import HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Player, Registration
@@ -19,9 +19,46 @@ async def get_player(session: AsyncSession, player_id: uuid.UUID) -> Player:
     return player
 
 
+async def _backfill_registrations(session: AsyncSession, player: Player) -> None:
+    """Link any registrations whose display_name matches this player but have no player_id."""
+    name_lower = player.name.casefold()
+    first_lower = name_lower.split()[0]
+    stmt = (
+        update(Registration)
+        .where(
+            Registration.player_id.is_(None),
+            func.lower(Registration.display_name).in_([name_lower, first_lower]),
+        )
+        .values(player_id=player.id)
+    )
+    await session.execute(stmt)
+
+
+async def relink_all_registrations(session: AsyncSession) -> int:
+    """Back-fill player_id across all registrations for all known players. Returns number of rows updated."""
+    players = await list_players(session)
+    total = 0
+    for player in players:
+        name_lower = player.name.casefold()
+        first_lower = name_lower.split()[0]
+        result = await session.execute(
+            update(Registration)
+            .where(
+                Registration.player_id.is_(None),
+                func.lower(Registration.display_name).in_([name_lower, first_lower]),
+            )
+            .values(player_id=player.id)
+        )
+        total += result.rowcount
+    await session.commit()
+    return total
+
+
 async def create_player(session: AsyncSession, payload: PlayerCreate) -> Player:
     player = Player(**payload.model_dump())
     session.add(player)
+    await session.flush()  # get the player.id before backfill
+    await _backfill_registrations(session, player)
     await session.commit()
     await session.refresh(player)
     return player
@@ -31,6 +68,8 @@ async def update_player(session: AsyncSession, player_id: uuid.UUID, payload: Pl
     player = await get_player(session, player_id)
     for key, value in payload.model_dump().items():
         setattr(player, key, value)
+    await session.flush()
+    await _backfill_registrations(session, player)
     await session.commit()
     await session.refresh(player)
     return player

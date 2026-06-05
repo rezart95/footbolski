@@ -69,6 +69,7 @@ export function HomePage() {
           />
           <RegistrationList
             busy={actions.payment.isPending}
+            eventId={event.id}
             maxPlayers={event.max_players}
             registrations={confirmed}
             onTogglePaid={(registration) => actions.payment.mutate({ id: registration.id, paid: !registration.has_paid })}

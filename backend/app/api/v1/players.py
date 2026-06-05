@@ -34,6 +34,13 @@ async def delete_player(player_id: uuid.UUID, session: SessionDep):
     await player_service.delete_player(session, player_id)
 
 
+@router.post("/relink-registrations", response_model=dict)
+async def relink_registrations(session: SessionDep):
+    """Back-fill player_id on all registrations where display_name matches a known player."""
+    count = await player_service.relink_all_registrations(session)
+    return {"linked": count}
+
+
 @router.post("/{player_id}/photo")
 async def upload_photo(player_id: uuid.UUID, file: UploadFile, session: SessionDep):
     player = await player_service.get_player(session, player_id)

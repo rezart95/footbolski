@@ -26,7 +26,7 @@ export function RegistrationList({ registrations, onTogglePaid, maxPlayers, busy
       </div>
       <div className="grid gap-2">
         {registrations.map((registration) => {
-          const canRemind = Boolean(eventId) && !registration.has_paid && registration.player_id !== null;
+          const canRemind = Boolean(eventId) && !registration.has_paid;
           return (
             <div className="flex items-center gap-3 rounded-lg bg-pitch-950/35 p-2" key={registration.id}>
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-white/10 font-mono text-sm font-black text-white/75">{registration.position}</span>

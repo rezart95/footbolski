@@ -2,10 +2,12 @@ import { useEffect, useRef } from "react";
 import { useSession } from "./useSession";
 import { enablePushForUser } from "../lib/push";
 
+const PUSH_SAVED_KEY = "push_subscription_saved";
+
 /**
  * On first load (and whenever the session name changes), try to bind a Web
- * Push subscription to the active player. Silent on failure so it never
- * blocks the UI; the browser still gates the permission prompt.
+ * Push subscription to the active player. Retries on every page load until
+ * the backend confirms the subscription was saved (player card must exist).
  */
 export function usePushAutoEnable() {
   const { sessionName, isSessionSet } = useSession();
@@ -13,8 +15,18 @@ export function usePushAutoEnable() {
 
   useEffect(() => {
     if (!isSessionSet) return;
-    if (lastTried.current === sessionName) return;
+    // Always retry if the subscription was never confirmed saved to the backend,
+    // OR if the session name changed.
+    const savedFor = localStorage.getItem(PUSH_SAVED_KEY);
+    if (lastTried.current === sessionName && savedFor === sessionName) return;
     lastTried.current = sessionName;
-    enablePushForUser(sessionName).catch(() => undefined);
+
+    enablePushForUser(sessionName)
+      .then((ok) => {
+        if (ok) {
+          localStorage.setItem(PUSH_SAVED_KEY, sessionName);
+        }
+      })
+      .catch(() => undefined);
   }, [sessionName, isSessionSet]);
 }
