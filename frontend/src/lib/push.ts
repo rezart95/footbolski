@@ -37,10 +37,16 @@ export async function enablePushForUser(displayName: string): Promise<boolean> {
 
   let subscription = await reg.pushManager.getSubscription();
   if (!subscription) {
-    subscription = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey),
-    });
+    const timeout = new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Push subscribe timed out — check your network and try again.")), 15_000)
+    );
+    subscription = await Promise.race([
+      reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      }),
+      timeout,
+    ]);
   }
 
   const json = subscription.toJSON();

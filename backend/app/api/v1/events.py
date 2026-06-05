@@ -39,3 +39,8 @@ async def get_event(event_id: uuid.UUID, session: SessionDep) -> dict:
 @router.patch("/{event_id}/cancel", response_model=EventRead)
 async def cancel_event(event_id: uuid.UUID, payload: CreatorAction, session: SessionDep) -> dict:
     return await event_service.cancel_event(session, event_id, payload.created_by_name)
+
+
+@router.delete("/{event_id}", status_code=204)
+async def delete_event(event_id: uuid.UUID, payload: CreatorAction, session: SessionDep) -> None:
+    await event_service.delete_event(session, event_id, payload.created_by_name)

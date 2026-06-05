@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime, time
 from typing import Any
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, String, Text, Time, func
+from sqlalchemy import Date, DateTime, Enum, ForeignKey, String, Text, Time, UniqueConstraint, func
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,10 +12,11 @@ from app.models.enums import EventStatus
 
 class Event(Base):
     __tablename__ = "events"
+    __table_args__ = (UniqueConstraint("created_by_name", "event_date", name="uq_event_creator_date"),)
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     venue_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("venues.id"), nullable=False)
-    event_date: Mapped[date] = mapped_column(Date, nullable=False, unique=True)
+    event_date: Mapped[date] = mapped_column(Date, nullable=False)
     event_time: Mapped[time] = mapped_column(Time, nullable=False)
     max_players: Mapped[int]
     created_by_name: Mapped[str] = mapped_column(String(255), nullable=False)

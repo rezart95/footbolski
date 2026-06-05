@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { cancelEvent, createEvent, getEvent, getUpcomingEvent, listEvents, listVenues } from "../services/events.service";
+import { cancelEvent, createEvent, deleteEvent, getEvent, getUpcomingEvent, listEvents, listVenues } from "../services/events.service";
 
 export function useVenues() {
   return useQuery({ queryKey: ["venues"], queryFn: listVenues, retry: false });
@@ -29,6 +29,14 @@ export function useCancelEvent(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (createdByName: string) => cancelEvent(id, createdByName),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["events"] })
+  });
+}
+
+export function useDeleteEvent(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (createdByName: string) => deleteEvent(id, createdByName),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["events"] })
   });
 }

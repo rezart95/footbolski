@@ -7,8 +7,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models import Event, EventStatus, ListStatus, Registration, Venue
+from app.models import Event, EventStatus, ListStatus, PushSubscription, Registration, Venue
 from app.schemas.event import EventCreate
+from app.services import notification_service
 
 
 async def _count(session: AsyncSession, event_id: uuid.UUID, list_status: ListStatus) -> int:
@@ -101,9 +102,17 @@ async def create_event(session: AsyncSession, payload: EventCreate) -> dict:
         await session.commit()
     except IntegrityError as exc:
         await session.rollback()
-        raise HTTPException(status.HTTP_409_CONFLICT, "An event already exists on that date") from exc
+        raise HTTPException(status.HTTP_409_CONFLICT, "You already have an event on that date") from exc
     event.venue = venue
-    return await as_read(session, event)
+    result = await as_read(session, event)
+    # Notify all subscribers about the new event
+    await _notify_all_subscribers(
+        session,
+        title="New Match Created!",
+        body=f"{payload.created_by_name} created a match at {venue.name} on {payload.event_date.strftime('%a %d %b')} at {str(payload.event_time)[:5]}.",
+        url=f"/events/{event.id}",
+    )
+    return result
 
 
 async def cancel_event(session: AsyncSession, event_id: uuid.UUID, creator_name: str) -> dict:
@@ -112,4 +121,75 @@ async def cancel_event(session: AsyncSession, event_id: uuid.UUID, creator_name:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the event creator can cancel it")
     event.status = EventStatus.CANCELLED
     await session.commit()
-    return await as_read(session, event)
+    result = await as_read(session, event)
+    # Notify all registrants
+    await _notify_registrants(
+        session,
+        event=event,
+        title="Event Cancelled",
+        body=f"The match at {event.venue.name} on {event.event_date.strftime('%d %b')} has been cancelled.",
+        url=f"/events/{event.id}",
+    )
+    return result
+
+
+async def delete_event(session: AsyncSession, event_id: uuid.UUID, creator_name: str) -> None:
+    event = await get_event(session, event_id)
+    if event.created_by_name.casefold() != creator_name.casefold():
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the event creator can delete it")
+    if event.status != EventStatus.CANCELLED:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Only cancelled events can be deleted")
+    await session.delete(event)
+    await session.commit()
+
+
+async def _notify_registrants(
+    session: AsyncSession,
+    *,
+    event: Event,
+    title: str,
+    body: str,
+    url: str,
+) -> None:
+    """Best-effort push notification to all players registered for an event."""
+    from app.core.config import get_settings
+    settings = get_settings()
+    full_url = f"{settings.app_public_url}{url}"
+    stmt = (
+        select(PushSubscription)
+        .join(Registration, Registration.player_id == PushSubscription.player_id)
+        .where(Registration.event_id == event.id)
+    )
+    subscriptions = list((await session.scalars(stmt)).all())
+    for sub in subscriptions:
+        notification_service.send_push(
+            endpoint=sub.endpoint,
+            p256dh=sub.p256dh,
+            auth=sub.auth,
+            title=title,
+            body=body,
+            url=full_url,
+        )
+
+
+async def _notify_all_subscribers(
+    session: AsyncSession,
+    *,
+    title: str,
+    body: str,
+    url: str,
+) -> None:
+    """Best-effort push notification to every subscribed player (e.g. new event)."""
+    from app.core.config import get_settings
+    settings = get_settings()
+    full_url = f"{settings.app_public_url}{url}"
+    subscriptions = list((await session.scalars(select(PushSubscription))).all())
+    for sub in subscriptions:
+        notification_service.send_push(
+            endpoint=sub.endpoint,
+            p256dh=sub.p256dh,
+            auth=sub.auth,
+            title=title,
+            body=body,
+            url=full_url,
+        )

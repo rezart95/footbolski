@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { EventCard } from "../components/features/events/EventCard";
+import { CreateEventModal } from "../components/features/events/CreateEventModal";
 import { JoinButton } from "../components/features/registration/JoinButton";
 import { RegistrationList } from "../components/features/registration/RegistrationList";
 import { WaitlistSection } from "../components/features/registration/WaitlistSection";
@@ -17,6 +18,7 @@ export function HomePage() {
   const { sessionName } = useSession();
   const upcoming = useUpcomingEvent();
   const events = useEvents();
+  const [creating, setCreating] = useState(false);
   const fallbackEvent = events.data
     ?.filter((item) => {
       if (item.status !== "upcoming") return false;
@@ -78,10 +80,11 @@ export function HomePage() {
         <EmptyState
           title="No upcoming event"
           detail="Only real backend events appear here. Create one once the API is connected."
-          action={<Button onClick={() => {}}>Create One</Button>}
+          action={<Button onClick={() => setCreating(true)}>Create One</Button>}
         />
       )}
       {!event && (upcoming.isError || events.isError) ? <Notice tone="error">Backend is not returning events yet. Check the backend URL and database connection.</Notice> : null}
+      <CreateEventModal open={creating} onClose={() => setCreating(false)} />
     </div>
   );
 }

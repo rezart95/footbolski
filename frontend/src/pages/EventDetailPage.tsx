@@ -1,5 +1,5 @@
-import { CheckCircle2, ExternalLink, TimerOff } from "lucide-react";
-import { useParams } from "react-router-dom";
+import { CheckCircle2, ExternalLink, TimerOff, Trash2 } from "lucide-react";
+import { useParams, useNavigate } from "react-router-dom";
 import { AIInsightsPanel } from "../components/features/teams/AIInsightsPanel";
 import { TeamDisplay } from "../components/features/teams/TeamDisplay";
 import { TeamSplitButton } from "../components/features/teams/TeamSplitButton";
@@ -7,15 +7,18 @@ import { RegistrationList } from "../components/features/registration/Registrati
 import { WaitlistSection } from "../components/features/registration/WaitlistSection";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
+import { Modal } from "../components/ui/Modal";
 import { Notice } from "../components/ui/Notice";
-import { useCancelEvent, useEvent } from "../hooks/useEvents";
+import { useCancelEvent, useDeleteEvent, useEvent } from "../hooks/useEvents";
 import { useRegistrationActions, useRegistrations } from "../hooks/useRegistrations";
 import { useSession } from "../hooks/useSession";
 import { useTeamActions, useTeams } from "../hooks/useTeams";
 import { errorMessage } from "../lib/errors";
+import { useState } from "react";
 
 export function EventDetailPage() {
   const { id = "" } = useParams();
+  const navigate = useNavigate();
   const { sessionName } = useSession();
   const { data: event, isLoading } = useEvent(id);
   const { data: registrations = [] } = useRegistrations(id);
@@ -23,6 +26,8 @@ export function EventDetailPage() {
   const registrationActions = useRegistrationActions(id);
   const teamActions = useTeamActions(id);
   const cancel = useCancelEvent(id);
+  const deleteEvent = useDeleteEvent(id);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   if (isLoading) {
     return <EmptyState title="Loading event" />;
@@ -41,8 +46,27 @@ export function EventDetailPage() {
   const teamsGenerated = creator && event.teams_generated;
   const isCompleted = event.status === "completed";
 
+  const isCancelled = event.status === "cancelled";
+
   return (
     <div className="grid gap-5">
+      <Modal title="Cancel Event" open={showCancelConfirm} onClose={() => setShowCancelConfirm(false)}>
+        <div className="grid gap-4">
+          <p className="text-white/70">Are you sure you want to cancel this event? All registered players will be notified.</p>
+          <div className="flex gap-3">
+            <Button
+              disabled={cancel.isPending}
+              variant="danger"
+              onClick={() => cancel.mutate(sessionName, { onSuccess: () => setShowCancelConfirm(false) })}
+            >
+              {cancel.isPending ? "Cancelling…" : "Yes, Cancel Event"}
+            </Button>
+            <Button variant="secondary" onClick={() => setShowCancelConfirm(false)}>Keep Event</Button>
+          </div>
+          {cancel.isError ? <Notice tone="error">{errorMessage(cancel.error, "Could not cancel event.")}</Notice> : null}
+        </div>
+      </Modal>
+
       <section className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -51,7 +75,21 @@ export function EventDetailPage() {
               {event.event_date} at {event.event_time.slice(0, 5)}
             </p>
           </div>
-          {creator && !isCompleted ? <Button onClick={() => cancel.mutate(sessionName)} variant="danger">Cancel</Button> : null}
+          <div className="flex gap-2">
+            {creator && !isCompleted && !isCancelled ? (
+              <Button onClick={() => setShowCancelConfirm(true)} variant="danger">Cancel</Button>
+            ) : null}
+            {creator && isCancelled ? (
+              <Button
+                disabled={deleteEvent.isPending}
+                icon={<Trash2 size={16} />}
+                variant="danger"
+                onClick={() => deleteEvent.mutate(sessionName, { onSuccess: () => navigate("/events") })}
+              >
+                {deleteEvent.isPending ? "Deleting…" : "Delete"}
+              </Button>
+            ) : null}
+          </div>
         </div>
         {event.venue.address ? (
           <a className="mt-4 inline-flex items-center gap-2 text-sm font-bold text-pitch-400" href={`https://maps.google.com/?q=${event.venue.address}`}>

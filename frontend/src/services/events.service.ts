@@ -30,3 +30,7 @@ export async function cancelEvent(id: string, created_by_name: string) {
   const { data } = await api.patch<EventSummary>(`/events/${id}/cancel`, { created_by_name });
   return data;
 }
+
+export async function deleteEvent(id: string, created_by_name: string) {
+  await api.delete(`/events/${id}`, { data: { created_by_name } });
+}
