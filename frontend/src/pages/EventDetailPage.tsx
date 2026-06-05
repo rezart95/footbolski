@@ -4,6 +4,7 @@ import { AIInsightsPanel } from "../components/features/teams/AIInsightsPanel";
 import { TeamDisplay } from "../components/features/teams/TeamDisplay";
 import { TeamSplitButton } from "../components/features/teams/TeamSplitButton";
 import { JoinButton } from "../components/features/registration/JoinButton";
+import { RequireCardModal } from "../components/features/players/RequireCardModal";
 import { RegistrationList } from "../components/features/registration/RegistrationList";
 import { WaitlistSection } from "../components/features/registration/WaitlistSection";
 import { Button } from "../components/ui/Button";
@@ -14,6 +15,7 @@ import { useCancelEvent, useDeleteEvent, useEvent } from "../hooks/useEvents";
 import { useRegistrationActions, useRegistrations } from "../hooks/useRegistrations";
 import { useSession } from "../hooks/useSession";
 import { useTeamActions, useTeams } from "../hooks/useTeams";
+import { usePlayers } from "../hooks/usePlayers";
 import { errorMessage } from "../lib/errors";
 import { useMemo, useState } from "react";
 
@@ -29,6 +31,8 @@ export function EventDetailPage() {
   const cancel = useCancelEvent(id);
   const deleteEvent = useDeleteEvent(id);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showRequireCard, setShowRequireCard] = useState(false);
+  const { data: players = [] } = usePlayers();
   const mine = useMemo(
     () => registrations.find((r) => r.display_name.toLowerCase() === sessionName.toLowerCase()),
     [registrations, sessionName]
@@ -56,8 +60,15 @@ export function EventDetailPage() {
     if (mine) registrationActions.leave.mutate({ id: mine.id, name: sessionName });
   }
 
+  function tryJoin() {
+    const hasCard = players.some((p) => p.name.toLowerCase() === sessionName.toLowerCase());
+    if (!hasCard) { setShowRequireCard(true); return; }
+    registrationActions.join.mutate(sessionName);
+  }
+
   return (
     <div className="grid gap-5">
+      <RequireCardModal open={showRequireCard} onClose={() => setShowRequireCard(false)} />
       <Modal title="Cancel Event" open={showCancelConfirm} onClose={() => setShowCancelConfirm(false)}>
         <div className="grid gap-4">
           <p className="text-white/70">Are you sure you want to cancel this event? All registered players will be notified.</p>
@@ -121,7 +132,7 @@ export function EventDetailPage() {
           busy={registrationActions.join.isPending || registrationActions.leave.isPending}
           event={event}
           registration={mine}
-          onJoin={() => registrationActions.join.mutate(sessionName)}
+          onJoin={tryJoin}
           onLeave={leave}
         />
       ) : null}

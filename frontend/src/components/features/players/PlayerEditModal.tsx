@@ -27,22 +27,24 @@ const blank = {
   height_cm: null as number | null,
   build: null as string | null,
   preferred_role: null as string | null,
-  speed: null as number | null,
-  technique: null as number | null,
-  defending: null as number | null,
-  shooting: null as number | null,
-  aerial: null as number | null,
-  stamina: null as number | null,
-  work_rate: null as number | null,
+  speed: 5,
+  technique: 5,
+  defending: 5,
+  shooting: 5,
+  aerial: 5,
+  stamina: 5,
+  work_rate: 5,
 };
 
 export function PlayerEditModal({ player, initialName = "", open, onClose, onSave, onDelete, busy }: PlayerEditModalProps) {
   const [form, setForm] = useState<Omit<Player, "id">>(blank);
   const [uploading, setUploading] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setForm(player ? { ...player } : { ...blank, name: initialName });
+    setValidationError(null);
   }, [initialName, player, open]);
 
   async function handlePhoto(event: ChangeEvent<HTMLInputElement>) {
@@ -68,9 +70,12 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
 
   function submit(event: FormEvent) {
     event.preventDefault();
-    if (form.name.trim()) {
-      onSave({ ...form, name: form.name.trim() });
-    }
+    if (!form.name.trim()) return;
+    if (!form.photo_url) { setValidationError("Please upload a photo."); return; }
+    if (!form.age) { setValidationError("Age is required."); return; }
+    if (!form.height_cm) { setValidationError("Height is required."); return; }
+    setValidationError(null);
+    onSave({ ...form, name: form.name.trim() });
   }
 
   return (
@@ -100,6 +105,7 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
             </div>
           </button>
           <input accept="image/*" className="hidden" ref={fileRef} type="file" onChange={handlePhoto} />
+          {!form.photo_url && <p className="mt-1 text-center text-xs text-amber-400">Photo required</p>}
         </div>
         <Field label="Name">
           <Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
@@ -122,16 +128,16 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
         {/* Physical info */}
         <p className="text-xs font-bold uppercase text-white/40">Physical</p>
         <div className="grid grid-cols-2 gap-3">
-          <Field label="Age">
+          <Field label="Age *">
             <Input
-              max={70} min={14} placeholder="–" type="number"
+              max={70} min={14} placeholder="–" required type="number"
               value={form.age ?? ""}
               onChange={(e) => setForm({ ...form, age: e.target.value ? Number(e.target.value) : null })}
             />
           </Field>
-          <Field label="Height (cm)">
+          <Field label="Height (cm) *">
             <Input
-              max={220} min={140} placeholder="–" type="number"
+              max={220} min={140} placeholder="–" required type="number"
               value={form.height_cm ?? ""}
               onChange={(e) => setForm({ ...form, height_cm: e.target.value ? Number(e.target.value) : null })}
             />
@@ -176,8 +182,11 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
           <Input min={1} max={10} type="range" value={form.work_rate ?? 5} onChange={(e) => setForm({ ...form, work_rate: Number(e.target.value) })} />
         </Field>
 
+        {validationError ? (
+          <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{validationError}</p>
+        ) : null}
         <div className="grid grid-cols-[1fr_auto] gap-2">
-          <Button disabled={busy} icon={<Save size={18} />} type="submit">Save</Button>
+          <Button disabled={busy || uploading} icon={<Save size={18} />} type="submit">Save</Button>
           {player && onDelete ? <Button disabled={busy} icon={<Trash2 size={18} />} onClick={onDelete} type="button" variant="danger" /> : null}
         </div>
       </form>

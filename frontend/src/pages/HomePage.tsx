@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { EventCard } from "../components/features/events/EventCard";
 import { CreateEventModal } from "../components/features/events/CreateEventModal";
 import { JoinButton } from "../components/features/registration/JoinButton";
+import { RequireCardModal } from "../components/features/players/RequireCardModal";
 import { RegistrationList } from "../components/features/registration/RegistrationList";
 import { WaitlistSection } from "../components/features/registration/WaitlistSection";
 import { TeamSplitButton } from "../components/features/teams/TeamSplitButton";
@@ -12,6 +13,7 @@ import { useEvents, useUpcomingEvent } from "../hooks/useEvents";
 import { useRegistrationActions, useRegistrations } from "../hooks/useRegistrations";
 import { useSession } from "../hooks/useSession";
 import { useTeamActions } from "../hooks/useTeams";
+import { usePlayers } from "../hooks/usePlayers";
 import { errorMessage } from "../lib/errors";
 
 export function HomePage() {
@@ -19,6 +21,8 @@ export function HomePage() {
   const upcoming = useUpcomingEvent();
   const events = useEvents();
   const [creating, setCreating] = useState(false);
+  const [showRequireCard, setShowRequireCard] = useState(false);
+  const { data: players = [] } = usePlayers();
   const fallbackEvent = events.data
     ?.filter((item) => {
       if (item.status !== "upcoming") return false;
@@ -48,12 +52,19 @@ export function HomePage() {
     }
   }
 
+  function tryJoin() {
+    const hasCard = players.some((p) => p.name.toLowerCase() === sessionName.toLowerCase());
+    if (!hasCard) { setShowRequireCard(true); return; }
+    actions.join.mutate(sessionName);
+  }
+
   if (upcoming.isLoading && events.isLoading) {
     return <EmptyState title="Loading the next match" detail="Checking the pitch calendar." />;
   }
 
   return (
     <div className="grid gap-5">
+      <RequireCardModal open={showRequireCard} onClose={() => setShowRequireCard(false)} />
       {event ? (
         <>
           {upcoming.isError ? <Notice tone="info">Showing the first upcoming event from the events list because the primary upcoming query did not respond.</Notice> : null}
@@ -64,7 +75,7 @@ export function HomePage() {
             busy={actions.join.isPending || actions.leave.isPending}
             event={event}
             registration={mine}
-            onJoin={() => actions.join.mutate(sessionName)}
+            onJoin={tryJoin}
             onLeave={leave}
           />
           <RegistrationList

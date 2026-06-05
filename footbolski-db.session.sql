@@ -16,4 +16,3 @@
 -- WHERE id = '5031d8a9-01d6-4bc0-8ba3-7f61ae4ec340';
 
 SELECT * from players
-where notes is NOT NULL
