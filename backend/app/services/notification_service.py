@@ -60,7 +60,7 @@ def send_push(
                 "keys": {"p256dh": p256dh, "auth": auth},
             },
             data=json.dumps(payload),
-            vapid_private_key=settings.vapid_private_key,
+            vapid_private_key=settings.vapid_private_key.replace("\\n", "\n"),
             vapid_claims={"sub": settings.vapid_subject},
         )
         return True, None
