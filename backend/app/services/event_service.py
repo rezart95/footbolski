@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models import Event, EventStatus, ListStatus, PushSubscription, Registration, Venue
+from app.models import Event, EventStatus, ListStatus, PushSubscription, Registration, Team, TeamPlayer, Venue
 from app.schemas.event import EventCreate
 from app.services import notification_service
 
@@ -139,6 +139,12 @@ async def delete_event(session: AsyncSession, event_id: uuid.UUID, creator_name:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the event creator can delete it")
     if event.status != EventStatus.CANCELLED:
         raise HTTPException(status.HTTP_409_CONFLICT, "Only cancelled events can be deleted")
+    # Delete children explicitly — no DB-level CASCADE on these FKs
+    team_ids = (await session.scalars(select(Team.id).where(Team.event_id == event_id))).all()
+    if team_ids:
+        await session.execute(TeamPlayer.__table__.delete().where(TeamPlayer.team_id.in_(team_ids)))
+    await session.execute(Team.__table__.delete().where(Team.event_id == event_id))
+    await session.execute(Registration.__table__.delete().where(Registration.event_id == event_id))
     await session.delete(event)
     await session.commit()
 
