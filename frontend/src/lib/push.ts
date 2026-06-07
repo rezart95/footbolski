@@ -17,7 +17,10 @@ async function fetchVapidKey(): Promise<string | null> {
 
 async function getReadyRegistration(): Promise<ServiceWorkerRegistration | null> {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) return null;
-  return navigator.serviceWorker.ready;
+  // In dev mode (vite dev) the service worker is not registered — add a 5s timeout
+  // so we fail fast instead of hanging indefinitely.
+  const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), 5_000));
+  return Promise.race([navigator.serviceWorker.ready, timeout]);
 }
 
 /** Subscribe the current browser to Web Push and bind it to a player display name. */
