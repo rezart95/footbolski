@@ -11,3 +11,4 @@ __pycache__/
 .vscode
 pitchup-master-prompt.md
 backend/uv.lock
+auth-prompt.md

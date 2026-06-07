@@ -1,5 +1,6 @@
+import { useState } from "react";
 import { format, parseISO } from "date-fns";
-import { Clock, MapPin, UsersRound } from "lucide-react";
+import { Clock, Euro, Info, MapPin, UsersRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { EventStatusBadge } from "./EventStatusBadge";
 import type { EventSummary } from "../../../types/event.types";
@@ -12,6 +13,11 @@ interface EventCardProps {
 export function EventCard({ event, large = false }: EventCardProps) {
   const date = parseISO(event.event_date);
   const isCancelled = event.status === "cancelled";
+  const [showPayInfo, setShowPayInfo] = useState(false);
+
+  const priceLabel = event.price_per_person != null
+    ? `€${event.price_per_person % 1 === 0 ? event.price_per_person.toFixed(0) : event.price_per_person.toFixed(2)} / person`
+    : "After match";
 
   return (
     <Link className="relative block overflow-hidden rounded-lg border border-white/10 bg-pitch-900/80 p-4 shadow-glow transition hover:border-pitch-400/40" to={`/events/${event.id}`}>
@@ -43,6 +49,27 @@ export function EventCard({ event, large = false }: EventCardProps) {
         </p>
         {event.waitlist_count > 0 ? <p className="text-sm text-white/55">{event.waitlist_count} waiting</p> : null}
       </div>
+      {/* Payment row */}
+      <div className="mt-3 flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
+        <p className="flex items-center gap-2 text-sm font-semibold text-white/80">
+          <Euro size={15} className="text-pitch-400" />
+          {priceLabel}
+        </p>
+        {event.pay_to_name ? (
+          <button
+            className="flex items-center gap-1 rounded-md p-1 text-white/40 transition hover:text-white/80"
+            type="button"
+            onClick={(e) => { e.preventDefault(); setShowPayInfo((v) => !v); }}
+          >
+            <Info size={15} />
+          </button>
+        ) : null}
+      </div>
+      {showPayInfo && event.pay_to_name ? (
+        <div className="mt-2 rounded-lg border border-pitch-400/20 bg-pitch-400/5 px-3 py-2 text-sm text-white/75">
+          Pay to <span className="font-bold text-white">{event.pay_to_name}</span>
+        </div>
+      ) : null}
     </Link>
   );
 }

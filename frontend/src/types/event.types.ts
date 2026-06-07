@@ -28,6 +28,8 @@ export interface EventSummary {
   waitlist_count: number;
   ai_reasoning: string | null;
   ai_swap_options: SwapOption[] | null;
+  price_per_person: number | null;
+  pay_to_name: string | null;
 }
 
 export interface EventPayload {
@@ -36,4 +38,6 @@ export interface EventPayload {
   event_time: string;
   max_players: number;
   created_by_name: string;
+  price_per_person?: number | null;
+  pay_to_name?: string | null;
 }

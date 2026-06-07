@@ -44,6 +44,8 @@ async def as_read(session: AsyncSession, event: Event) -> dict:
         "waitlist_count": await _count(session, event.id, ListStatus.WAITLIST),
         "ai_reasoning": event.ai_reasoning,
         "ai_swap_options": event.ai_swap_options,
+        "price_per_person": float(event.price_per_person) if event.price_per_person is not None else None,
+        "pay_to_name": event.pay_to_name,
     }
 
 
