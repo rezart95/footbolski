@@ -44,6 +44,7 @@ async def fetch_event_player_payloads(event_id: str) -> list[dict]:
                 "height_cm": p.height_cm if p else gp.get("height_cm"),
                 "build": p.build if p else gp.get("build"),
                 "preferred_role": p.preferred_role if p else gp.get("preferred_role"),
+                "attributes": list(p.attributes) if p else gp.get("attributes", []),
                 "skill_rating": p.skill_rating if p else gp.get("skill_rating", 5),
                 "speed": p.speed if p else gp.get("speed"),
                 "technique": p.technique if p else gp.get("technique"),

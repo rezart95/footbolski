@@ -2,10 +2,10 @@ export type PlayerPosition = "GK" | "DEF" | "MID" | "ATT";
 
 export type PlayerAttribute =
   | "fast"
-  | "technical"
+  | "playmaker"
   | "physical"
   | "leader"
-  | "aerial"
+  | "goalkeeper"
   | "creative"
   | "defensive"
   | "clinical";

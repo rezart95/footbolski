@@ -2,14 +2,37 @@ import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { Camera, Save, Trash2 } from "lucide-react";
 import { AttributeTag } from "./AttributeTag";
 import { Button } from "../../ui/Button";
-import { Field, Input } from "../../ui/Field";
+import { Field, Input, Select } from "../../ui/Field";
 import { Modal } from "../../ui/Modal";
 import { uploadPlayerPhoto } from "../../../services/players.service";
 import { colorFromName, initials } from "../../../lib/utils";
 import type { Player, PlayerAttribute, PlayerPosition } from "../../../types/player.types";
 
-const attributes: PlayerAttribute[] = ["fast", "technical", "physical", "leader", "aerial", "creative", "defensive", "clinical"];
-const positions: PlayerPosition[] = ["GK", "DEF", "MID", "ATT"];
+const attributes: PlayerAttribute[] = ["fast", "playmaker", "physical", "leader", "goalkeeper", "creative", "defensive", "clinical"];
+
+const BUILD_OPTIONS = ["Slim", "Athletic", "Strong", "Stocky"] as const;
+const ROLE_OPTIONS = [
+  "Goalkeeper",
+  "Centre Back",
+  "Full Back (Right)",
+  "Full Back (Left)",
+  "Defensive Mid",
+  "Box-to-Box Mid",
+  "Attacking Mid / No.10",
+  "Winger",
+  "Striker / Forward",
+  "Flexible",
+] as const;
+
+function roleToPrimaryPosition(role: string | null): PlayerPosition {
+  if (!role) return "MID";
+  if (role === "Goalkeeper") return "GK";
+  if (role.startsWith("Centre Back") || role.startsWith("Full Back")) return "DEF";
+  if (role === "Striker / Forward") return "ATT";
+  if (role === "Winger") return "ATT";
+  if (role === "Attacking Mid / No.10") return "ATT";
+  return "MID";
+}
 
 interface PlayerEditModalProps {
   player?: Player | null;
@@ -74,6 +97,8 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
     if (!form.photo_url) { setValidationError("Please upload a photo."); return; }
     if (!form.age) { setValidationError("Age is required."); return; }
     if (!form.height_cm) { setValidationError("Height is required."); return; }
+    if (!form.build) { setValidationError("Build is required."); return; }
+    if (!form.preferred_role) { setValidationError("Primary role is required."); return; }
     setValidationError(null);
     onSave({ ...form, name: form.name.trim() });
   }
@@ -113,13 +138,6 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
         <Field label={`Skill ${form.skill_rating}/10`}>
           <Input min={1} max={10} type="range" value={form.skill_rating} onChange={(event) => setForm({ ...form, skill_rating: Number(event.target.value) })} />
         </Field>
-        <div className="grid grid-cols-4 gap-2">
-          {positions.map((position) => (
-            <Button key={position} onClick={() => setForm({ ...form, primary_position: position })} type="button" variant={form.primary_position === position ? "primary" : "secondary"}>
-              {position}
-            </Button>
-          ))}
-        </div>
         <div className="flex flex-wrap gap-2">
           {attributes.map((attribute) => (
             <AttributeTag attribute={attribute} active={form.attributes.includes(attribute)} key={attribute} onClick={() => toggleAttribute(attribute)} />
@@ -143,19 +161,23 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
             />
           </Field>
         </div>
-        <Field label="Build">
-          <Input
-            placeholder="e.g. athletic, strong…"
+        <Field label="Build *">
+          <Select
             value={form.build ?? ""}
             onChange={(e) => setForm({ ...form, build: e.target.value || null })}
-          />
+          >
+            <option value="">— select —</option>
+            {BUILD_OPTIONS.map((b) => <option key={b} value={b}>{b}</option>)}
+          </Select>
         </Field>
-        <Field label="Preferred role">
-          <Input
-            placeholder="e.g. Midfield / attack"
+        <Field label="Primary role *">
+          <Select
             value={form.preferred_role ?? ""}
-            onChange={(e) => setForm({ ...form, preferred_role: e.target.value || null })}
-          />
+            onChange={(e) => setForm({ ...form, preferred_role: e.target.value || null, primary_position: roleToPrimaryPosition(e.target.value || null) })}
+          >
+            <option value="">— select —</option>
+            {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+          </Select>
         </Field>
 
         {/* Attribute ratings */}
