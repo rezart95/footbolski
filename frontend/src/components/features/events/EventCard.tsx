@@ -15,8 +15,10 @@ export function EventCard({ event, large = false }: EventCardProps) {
   const isCancelled = event.status === "cancelled";
   const [showPayInfo, setShowPayInfo] = useState(false);
 
-  const priceLabel = event.price_per_person != null
-    ? `€${event.price_per_person % 1 === 0 ? event.price_per_person.toFixed(0) : event.price_per_person.toFixed(2)} / person`
+  // API may return price as string (Decimal serialization) — normalise defensively
+  const price = event.price_per_person != null ? Number(event.price_per_person) : null;
+  const priceLabel = price != null
+    ? `${price % 1 === 0 ? price.toFixed(0) : price.toFixed(2)} zł / person`
     : "After match";
 
   return (
@@ -52,7 +54,6 @@ export function EventCard({ event, large = false }: EventCardProps) {
       {/* Payment row */}
       <div className="mt-3 flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
         <p className="flex items-center gap-2 text-sm font-semibold text-white/80">
-          <Euro size={15} className="text-pitch-400" />
           {priceLabel}
         </p>
         {event.pay_to_name ? (

@@ -1,6 +1,5 @@
 import uuid
 from datetime import date, time
-from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -14,7 +13,7 @@ class EventCreate(BaseModel):
     event_time: time
     max_players: int = Field(gt=0)
     created_by_name: str = Field(min_length=1, max_length=255)
-    price_per_person: Decimal | None = None
+    price_per_person: float | None = None
     pay_to_name: str | None = None
 
 
@@ -40,7 +39,7 @@ class EventRead(BaseModel):
     waitlist_count: int
     ai_reasoning: str | None = None
     ai_swap_options: list[SwapOption] | None = None
-    price_per_person: Decimal | None = None
+    price_per_person: float | None = None
     pay_to_name: str | None = None
 
     model_config = ConfigDict(from_attributes=True)

@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 from datetime import datetime, timedelta
 
@@ -44,7 +45,7 @@ async def as_read(session: AsyncSession, event: Event) -> dict:
         "waitlist_count": await _count(session, event.id, ListStatus.WAITLIST),
         "ai_reasoning": event.ai_reasoning,
         "ai_swap_options": event.ai_swap_options,
-        "price_per_person": float(event.price_per_person) if event.price_per_person is not None else None,
+        "price_per_person": event.price_per_person,
         "pay_to_name": event.pay_to_name,
     }
 
@@ -107,13 +108,16 @@ async def create_event(session: AsyncSession, payload: EventCreate) -> dict:
         raise HTTPException(status.HTTP_409_CONFLICT, "You already have an event on that date") from exc
     event.venue = venue
     result = await as_read(session, event)
-    # Notify all subscribers about the new event
-    await _notify_all_subscribers(
-        session,
-        title="New Match Created!",
-        body=f"{payload.created_by_name} created a match at {venue.name} on {payload.event_date.strftime('%a %d %b')} at {str(payload.event_time)[:5]}.",
-        url=f"/events/{event.id}",
-    )
+    # Notify all subscribers about the new event — fire and forget so the response is not blocked
+    subs = list((await session.scalars(select(PushSubscription))).all())
+    if subs:
+        subs_data = [{"endpoint": s.endpoint, "p256dh": s.p256dh, "auth": s.auth} for s in subs]
+        asyncio.ensure_future(_send_pushes_bg(
+            subs_data,
+            title="New Match Created!",
+            body=f"{payload.created_by_name} created a match at {venue.name} on {payload.event_date.strftime('%a %d %b')} at {str(payload.event_time)[:5]}.",
+            url=f"{_app_url()}/events/{event.id}",
+        ))
     return result
 
 
@@ -124,14 +128,21 @@ async def cancel_event(session: AsyncSession, event_id: uuid.UUID, creator_name:
     event.status = EventStatus.CANCELLED
     await session.commit()
     result = await as_read(session, event)
-    # Notify all registrants
-    await _notify_registrants(
-        session,
-        event=event,
-        title="Event Cancelled",
-        body=f"The match at {event.venue.name} on {event.event_date.strftime('%d %b')} has been cancelled.",
-        url=f"/events/{event.id}",
+    # Notify all registrants — fire and forget so the response is not blocked
+    stmt = (
+        select(PushSubscription)
+        .join(Registration, Registration.player_id == PushSubscription.player_id)
+        .where(Registration.event_id == event.id)
     )
+    subs = list((await session.scalars(stmt)).all())
+    if subs:
+        subs_data = [{"endpoint": s.endpoint, "p256dh": s.p256dh, "auth": s.auth} for s in subs]
+        asyncio.ensure_future(_send_pushes_bg(
+            subs_data,
+            title="Event Cancelled",
+            body=f"The match at {event.venue.name} on {event.event_date.strftime('%d %b')} has been cancelled.",
+            url=f"{_app_url()}/events/{event.id}",
+        ))
     return result
 
 
@@ -151,53 +162,23 @@ async def delete_event(session: AsyncSession, event_id: uuid.UUID, creator_name:
     await session.commit()
 
 
-async def _notify_registrants(
-    session: AsyncSession,
-    *,
-    event: Event,
-    title: str,
-    body: str,
-    url: str,
-) -> None:
-    """Best-effort push notification to all players registered for an event."""
+def _app_url() -> str:
     from app.core.config import get_settings
-    settings = get_settings()
-    full_url = f"{settings.app_public_url}{url}"
-    stmt = (
-        select(PushSubscription)
-        .join(Registration, Registration.player_id == PushSubscription.player_id)
-        .where(Registration.event_id == event.id)
-    )
-    subscriptions = list((await session.scalars(stmt)).all())
-    for sub in subscriptions:
-        notification_service.send_push(
-            endpoint=sub.endpoint,
-            p256dh=sub.p256dh,
-            auth=sub.auth,
-            title=title,
-            body=body,
-            url=full_url,
-        )
+    return get_settings().app_public_url
 
 
-async def _notify_all_subscribers(
-    session: AsyncSession,
-    *,
-    title: str,
-    body: str,
-    url: str,
-) -> None:
-    """Best-effort push notification to every subscribed player (e.g. new event)."""
-    from app.core.config import get_settings
-    settings = get_settings()
-    full_url = f"{settings.app_public_url}{url}"
-    subscriptions = list((await session.scalars(select(PushSubscription))).all())
-    for sub in subscriptions:
-        notification_service.send_push(
-            endpoint=sub.endpoint,
-            p256dh=sub.p256dh,
-            auth=sub.auth,
+async def _send_pushes_bg(subs_data: list[dict], *, title: str, body: str, url: str) -> None:
+    """Background coroutine: sends push notifications in a thread pool (non-blocking)."""
+    tasks = [
+        asyncio.to_thread(
+            notification_service.send_push,
+            endpoint=s["endpoint"],
+            p256dh=s["p256dh"],
+            auth=s["auth"],
             title=title,
             body=body,
-            url=full_url,
+            url=url,
         )
+        for s in subs_data
+    ]
+    await asyncio.gather(*tasks, return_exceptions=True)

@@ -1,6 +1,5 @@
 import uuid
 from datetime import date, datetime, time
-from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import Date, DateTime, Enum, ForeignKey, Numeric, String, Text, Time, UniqueConstraint, func
@@ -29,7 +28,7 @@ class Event(Base):
     teams_locked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     ai_reasoning: Mapped[str | None] = mapped_column(Text)
     ai_swap_options: Mapped[list[Any] | None] = mapped_column(JSON)
-    price_per_person: Mapped[Decimal | None] = mapped_column(Numeric(8, 2), nullable=True)
+    price_per_person: Mapped[float | None] = mapped_column(Numeric(8, 2), nullable=True)
     pay_to_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
