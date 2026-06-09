@@ -20,7 +20,8 @@
 -- DELETE FROM registrations WHERE event_id = '7dd2b59e-7133-4ea4-b318-173b66a9401e';
 -- DELETE FROM events WHERE id = '7dd2b59e-7133-4ea4-b318-173b66a9401e';
 
--- SELECT * FROM registrations
+SELECT * FROM players
 
-DELETE FROM registrations 
-WHERE id = '82011640-2b46-464c-95bb-047a2c6d55ff';
+-- UPDATE events
+-- SET pay_to_name = 'Rezart Abazi'
+-- WHERE id = 'eb5bcdee-de09-45e9-b17f-528042569fd6';

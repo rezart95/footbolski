@@ -8,6 +8,7 @@ import { Notice } from "../components/ui/Notice";
 import { usePlayerActions, usePlayers } from "../hooks/usePlayers";
 import { useSession } from "../hooks/useSession";
 import { errorMessage } from "../lib/errors";
+import { enablePushForUser } from "../lib/push";
 import type { Player, PlayerPayload } from "../types/player.types";
 
 export function PlayersPage() {
@@ -25,6 +26,18 @@ export function PlayersPage() {
       setEditing(false);
       setSelected(null);
       setInitialName("");
+      // After creating a new card, attempt to register the push subscription now
+      // that the player exists on the backend. If permission was already granted
+      // (consumed by usePushAutoEnable on first load), this saves the subscription
+      // silently without any browser dialog.
+      if (!selected) {
+        const PUSH_SAVED_KEY = "push_subscription_saved";
+        if (localStorage.getItem(PUSH_SAVED_KEY) !== sessionName) {
+          enablePushForUser(sessionName)
+            .then((ok) => { if (ok) localStorage.setItem(PUSH_SAVED_KEY, sessionName); })
+            .catch(() => undefined);
+        }
+      }
     };
     if (selected) {
       actions.update.mutate({ id: selected.id, payload }, { onSuccess });
