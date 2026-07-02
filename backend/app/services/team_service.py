@@ -1,3 +1,4 @@
+import asyncio
 import uuid
 
 from fastapi import HTTPException, status
@@ -5,10 +6,10 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models import ListStatus, PlayerPosition, Registration, Team, TeamPlayer, Venue
+from app.models import ListStatus, PlayerPosition, PushSubscription, Registration, Team, TeamPlayer, Venue
 from app.models.player import Player
 from app.schemas.team import FormationUpdate
-from app.services.event_service import get_event
+from app.services.event_service import _app_url, _send_pushes_bg, get_event
 # ---------------------------------------------------------------------------
 # Composite scoring
 # ---------------------------------------------------------------------------
@@ -205,6 +206,23 @@ async def generate_teams(session: AsyncSession, event_id: uuid.UUID, creator_nam
 
     event.teams_generated = True
     await session.commit()
+
+    # Notify confirmed players that teams are posted (once per match, participants only).
+    stmt = (
+        select(PushSubscription)
+        .join(Registration, Registration.player_id == PushSubscription.player_id)
+        .where(Registration.event_id == event_id, Registration.list_status == ListStatus.CONFIRMED)
+    )
+    subs = list((await session.scalars(stmt)).all())
+    if subs:
+        subs_data = [{"endpoint": s.endpoint, "p256dh": s.p256dh, "auth": s.auth} for s in subs]
+        asyncio.ensure_future(_send_pushes_bg(
+            subs_data,
+            title="Teams are up!",
+            body=f"Teams have been posted for the match at {event.venue.name} on {event.event_date.strftime('%a %d %b')}. Tap to see your side.",
+            url=f"{_app_url()}/events/{event_id}",
+        ))
+
     return await get_teams(session, event_id) or []
 
 

@@ -83,7 +83,7 @@ This project has no test suite. There are no test files or test directories.
 
 Frontend uses `VITE_API_BASE_URL` (set in `.env.local`, not committed).
 
-Backend reads all config from `backend/.env`. Key variables: `DATABASE_URL`, `CLAUDE_API_KEY`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`, `TWILIO_*`, `MINIO_*`, `CORS_ORIGINS`. Full list in `backend/app/core/config.py`.
+Backend reads all config from `backend/.env`. Key variables: `DATABASE_URL`, `CLAUDE_API_KEY`, `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`, `TWILIO_*`, `MINIO_*`, `CORS_ORIGINS`, and **`APP_PUBLIC_URL`** (must be `https://footbolski.org` in prod — it's the base URL embedded in push-notification click links; if unset it defaults to `http://localhost:5174`, which breaks notification taps on phones). Full list in `backend/app/core/config.py`.
 
 ## Deployment
 
@@ -98,7 +98,20 @@ A **Coolify MCP server** (`@masonator/coolify-mcp`) is configured in `.mcp.json`
 | footbolski-db | Database (PostgreSQL) | internal — LAN `192.168.0.107:5434` |
 | minio | Service | internal |
 
-Backend nixpacks start command runs `alembic upgrade head` before starting uvicorn, so migrations apply automatically on every deploy. New migration files are created locally with `uv run alembic revision --autogenerate -m "description"` but only executed on the server.
+Both apps deploy with the **Dockerfile** build pack in Coolify. The backend `Dockerfile` `CMD` runs `alembic upgrade head && uvicorn app.main:app ...`, so migrations apply automatically on every deploy. The frontend `Dockerfile` builds with `node:22-alpine` and serves the static `dist/` via `nginx:1.27-alpine`. New migration files are created locally with `uv run alembic revision --autogenerate -m "description"` but only executed on the server.
+
+### Coolify resource inventory
+
+Coolify dashboard/API: `http://192.168.0.107:8000` (LAN), API v4.0.0. Project **footbolski** (`otpjeslrepqu1azo01d15hm2`), environment `production`, single server `localhost`.
+
+| Resource | Type | UUID | Build / Image | Domain / Port |
+|---|---|---|---|---|
+| footbolski-frontend | Application | `t135e3cwk6ozxx15wozurjmu` | Dockerfile, base `/frontend` | https://footbolski.org (exposes 80) |
+| footbolski-backend | Application | `zw4cv55rnh7joo6vslyz4u5j` | Dockerfile, base `/backend` | https://api.footbolski.org (exposes 8000) |
+| footbolski-db | PostgreSQL | `wokwbwuckpd8y24zu7p4vaik` | `postgres:18-alpine` | internal, not public (user/db `footbolski`) |
+| minio | Service (shared) | `n6t8tzw9hhf2m31pf15hgxxb` | — | internal |
+
+Both apps track `rezart95/footbolski` @ `main`. `minio` is shared across projects on the server (`restok`, `fashion-analytics` also live there).
 
 ### Cloudflare / DNS
 

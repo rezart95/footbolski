@@ -1,4 +1,5 @@
-import { CheckCircle2, MapPin, TimerOff, Trash2, Wallet } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, MapPin, TimerOff, Trash2, Wallet } from "lucide-react";
+import { format, parseISO } from "date-fns";
 import { useParams, useNavigate } from "react-router-dom";
 import { AIInsightsPanel } from "../components/features/teams/AIInsightsPanel";
 import { TeamDisplay } from "../components/features/teams/TeamDisplay";
@@ -17,7 +18,7 @@ import { useSession } from "../hooks/useSession";
 import { useTeamActions, useTeams } from "../hooks/useTeams";
 import { usePlayers } from "../hooks/usePlayers";
 import { errorMessage } from "../lib/errors";
-import { mapsUrl } from "../lib/maps";
+import { mapsUrl, streetAddress } from "../lib/maps";
 import { PAYMENT_METHOD_LABELS } from "../types/event.types";
 import { useMemo, useState } from "react";
 
@@ -92,11 +93,29 @@ export function EventDetailPage() {
 
       <section className="rounded-lg border border-white/10 bg-white/[0.04] p-4">
         <div className="flex items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <h1 className="font-display text-3xl font-bold">{event.venue.name}</h1>
-            <p className="mt-2 text-white/65">
-              {event.event_date} at {event.event_time.slice(0, 5)}
-            </p>
+            {event.venue.address ? (
+              <a
+                className="mt-1.5 inline-flex items-center gap-1.5 text-sm font-semibold text-pitch-400 transition hover:text-pitch-300"
+                href={mapsUrl(event.venue.address)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MapPin size={15} className="shrink-0" />
+                {streetAddress(event.venue.address)}
+              </a>
+            ) : null}
+            <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-white/65">
+              <span className="inline-flex items-center gap-1.5 font-semibold text-white/80">
+                <CalendarDays size={15} className="shrink-0 text-white/45" />
+                {format(parseISO(event.event_date), "dd-MMMM-yyyy")}
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <Clock size={14} className="shrink-0 text-white/45" />
+                {event.event_time.slice(0, 5)}
+              </span>
+            </div>
           </div>
           <div className="flex gap-2">
             {creator && !isCompleted && !isCancelled ? (
@@ -114,17 +133,6 @@ export function EventDetailPage() {
             ) : null}
           </div>
         </div>
-        {event.venue.address ? (
-          <a
-            className="mt-4 inline-flex items-center gap-2 rounded-lg border border-pitch-400/30 bg-pitch-400/10 px-3 py-2 text-sm font-bold text-pitch-400 transition hover:bg-pitch-400/20"
-            href={mapsUrl(event.venue.address)}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <MapPin size={16} />
-            {event.venue.address}
-          </a>
-        ) : null}
       </section>
 
       {(price != null || event.payment_method || event.pay_to_name) ? (
