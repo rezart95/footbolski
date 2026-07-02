@@ -11,6 +11,7 @@ from app.models.player import Player
 VENUES = [
     {
         "name": "Parkowa Sport",
+        "address": "Centrum Sportu Parkowa, Parkowa 12a, 30-538 Kraków",
         "default_day": 3,
         "default_time": time(19, 30),
         "players_per_side": 7,
@@ -18,6 +19,7 @@ VENUES = [
     },
     {
         "name": "Fame Sport",
+        "address": "Fame Sport Club, Jana Dekerta 21, 30-703 Kraków",
         "default_day": 0,
         "default_time": time(21, 0),
         "players_per_side": 6,
@@ -336,9 +338,13 @@ PLAYERS = [
 
 async def seed_venues(session: AsyncSession) -> None:
     for payload in VENUES:
-        exists = await session.scalar(select(Venue).where(Venue.name == payload["name"]))
-        if not exists:
+        existing = await session.scalar(select(Venue).where(Venue.name == payload["name"]))
+        if existing is None:
             session.add(Venue(**payload))
+        elif not existing.address:
+            # Back-fill the address on venues seeded before it was tracked, so
+            # the maps link works without wiping any manual edits.
+            existing.address = payload["address"]
     await session.commit()
 
 

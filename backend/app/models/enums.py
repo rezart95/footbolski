@@ -17,3 +17,9 @@ class PlayerPosition(StrEnum):
     DEF = "DEF"
     MID = "MID"
     ATT = "ATT"
+
+
+class PaymentMethod(StrEnum):
+    BLIK = "blik"
+    REVOLUT = "revolut"
+    BANK_TRANSFER = "bank_transfer"

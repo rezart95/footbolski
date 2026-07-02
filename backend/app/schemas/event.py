@@ -3,7 +3,7 @@ from datetime import date, time
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.enums import EventStatus
+from app.models.enums import EventStatus, PaymentMethod
 from app.schemas.venue import VenueRead
 
 
@@ -15,6 +15,7 @@ class EventCreate(BaseModel):
     created_by_name: str = Field(min_length=1, max_length=255)
     price_per_person: float | None = None
     pay_to_name: str | None = None
+    payment_method: PaymentMethod | None = None
 
 
 class CreatorAction(BaseModel):
@@ -41,5 +42,6 @@ class EventRead(BaseModel):
     ai_swap_options: list[SwapOption] | None = None
     price_per_person: float | None = None
     pay_to_name: str | None = None
+    payment_method: PaymentMethod | None = None
 
     model_config = ConfigDict(from_attributes=True)

@@ -5,6 +5,7 @@ import { useCreateEvent, useVenues } from "../../../hooks/useEvents";
 import { useSession } from "../../../hooks/useSession";
 import { usePlayers } from "../../../hooks/usePlayers";
 import { errorMessage } from "../../../lib/errors";
+import { PAYMENT_METHOD_LABELS, type PaymentMethod } from "../../../types/event.types";
 import { Button } from "../../ui/Button";
 import { Field, Input, Select } from "../../ui/Field";
 import { Modal } from "../../ui/Modal";
@@ -41,6 +42,7 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
   const [paymentMode, setPaymentMode] = useState<"after" | "now">("after");
   const [pricePerPerson, setPricePerPerson] = useState("");
   const [payToName, setPayToName] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("blik");
 
   useEffect(() => {
     if (!venueId && venues.length > 0) {
@@ -67,6 +69,7 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
         created_by_name: sessionName,
         price_per_person: paymentMode === "now" && pricePerPerson ? parseFloat(pricePerPerson) : null,
         pay_to_name: payToName.trim() || null,
+        payment_method: paymentMethod || null,
       },
       { onSuccess: onClose }
     );
@@ -133,6 +136,16 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
             />
           </Field>
         )}
+
+        {/* Payment method */}
+        <Field label="Payment method">
+          <Select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod | "")}>
+            <option value="">— not specified —</option>
+            {(Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[]).map((method) => (
+              <option key={method} value={method}>{PAYMENT_METHOD_LABELS[method]}</option>
+            ))}
+          </Select>
+        </Field>
 
         {/* Pay to */}
         <Field label="Pay to (optional)">

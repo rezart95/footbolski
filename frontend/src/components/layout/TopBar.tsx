@@ -10,7 +10,7 @@ export function TopBar({ onEditName }: TopBarProps) {
   const { sessionName } = useSession();
 
   return (
-    <header className="sticky top-0 z-30 border-b border-white/10 bg-pitch-950/80 px-4 py-3 backdrop-blur-xl">
+    <header className="sticky top-0 z-30 border-b border-white/10 bg-pitch-950/80 px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-xl">
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
         <div>
           <p className="font-display text-2xl font-bold leading-none">Footbolski</p>
