@@ -47,6 +47,7 @@ async def as_read(session: AsyncSession, event: Event) -> dict:
         "ai_swap_options": event.ai_swap_options,
         "price_per_person": event.price_per_person,
         "pay_to_name": event.pay_to_name,
+        "payment_method": event.payment_method,
     }
 
 

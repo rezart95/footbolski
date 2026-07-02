@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { format, parseISO } from "date-fns";
-import { Clock, Euro, Info, MapPin, UsersRound } from "lucide-react";
+import { Clock, Info, MapPin, UsersRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { EventStatusBadge } from "./EventStatusBadge";
-import type { EventSummary } from "../../../types/event.types";
+import { PAYMENT_METHOD_LABELS, type EventSummary } from "../../../types/event.types";
+import { mapsUrl } from "../../../lib/maps";
 
 interface EventCardProps {
   event: EventSummary;
@@ -30,10 +31,25 @@ export function EventCard({ event, large = false }: EventCardProps) {
       ) : null}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="flex items-center gap-2 text-sm font-semibold text-white/60">
-            <MapPin size={16} />
-            {event.venue.name}
-          </p>
+          {event.venue.address ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.open(mapsUrl(event.venue.address as string), "_blank", "noopener");
+              }}
+              className="flex items-center gap-2 text-sm font-semibold text-pitch-400 transition hover:text-pitch-300"
+            >
+              <MapPin size={16} />
+              {event.venue.name}
+            </button>
+          ) : (
+            <p className="flex items-center gap-2 text-sm font-semibold text-white/60">
+              <MapPin size={16} />
+              {event.venue.name}
+            </p>
+          )}
           <h2 className={large ? "mt-2 font-display text-4xl font-bold" : "mt-1 font-display text-2xl font-bold"}>
             {format(date, "EEEE")}
           </h2>
@@ -55,6 +71,11 @@ export function EventCard({ event, large = false }: EventCardProps) {
       <div className="mt-3 flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
         <p className="flex items-center gap-2 text-sm font-semibold text-white/80">
           {priceLabel}
+          {event.payment_method ? (
+            <span className="rounded-md bg-pitch-400/15 px-2 py-0.5 text-xs font-bold text-pitch-400">
+              {PAYMENT_METHOD_LABELS[event.payment_method]}
+            </span>
+          ) : null}
         </p>
         {event.pay_to_name ? (
           <button

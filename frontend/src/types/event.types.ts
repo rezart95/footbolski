@@ -1,5 +1,13 @@
 export type EventStatus = "upcoming" | "cancelled" | "completed";
 
+export type PaymentMethod = "blik" | "revolut" | "bank_transfer";
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  blik: "BLIK",
+  revolut: "Revolut",
+  bank_transfer: "Bank Transfer",
+};
+
 export interface Venue {
   id: string;
   name: "Parkowa Sport" | "Fame Sport" | string;
@@ -30,6 +38,7 @@ export interface EventSummary {
   ai_swap_options: SwapOption[] | null;
   price_per_person: number | null;
   pay_to_name: string | null;
+  payment_method: PaymentMethod | null;
 }
 
 export interface EventPayload {
@@ -40,4 +49,5 @@ export interface EventPayload {
   created_by_name: string;
   price_per_person?: number | null;
   pay_to_name?: string | null;
+  payment_method?: PaymentMethod | null;
 }
