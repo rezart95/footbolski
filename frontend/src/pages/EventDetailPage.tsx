@@ -20,6 +20,7 @@ import { usePlayers } from "../hooks/usePlayers";
 import { errorMessage } from "../lib/errors";
 import { mapsUrl, streetAddress } from "../lib/maps";
 import { PAYMENT_METHOD_LABELS } from "../types/event.types";
+import { PaymentHandle } from "../components/features/events/PaymentHandle";
 import { useMemo, useState } from "react";
 
 export function EventDetailPage() {
@@ -135,21 +136,26 @@ export function EventDetailPage() {
         </div>
       </section>
 
-      {(price != null || event.payment_method || event.pay_to_name) ? (
-        <section className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-lg border border-white/10 bg-white/[0.04] p-4">
-          <p className="flex items-center gap-2 font-semibold text-white/85">
-            <Wallet className="text-pitch-400" size={18} />
-            {price != null ? `${price % 1 === 0 ? price.toFixed(0) : price.toFixed(2)} zł / person` : "Amount set after match"}
-          </p>
-          {event.payment_method ? (
-            <span className="rounded-md bg-pitch-400/15 px-2.5 py-1 text-xs font-bold text-pitch-400">
-              {PAYMENT_METHOD_LABELS[event.payment_method]}
-            </span>
-          ) : null}
-          {event.pay_to_name ? (
-            <span className="text-sm text-white/65">
-              Pay to <span className="font-bold text-white">{event.pay_to_name}</span>
-            </span>
+      {(price != null || event.payment_method || event.pay_to_name || event.payment_details) ? (
+        <section className="grid gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-4">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <p className="flex items-center gap-2 font-semibold text-white/85">
+              <Wallet className="text-pitch-400" size={18} />
+              {price != null ? `${price % 1 === 0 ? price.toFixed(0) : price.toFixed(2)} zł / person` : "Amount set after match"}
+            </p>
+            {event.payment_method ? (
+              <span className="rounded-md bg-pitch-400/15 px-2.5 py-1 text-xs font-bold text-pitch-400">
+                {PAYMENT_METHOD_LABELS[event.payment_method]}
+              </span>
+            ) : null}
+            {event.pay_to_name ? (
+              <span className="text-sm text-white/65">
+                Pay to <span className="font-bold text-white">{event.pay_to_name}</span>
+              </span>
+            ) : null}
+          </div>
+          {event.payment_method && event.payment_details ? (
+            <PaymentHandle method={event.payment_method} value={event.payment_details} />
           ) : null}
         </section>
       ) : null}

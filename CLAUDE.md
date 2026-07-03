@@ -24,7 +24,18 @@ uv sync
 uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Alembic migrations are **not run locally**. They run automatically on deploy via Coolify — the backend `Dockerfile` `CMD` is `alembic upgrade head && uvicorn app.main:app ...`.
+#### Local database (Docker copy of prod)
+
+Local dev runs against a **Docker Postgres copy of prod**, not prod itself — `backend/.env` `DATABASE_URL` points at `localhost:5435` (the prod URL is kept commented in `.env` for reference; never point local dev/alembic at it). Bring the DB up and refresh it from prod (read-only `pg_dump`) with:
+
+```bash
+docker compose up -d db   # local Postgres 18, host port 5435, data in the footbolski_pgdata volume
+# refresh the copy from prod:
+docker exec footbolski-db-local sh -c "pg_dump --no-owner --no-privileges -Fc -f /tmp/prod.dump '<PROD_DATABASE_URL>'"
+docker exec -e PGPASSWORD=footbolski footbolski-db-local sh -c "pg_restore --no-owner --clean --if-exists -h 127.0.0.1 -U footbolski -d footbolski /tmp/prod.dump"
+```
+
+With the local copy you can test migrations instantly: `uv run alembic upgrade head`. New migrations: `uv run alembic revision --autogenerate -m "..."`. On **deploy**, Coolify still runs `alembic upgrade head && uvicorn app.main:app ...` (backend `Dockerfile` `CMD`) against the real DB — so migrations reach prod only via deploy, not from local. A read-only **Postgres MCP** (`postgres-mcp`, restricted mode) is also configured in `.mcp.json` for querying the DB from Claude Code.
 
 ### No tests
 This project has no test suite. There are no test files or test directories.
@@ -77,7 +88,7 @@ This project has no test suite. There are no test files or test directories.
 - **Waitlist auto-promotion**: When a confirmed player leaves, the first waitlisted player is promoted automatically (server-side in `registration_service.py`)
 - **Event lifecycle**: Events are `upcoming` → `completed` (auto-transition 90 min after kickoff) or `cancelled` (manual by creator)
 - **Player-registration linking**: Creating/updating a player card back-fills `player_id` on existing registrations matched by name
-- **Payment info**: Events carry `price_per_person`, `pay_to_name`, and `payment_method` (`blik`/`revolut`/`bank_transfer`, stored as a plain string, labels in `PAYMENT_METHOD_LABELS`). Set on the create-event form, shown on cards and the detail page
+- **Payment info**: Events carry `price_per_person`, `pay_to_name`, `payment_method` (`blik`/`revolut`/`bank_transfer`, stored as a plain string, labels in `PAYMENT_METHOD_LABELS`), and `payment_details` (a free-text handle the payment goes to — BLIK phone / Revolut username / account, contextual to the method, never auto-filled). Set on the create-event form; shown on cards and the detail page via the copyable `PaymentHandle` chip
 
 ## Environment Variables
 
@@ -89,7 +100,7 @@ Backend reads all config from `backend/.env`. Key variables: `DATABASE_URL`, `CL
 
 All infrastructure is on a single homeserver managed by Coolify. Deployments happen via git push — Coolify builds and deploys automatically.
 
-A **Coolify MCP server** (`@masonator/coolify-mcp`) is configured in `.mcp.json` for inspecting/managing Coolify resources from Claude Code. Its `COOLIFY_ACCESS_TOKEN` and `COOLIFY_BASE_URL` are read from env vars set in the gitignored `.claude/settings.local.json` — never commit the token. The Coolify dashboard/API is at `http://192.168.0.107:8000` (LAN), API version 4.0.0.
+Claude Code MCP servers live in `.mcp.json`, which is **gitignored** because it holds inline credentials — recreate it locally with two servers: **`coolify`** (`npx -y @masonator/coolify-mcp`, env `COOLIFY_ACCESS_TOKEN` + `COOLIFY_BASE_URL=http://192.168.0.107:8000`) for managing Coolify resources, and **`postgres`** (`uvx postgres-mcp --access-mode=restricted`, env `DATABASE_URI`) for read-only DB queries. The Coolify dashboard/API is at `http://192.168.0.107:8000` (LAN), API version 4.0.0.
 
 | Coolify Resource | Type | URL |
 |---|---|---|

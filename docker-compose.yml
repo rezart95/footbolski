@@ -20,14 +20,15 @@ services:
 
   db:
     image: postgres:18
+    container_name: footbolski-db-local
     environment:
-      POSTGRES_USER: pitchup
-      POSTGRES_PASSWORD: pitchup
-      POSTGRES_DB: pitchup
+      POSTGRES_USER: footbolski
+      POSTGRES_PASSWORD: footbolski
+      POSTGRES_DB: footbolski
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
     ports:
-      - "5432:5432"
+      - "5435:5432"
 
   minio:
     image: minio/minio

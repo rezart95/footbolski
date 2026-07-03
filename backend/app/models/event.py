@@ -31,6 +31,7 @@ class Event(Base):
     price_per_person: Mapped[float | None] = mapped_column(Numeric(8, 2), nullable=True)
     pay_to_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     payment_method: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    payment_details: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     venue: Mapped["Venue"] = relationship(back_populates="events")

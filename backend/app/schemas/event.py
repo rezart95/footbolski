@@ -16,6 +16,7 @@ class EventCreate(BaseModel):
     price_per_person: float | None = None
     pay_to_name: str | None = None
     payment_method: PaymentMethod | None = None
+    payment_details: str | None = Field(default=None, max_length=100)
 
 
 class CreatorAction(BaseModel):
@@ -43,5 +44,6 @@ class EventRead(BaseModel):
     price_per_person: float | None = None
     pay_to_name: str | None = None
     payment_method: PaymentMethod | None = None
+    payment_details: str | None = None
 
     model_config = ConfigDict(from_attributes=True)
