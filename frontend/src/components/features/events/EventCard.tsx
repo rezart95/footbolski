@@ -1,8 +1,8 @@
-import { useState } from "react";
 import { format, parseISO } from "date-fns";
-import { Clock, Info, MapPin, UsersRound } from "lucide-react";
+import { Clock, MapPin, UsersRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { EventStatusBadge } from "./EventStatusBadge";
+import { PaymentHandle } from "./PaymentHandle";
 import { PAYMENT_METHOD_LABELS, type EventSummary } from "../../../types/event.types";
 import { mapsUrl } from "../../../lib/maps";
 
@@ -14,7 +14,6 @@ interface EventCardProps {
 export function EventCard({ event, large = false }: EventCardProps) {
   const date = parseISO(event.event_date);
   const isCancelled = event.status === "cancelled";
-  const [showPayInfo, setShowPayInfo] = useState(false);
 
   // API may return price as string (Decimal serialization) — normalise defensively
   const price = event.price_per_person != null ? Number(event.price_per_person) : null;
@@ -67,31 +66,27 @@ export function EventCard({ event, large = false }: EventCardProps) {
         </p>
         {event.waitlist_count > 0 ? <p className="text-sm text-white/55">{event.waitlist_count} waiting</p> : null}
       </div>
-      {/* Payment row */}
-      <div className="mt-3 flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
-        <p className="flex items-center gap-2 text-sm font-semibold text-white/80">
-          {priceLabel}
-          {event.payment_method ? (
-            <span className="rounded-md bg-pitch-400/15 px-2 py-0.5 text-xs font-bold text-pitch-400">
-              {PAYMENT_METHOD_LABELS[event.payment_method]}
-            </span>
+      {/* Payment */}
+      <div className="mt-3 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
+        <div className="flex items-center justify-between gap-2">
+          <p className="flex items-center gap-2 text-sm font-semibold text-white/80">
+            {priceLabel}
+            {event.payment_method ? (
+              <span className="rounded-md bg-pitch-400/15 px-2 py-0.5 text-xs font-bold text-pitch-400">
+                {PAYMENT_METHOD_LABELS[event.payment_method]}
+              </span>
+            ) : null}
+          </p>
+          {event.pay_to_name ? (
+            <span className="shrink-0 text-xs font-semibold text-white/50">→ {event.pay_to_name}</span>
           ) : null}
-        </p>
-        {event.pay_to_name ? (
-          <button
-            className="flex items-center gap-1 rounded-md p-1 text-white/40 transition hover:text-white/80"
-            type="button"
-            onClick={(e) => { e.preventDefault(); setShowPayInfo((v) => !v); }}
-          >
-            <Info size={15} />
-          </button>
+        </div>
+        {event.payment_method && event.payment_details ? (
+          <div className="mt-2">
+            <PaymentHandle method={event.payment_method} value={event.payment_details} />
+          </div>
         ) : null}
       </div>
-      {showPayInfo && event.pay_to_name ? (
-        <div className="mt-2 rounded-lg border border-pitch-400/20 bg-pitch-400/5 px-3 py-2 text-sm text-white/75">
-          Pay to <span className="font-bold text-white">{event.pay_to_name}</span>
-        </div>
-      ) : null}
     </Link>
   );
 }

@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Bell } from "lucide-react";
+import { Bell, X } from "lucide-react";
 import { Button } from "../../ui/Button";
 import { usePushOptIn } from "../../../hooks/usePushOptIn";
 
 export function NotificationPrompt() {
-  const { canShow, busy, enable } = usePushOptIn();
+  const { canShow, busy, enable, snooze } = usePushOptIn();
   const [failed, setFailed] = useState(false);
 
   if (!canShow) {
@@ -34,6 +34,13 @@ export function NotificationPrompt() {
         <Button className="flex-none px-3 py-2" disabled={busy} onClick={() => void turnOn()}>
           {busy ? "Enabling…" : "Enable"}
         </Button>
+        <button
+          aria-label="Dismiss for now"
+          onClick={snooze}
+          className="tap-target flex flex-none items-center justify-center rounded-lg text-white/45 hover:text-white"
+        >
+          <X size={18} />
+        </button>
       </div>
     </div>
   );

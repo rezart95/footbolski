@@ -5,7 +5,12 @@ import { useCreateEvent, useVenues } from "../../../hooks/useEvents";
 import { useSession } from "../../../hooks/useSession";
 import { usePlayers } from "../../../hooks/usePlayers";
 import { errorMessage } from "../../../lib/errors";
-import { PAYMENT_METHOD_LABELS, type PaymentMethod } from "../../../types/event.types";
+import {
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_HANDLE_LABEL,
+  PAYMENT_HANDLE_PLACEHOLDER,
+  type PaymentMethod,
+} from "../../../types/event.types";
 import { Button } from "../../ui/Button";
 import { Field, Input, Select } from "../../ui/Field";
 import { Modal } from "../../ui/Modal";
@@ -43,6 +48,7 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
   const [pricePerPerson, setPricePerPerson] = useState("");
   const [payToName, setPayToName] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | "">("blik");
+  const [paymentDetails, setPaymentDetails] = useState("");
 
   useEffect(() => {
     if (!venueId && venues.length > 0) {
@@ -70,6 +76,7 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
         price_per_person: paymentMode === "now" && pricePerPerson ? parseFloat(pricePerPerson) : null,
         pay_to_name: payToName.trim() || null,
         payment_method: paymentMethod || null,
+        payment_details: paymentMethod && paymentDetails.trim() ? paymentDetails.trim() : null,
       },
       { onSuccess: onClose }
     );
@@ -146,6 +153,19 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
             ))}
           </Select>
         </Field>
+
+        {/* Where to send the payment — contextual to the chosen method */}
+        {paymentMethod ? (
+          <Field label={`${PAYMENT_HANDLE_LABEL[paymentMethod]} (optional)`}>
+            <Input
+              type={paymentMethod === "blik" ? "tel" : "text"}
+              inputMode={paymentMethod === "blik" ? "tel" : "text"}
+              placeholder={PAYMENT_HANDLE_PLACEHOLDER[paymentMethod]}
+              value={paymentDetails}
+              onChange={(e) => setPaymentDetails(e.target.value)}
+            />
+          </Field>
+        ) : null}
 
         {/* Pay to */}
         <Field label="Pay to (optional)">

@@ -12,3 +12,5 @@ __pycache__/
 pitchup-master-prompt.md
 backend/uv.lock
 auth-prompt.md
+# Local MCP config (contains secrets) — use .mcp.json.example as template
+.mcp.json

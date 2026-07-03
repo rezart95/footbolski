@@ -8,6 +8,19 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   bank_transfer: "Bank Transfer",
 };
 
+// Label + placeholder for the "where to send the payment" field, per method.
+export const PAYMENT_HANDLE_LABEL: Record<PaymentMethod, string> = {
+  blik: "BLIK phone number",
+  revolut: "Revolut username",
+  bank_transfer: "Account number / IBAN",
+};
+
+export const PAYMENT_HANDLE_PLACEHOLDER: Record<PaymentMethod, string> = {
+  blik: "+48 500 000 000",
+  revolut: "@username",
+  bank_transfer: "PL00 0000 0000 0000",
+};
+
 export interface Venue {
   id: string;
   name: "Parkowa Sport" | "Fame Sport" | string;
@@ -39,6 +52,7 @@ export interface EventSummary {
   price_per_person: number | null;
   pay_to_name: string | null;
   payment_method: PaymentMethod | null;
+  payment_details: string | null;
 }
 
 export interface EventPayload {
@@ -50,4 +64,5 @@ export interface EventPayload {
   price_per_person?: number | null;
   pay_to_name?: string | null;
   payment_method?: PaymentMethod | null;
+  payment_details?: string | null;
 }
