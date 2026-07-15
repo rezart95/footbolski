@@ -49,7 +49,7 @@ export function EventCard({ event, large = false }: EventCardProps) {
               {event.venue.name}
             </p>
           )}
-          <h2 className={large ? "mt-2 font-display text-4xl font-bold" : "mt-1 font-display text-2xl font-bold"}>
+          <h2 className={large ? "mt-1 font-display text-3xl font-bold" : "mt-1 font-display text-2xl font-bold"}>
             {format(date, "EEEE")}
           </h2>
           <p className="mt-2 flex items-center gap-2 text-sm text-white/65">

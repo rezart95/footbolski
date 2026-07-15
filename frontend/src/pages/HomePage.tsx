@@ -8,7 +8,6 @@ import { WaitlistSection } from "../components/features/registration/WaitlistSec
 import { TeamSplitButton } from "../components/features/teams/TeamSplitButton";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
-import { PageHeader } from "../components/ui/PageHeader";
 import { EventCardSkeleton } from "../components/ui/Skeleton";
 import { Notice } from "../components/ui/Notice";
 import { useEvents, useUpcomingEvent } from "../hooks/useEvents";
@@ -62,16 +61,14 @@ export function HomePage() {
 
   if (upcoming.isLoading && events.isLoading) {
     return (
-      <div className="grid gap-5">
-        <PageHeader title="Next match" />
+      <div className="grid gap-4">
         <EventCardSkeleton large />
       </div>
     );
   }
 
   return (
-    <div className="grid gap-5">
-      <PageHeader title="Next match" />
+    <div className="grid gap-4">
       <RequireCardModal open={showRequireCard} onClose={() => setShowRequireCard(false)} />
       {event ? (
         <>
