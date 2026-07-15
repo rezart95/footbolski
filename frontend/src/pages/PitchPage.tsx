@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { DraggablePitch } from "../components/features/formation/DraggablePitch";
 import { AIInsightsPanel } from "../components/features/teams/AIInsightsPanel";
 import { EmptyState } from "../components/ui/EmptyState";
+import { PageHeader } from "../components/ui/PageHeader";
 import { useEvents } from "../hooks/useEvents";
 import { useSession } from "../hooks/useSession";
 import { useTeamActions, useTeams } from "../hooks/useTeams";
@@ -39,12 +40,12 @@ export function PitchPage() {
     if (isGenerating) {
       return (
         <div className="grid gap-5">
-          <h1 className="font-display text-2xl font-bold">Pitch</h1>
+          <PageHeader title="Pitch" />
           <div className="flex items-center gap-3 rounded-lg border border-pitch-400/30 bg-pitch-400/5 p-4">
             <Loader2 className="shrink-0 animate-spin text-pitch-400" size={22} />
             <div className="min-w-0">
               <p className="font-display font-bold text-pitch-400">AI is splitting teams…</p>
-              <p className="text-xs text-white/45">Claude is analysing player ratings — this takes a few seconds</p>
+              <p className="text-xs text-white/55">Claude is analysing player ratings — this takes a few seconds</p>
             </div>
           </div>
         </div>
@@ -60,29 +61,31 @@ export function PitchPage() {
 
   return (
     <div className="grid gap-5">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold">Pitch</h1>
-        {splitEvents.length > 1 && (
-          <select
-            className="rounded-lg border border-white/10 bg-white/[0.06] px-3 py-2 text-sm font-semibold text-white focus:outline-none"
-            onChange={(e) => setSelectedId(e.target.value)}
-            value={selectedId}
-          >
-            {splitEvents.map((ev) => (
-              <option key={ev.id} value={ev.id}>
-                {ev.venue.name} — {ev.event_date}
-              </option>
-            ))}
-          </select>
-        )}
-      </div>
+      <PageHeader
+        title="Pitch"
+        action={
+          splitEvents.length > 1 ? (
+            <select
+              className="max-w-[11rem] truncate rounded-lg border border-white/10 bg-white/[0.06] px-3 py-2 text-sm font-semibold text-white focus:outline-none"
+              onChange={(e) => setSelectedId(e.target.value)}
+              value={selectedId}
+            >
+              {splitEvents.map((ev) => (
+                <option key={ev.id} value={ev.id}>
+                  {ev.venue.name} — {ev.event_date}
+                </option>
+              ))}
+            </select>
+          ) : undefined
+        }
+      />
 
       {isGenerating ? (
         <div className="flex items-center gap-3 rounded-lg border border-pitch-400/30 bg-pitch-400/5 p-4">
           <Loader2 className="shrink-0 animate-spin text-pitch-400" size={22} />
           <div className="min-w-0">
             <p className="font-display font-bold text-pitch-400">AI is splitting teams…</p>
-            <p className="text-xs text-white/45">Claude is analysing player ratings — this takes a few seconds</p>
+            <p className="text-xs text-white/55">Claude is analysing player ratings — this takes a few seconds</p>
           </div>
         </div>
       ) : null}

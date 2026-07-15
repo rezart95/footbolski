@@ -22,7 +22,7 @@ export function EventCard({ event, large = false }: EventCardProps) {
     : "After match";
 
   return (
-    <Link className="relative block overflow-hidden rounded-lg border border-white/10 bg-pitch-900/80 p-4 shadow-glow transition hover:border-pitch-400/40" to={`/events/${event.id}`}>
+    <Link className="relative block overflow-hidden rounded-lg border border-white/10 bg-pitch-900/80 p-4 shadow-glow transition hover:border-pitch-400/40 active:scale-[0.99]" to={`/events/${event.id}`}>
       {isCancelled ? (
         <div className="absolute right-3 top-3 rounded-md border border-red-200/30 bg-red-500/15 px-2.5 py-1 text-xs font-black uppercase text-red-100">
           Cancelled

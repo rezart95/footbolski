@@ -117,7 +117,7 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
         </Field>
 
         {/* Payment */}
-        <p className="text-xs font-bold uppercase text-white/40">Payment</p>
+        <p className="text-xs font-bold uppercase text-white/55">Payment</p>
         <div className="grid grid-cols-2 gap-2">
           <button
             type="button"

@@ -25,7 +25,7 @@ export function AIInsightsPanel({ reasoning, swapOptions }: AIInsightsPanelProps
           <Sparkles className="shrink-0 text-pitch-400" size={16} />
           <span className="font-display text-sm font-bold text-pitch-400">AI Team Analysis</span>
         </div>
-        <span className="shrink-0 text-white/40 text-xs">
+        <span className="shrink-0 text-white/55 text-xs">
           {open ? "hide" : "show"}
         </span>
       </button>
@@ -34,7 +34,7 @@ export function AIInsightsPanel({ reasoning, swapOptions }: AIInsightsPanelProps
         <div className="border-t border-pitch-400/20 px-4 pb-4 pt-3 grid gap-4">
           {/* Reasoning */}
           <div>
-            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-white/35">
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-widest text-white/55">
               Why this split?
             </p>
             <p className="text-sm leading-relaxed text-white/75">{reasoning}</p>
@@ -43,7 +43,7 @@ export function AIInsightsPanel({ reasoning, swapOptions }: AIInsightsPanelProps
           {/* Swap options */}
           {swapOptions && swapOptions.length > 0 && (
             <div>
-              <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-white/35">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-white/55">
                 Suggested swaps
               </p>
               <div className="grid gap-2">

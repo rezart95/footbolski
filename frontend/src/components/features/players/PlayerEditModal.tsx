@@ -144,7 +144,7 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
           ))}
         </div>
         {/* Physical info */}
-        <p className="text-xs font-bold uppercase text-white/40">Physical</p>
+        <p className="text-xs font-bold uppercase text-white/55">Physical</p>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Age *">
             <Input
@@ -181,7 +181,7 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
         </Field>
 
         {/* Attribute ratings */}
-        <p className="text-xs font-bold uppercase text-white/40">Ratings</p>
+        <p className="text-xs font-bold uppercase text-white/55">Ratings</p>
         <Field label={`Speed ${form.speed ?? "–"}/10`}>
           <Input min={1} max={10} type="range" value={form.speed ?? 5} onChange={(e) => setForm({ ...form, speed: Number(e.target.value) })} />
         </Field>

@@ -11,7 +11,7 @@ export function TopBar({ onEditName }: TopBarProps) {
 
   return (
     <header className="sticky top-0 z-30 border-b border-white/10 bg-pitch-950/80 px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-xl">
-      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
+      <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
         <div>
           <p className="font-display text-2xl font-bold leading-none">Footbolski</p>
           <p className="mt-1 max-w-48 truncate text-xs font-semibold text-white/50">{sessionName || "No name set"}</p>

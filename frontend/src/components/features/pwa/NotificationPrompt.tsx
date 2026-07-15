@@ -18,8 +18,8 @@ export function NotificationPrompt() {
   }
 
   return (
-    <div className="border-b border-sky-400/25 bg-sky-400/10 px-4 pb-2.5 pt-[calc(env(safe-area-inset-top)+0.625rem)] backdrop-blur-xl">
-      <div className="mx-auto flex max-w-5xl items-center gap-3">
+    <div className="border-b border-sky-400/25 bg-sky-400/10 px-4 py-2.5 backdrop-blur-xl">
+      <div className="mx-auto flex max-w-lg items-center gap-3">
         <div className="flex h-10 w-10 flex-none items-center justify-center rounded-lg bg-sky-400/15 text-sky-300">
           <Bell size={20} />
         </div>

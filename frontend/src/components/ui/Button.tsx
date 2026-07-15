@@ -19,7 +19,7 @@ export function Button({ className, children, variant = "primary", icon, ...prop
   return (
     <button
       className={cn(
-        "tap-target inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-50",
+        "tap-target inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-extrabold transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
         variants[variant],
         className
       )}

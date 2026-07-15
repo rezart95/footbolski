@@ -24,7 +24,7 @@ export function PlayerCard({ player, onClick }: PlayerCardProps) {
   ].filter(Boolean).join(" · ");
 
   return (
-    <button className="surface flex w-full flex-col overflow-hidden rounded-xl text-left transition hover:border-pitch-400/35" onClick={onClick} type="button">
+    <button className="surface flex w-full flex-col overflow-hidden rounded-xl text-left transition hover:border-pitch-400/35 active:scale-[0.98]" onClick={onClick} type="button">
       {/* Photo / avatar */}
       <div className="relative h-36 w-full">
         {player.photo_url ? (
@@ -50,7 +50,7 @@ export function PlayerCard({ player, onClick }: PlayerCardProps) {
               <span className={`h-1 flex-1 rounded-full ${i < player.skill_rating ? "bg-pitch-400" : "bg-white/12"}`} key={i} />
             ))}
           </div>
-          <span className="font-mono text-[10px] font-bold text-white/40">{player.skill_rating}</span>
+          <span className="font-mono text-[10px] font-bold text-white/55">{player.skill_rating}</span>
         </div>
 
         {/* Attribute tags */}
@@ -63,7 +63,7 @@ export function PlayerCard({ player, onClick }: PlayerCardProps) {
         )}
 
         {/* Physical meta: age, height */}
-        {meta && <p className="font-mono text-[10px] text-white/40">{meta}</p>}
+        {meta && <p className="font-mono text-[10px] text-white/55">{meta}</p>}
 
         {/* Stats mini grid */}
         {hasStats && (
@@ -73,13 +73,13 @@ export function PlayerCard({ player, onClick }: PlayerCardProps) {
               if (val == null) return null;
               return (
                 <div className="flex items-center gap-1.5" key={key}>
-                  <span className="w-7 shrink-0 font-mono text-[9px] font-bold uppercase text-white/35">{label}</span>
+                  <span className="w-7 shrink-0 font-mono text-[9px] font-bold uppercase text-white/55">{label}</span>
                   <div className="flex flex-1 gap-px">
                     {Array.from({ length: 10 }).map((_, i) => (
                       <span className={`h-0.5 flex-1 rounded-full ${i < val ? "bg-pitch-400/70" : "bg-white/10"}`} key={i} />
                     ))}
                   </div>
-                  <span className="w-3 text-right font-mono text-[9px] text-white/40">{val}</span>
+                  <span className="w-3 text-right font-mono text-[9px] text-white/55">{val}</span>
                 </div>
               );
             })}

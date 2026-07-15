@@ -231,7 +231,7 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
             />
             {editable && (
               <button
-                className="self-start text-xs text-white/35 underline underline-offset-2 hover:text-white/60"
+                className="self-start text-xs text-white/55 underline underline-offset-2 hover:text-white/60"
                 onClick={() => handleSnap(team, idx)}
                 type="button"
               >

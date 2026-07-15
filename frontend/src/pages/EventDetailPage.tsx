@@ -10,6 +10,7 @@ import { RegistrationList } from "../components/features/registration/Registrati
 import { WaitlistSection } from "../components/features/registration/WaitlistSection";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
+import { Skeleton } from "../components/ui/Skeleton";
 import { Modal } from "../components/ui/Modal";
 import { Notice } from "../components/ui/Notice";
 import { useCancelEvent, useDeleteEvent, useEvent } from "../hooks/useEvents";
@@ -43,7 +44,17 @@ export function EventDetailPage() {
   );
 
   if (isLoading) {
-    return <EmptyState title="Loading event" />;
+    return (
+      <div className="grid gap-5">
+        <div className="space-y-3 rounded-lg border border-white/10 bg-white/[0.04] p-4">
+          <Skeleton className="h-8 w-44" />
+          <Skeleton className="h-4 w-56" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <Skeleton className="h-12 w-full rounded-lg" />
+        <Skeleton className="h-40 w-full rounded-lg" />
+      </div>
+    );
   }
 
   if (!event) {
@@ -165,7 +176,7 @@ export function EventDetailPage() {
           <TimerOff className="shrink-0 text-sky-400" size={20} />
           <div>
             <p className="font-semibold text-sky-300">Match has ended</p>
-            {creator ? <p className="text-xs text-white/45">Payment status below — tap a player to mark as paid</p> : null}
+            {creator ? <p className="text-xs text-white/55">Payment status below — tap a player to mark as paid</p> : null}
           </div>
         </div>
       ) : null}
