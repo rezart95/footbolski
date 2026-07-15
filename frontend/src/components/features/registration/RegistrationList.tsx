@@ -28,9 +28,9 @@ export function RegistrationList({ registrations, onTogglePaid, maxPlayers, busy
         {registrations.map((registration) => {
           const canRemind = Boolean(eventId) && !registration.has_paid;
           return (
-            <div className="flex items-center gap-3 rounded-lg bg-pitch-950/35 p-2" key={registration.id}>
-              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-md bg-white/10 font-mono text-sm font-black text-white/75">{registration.position}</span>
-              <p className={cn("min-w-0 flex-1 truncate font-semibold", registration.has_paid ? "text-pitch-400" : "text-white/80")}>
+            <div className="flex items-center gap-2 rounded-lg bg-pitch-950/35 p-2" key={registration.id}>
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-white/10 font-mono text-xs font-black text-white/75">{registration.position}</span>
+              <p className={cn("min-w-0 flex-1 truncate text-sm font-semibold", registration.has_paid ? "text-pitch-400" : "text-white/80")}>
                 {registration.display_name}
               </p>
               {canRemind ? (
