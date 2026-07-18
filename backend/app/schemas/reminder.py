@@ -6,7 +6,7 @@ from app.models.reminder import ReminderChannel, ReminderStatus
 
 
 class ReminderRequest(BaseModel):
-    channel: Literal["push", "sms"]
+    channel: Literal["push", "sms", "whatsapp"]
 
 
 class ReminderResult(BaseModel):

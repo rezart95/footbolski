@@ -1,4 +1,3 @@
-import asyncio
 import uuid
 from datetime import UTC, datetime
 
@@ -6,8 +5,9 @@ from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import EventStatus, ListStatus, Player, PushSubscription, Registration
-from app.services.event_service import _app_url, _send_pushes_bg, get_event
+from app.models import EventStatus, ListStatus, Player, Registration
+from app.services import promotion_notice, push_notices
+from app.services.event_service import _app_url, get_event
 
 
 async def list_registrations(session: AsyncSession, event_id: uuid.UUID) -> list[Registration]:
@@ -25,22 +25,6 @@ async def _next_position(session: AsyncSession, event_id: uuid.UUID, status_: Li
         Registration.list_status == status_,
     )
     return int(await session.scalar(stmt) or 0) + 1
-
-
-async def _notify_player(
-    session: AsyncSession, player_id: uuid.UUID | None, *, title: str, body: str, url: str
-) -> None:
-    """Fire-and-forget push to every device of one player. No-op if the player
-    has no subscriptions (i.e. hasn't enabled notifications)."""
-    if not player_id:
-        return
-    subs = list(
-        (await session.scalars(select(PushSubscription).where(PushSubscription.player_id == player_id))).all()
-    )
-    if not subs:
-        return
-    subs_data = [{"endpoint": s.endpoint, "p256dh": s.p256dh, "auth": s.auth} for s in subs]
-    asyncio.ensure_future(_send_pushes_bg(subs_data, title=title, body=body, url=url))
 
 
 async def _confirmed_count(session: AsyncSession, event_id: uuid.UUID) -> int:
@@ -95,7 +79,7 @@ async def register(session: AsyncSession, event_id: uuid.UUID, name: str) -> Reg
                 body = f"{name} joined your match at {event.venue.name} ({confirmed + 1}/{event.max_players})."
             else:
                 body = f"{name} joined the waitlist for your match at {event.venue.name}."
-            await _notify_player(
+            await push_notices.notify_player(
                 session, creator.id,
                 title="New player enrolled",
                 body=body,
@@ -143,7 +127,7 @@ async def unregister(session: AsyncSession, event_id: uuid.UUID, registration_id
         creator = await _matching_player(session, event.created_by_name)
         if creator:
             confirmed_now = await _confirmed_count(session, event_id)
-            await _notify_player(
+            await push_notices.notify_player(
                 session, creator.id,
                 title="Player dropped out",
                 body=f"{leaver_name} left your match at {event.venue.name} ({confirmed_now}/{event.max_players}).",
@@ -151,8 +135,18 @@ async def unregister(session: AsyncSession, event_id: uuid.UUID, registration_id
             )
 
     # 2. Tell the auto-promoted waitlist player they now have a confirmed spot.
+    #    WhatsApp is the channel that actually reaches people; push is attempted
+    #    as well but adoption never happened, so nothing depends on it. This
+    #    message is exempt from the per-event budget: a silently promoted player
+    #    who does not turn up is the exact failure the ladder exists to prevent.
     if promoted_player_id and (promoted_name or "").casefold() != leaver_name.casefold():
-        await _notify_player(
+        await promotion_notice.notify_promoted(
+            session,
+            player_id=promoted_player_id,
+            event=event,
+            venue_name=event.venue.name,
+        )
+        await push_notices.notify_player(
             session, promoted_player_id,
             title="You're in!",
             body=f"A spot opened up — you're now confirmed for the match at {event.venue.name} on {when}.",

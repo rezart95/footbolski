@@ -38,8 +38,32 @@ class Player(Base):
     work_rate: Mapped[int | None] = mapped_column(SmallInteger)
     notes: Mapped[str | None] = mapped_column(Text)
 
-    # Contact
+    # Contact and messaging.
+    #
+    # phone_number and tier are BOTH confidential: neither may appear in any
+    # client-facing schema. A visible core/rest label in a group of friends is a
+    # social problem with no product upside, and the timing difference between
+    # ladder rungs is defensible only as wave-based messaging, not as a rank.
     phone_number: Mapped[str | None] = mapped_column(String(32))
+    phone_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    """Set from the inbound webhook when the player first replies.
+
+    That single reply proves they control the number, opens WhatsApp's 24-hour
+    service window, and creates the consent record, all at once.
+    """
+
+    opted_out_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    """Set when the player replies STOP. Their number is cleared at the same time."""
+
+    tier: Mapped[str] = mapped_column(String(10), nullable=False, default="rest", server_default="rest")
+    """'core' or 'rest'. Controls which rung of the invite ladder reaches them."""
+
+    preferred_language: Mapped[str] = mapped_column(
+        String(5), nullable=False, default="en", server_default="en"
+    )
+    nationality: Mapped[str | None] = mapped_column(String(2))
+    """ISO 3166-1 alpha-2. Recorded separately because nationality is not a
+    reliable proxy for preferred language."""
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
