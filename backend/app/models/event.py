@@ -2,7 +2,7 @@ import uuid
 from datetime import date, datetime, time
 from typing import Any
 
-from sqlalchemy import Date, DateTime, Enum, ForeignKey, Numeric, String, Text, Time, UniqueConstraint, func
+from sqlalchemy import Date, DateTime, Enum, ForeignKey, Index, Numeric, String, Text, Time, func, text
 from sqlalchemy.dialects.postgresql import JSON, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -12,7 +12,19 @@ from app.models.enums import EventStatus
 
 class Event(Base):
     __tablename__ = "events"
-    __table_args__ = (UniqueConstraint("created_by_name", "event_date", name="uq_event_creator_date"),)
+    # One live event per creator per day. Cancelled events are excluded so an
+    # organiser can cancel and immediately re-create on the same date — a plain
+    # UNIQUE would force them to delete instead, destroying the registration
+    # history the fill-rate metrics depend on.
+    __table_args__ = (
+        Index(
+            "uq_event_creator_date_active",
+            "created_by_name",
+            "event_date",
+            unique=True,
+            postgresql_where=text("status <> 'cancelled'"),
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     venue_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("venues.id"), nullable=False)

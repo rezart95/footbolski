@@ -1,361 +1,65 @@
-from datetime import time
+"""Idempotent startup seeding of venues and players.
 
-from sqlalchemy import select
+The seed *content* lives in `seed_data/*.json` rather than in this module. It is
+data, not logic, and inlining it previously pushed this file to 361 lines of
+which roughly 330 were literal dictionaries. Keeping it as JSON lets the two
+concerns be edited independently and keeps this module readable.
+
+Both functions are safe to run on every startup.
+"""
+
+import json
+from datetime import time
+from pathlib import Path
+from typing import Any
+
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Venue
 from app.models.enums import PlayerPosition
 from app.models.player import Player
 
+SEED_DATA_DIR = Path(__file__).parent / "seed_data"
 
-VENUES = [
-    {
-        "name": "Parkowa Sport",
-        "address": "Centrum Sportu Parkowa, Parkowa 12a, 30-538 Kraków",
-        "default_day": 3,
-        "default_time": time(19, 30),
-        "players_per_side": 7,
-        "max_players": 14,
-    },
-    {
-        "name": "Fame Sport",
-        "address": "Fame Sport Club, Jana Dekerta 21, 30-703 Kraków",
-        "default_day": 0,
-        "default_time": time(21, 0),
-        "players_per_side": 6,
-        "max_players": 12,
-    },
-]
 
-PLAYERS = [
-    {
-        "name": "Jetmiri",
-        "primary_position": PlayerPosition.ATT,
-        "skill_rating": 10,
-        "age": 26, 
-        "height_cm": 174, 
-        "build": "athletic/slim",
-        "preferred_role": "Attacking – best player in the group",
-        "speed": 9, 
-        "technique": 10, 
-        "defending": 8, 
-        "shooting": 9,
-        "aerial": 5, 
-        "stamina": 9, 
-        "work_rate": 9,
-        "notes": "Best player in the group. Great dribbling, shooting, long and short passes. No real weaknesses.",
-    },
-    {
-        "name": "Giani",
-        "primary_position": PlayerPosition.DEF,
-        "skill_rating": 7,
-        "age": 33, 
-        "height_cm": 195, 
-        "build": "athletic",
-        "preferred_role": "Defensive",
-        "speed": 10, 
-        "technique": 3, 
-        "defending": 7, 
-        "shooting": 5,
-        "aerial": 8, 
-        "stamina": 9, 
-        "work_rate": 8,
-        "notes": "Fastest player. Great stamina and acceleration. Weak positioning, passing, and close control.",
-    },
-    {
-        "name": "Laerti",
-        "primary_position": PlayerPosition.MID,
-        "skill_rating": 7,
-        "age": 31, 
-        "height_cm": 175, 
-        "build": "strong",
-        "preferred_role": "Midfield/attack",
-        "speed": 5, 
-        "technique": 6, 
-        "defending": 5, 
-        "shooting": 7,
-        "aerial": 5, 
-        "stamina": 6, 
-        "work_rate": 5,
-        "notes": "Good shooting and passing. Stamina slightly below top players but good overall.",
-    },
-    {
-        "name": "Bledi",
-        "primary_position": PlayerPosition.DEF,
-        "skill_rating": 6,
-        "age": 37, 
-        "height_cm": 172, 
-        "build": "athletic",
-        "preferred_role": "Defensive",
-        "speed": 5, 
-        "technique": 5, 
-        "defending": 8, 
-        "shooting": 3,
-        "aerial": 5, 
-        "stamina": 5, 
-        "work_rate": 8,
-        "notes": "Athletic build with strong positioning and tackling. Hard-working, covers a lot of the pitch. Struggles with passing and shooting.",
-    },
-    {
-        "name": "Rezi",
-        "primary_position": PlayerPosition.DEF,
-        "skill_rating": 5,
-        "age": 31, 
-        "height_cm": 187, 
-        "build": "a bit overweight",
-        "preferred_role": "Defensive/midfield",
-        "speed": 3, 
-        "technique": 5, 
-        "defending": 5, 
-        "shooting": 5,
-        "aerial": 5, 
-        "stamina": 3, 
-        "work_rate": 3,
-        "notes": "Good positioning and vision. Below average acceleration and fitness.",
-    },
-    {
-        "name": "Klaus",
-        "primary_position": PlayerPosition.MID,
-        "skill_rating": 4,
-        "age": 27, 
-        "height_cm": 180, 
-        "build": "strong",
-        "preferred_role": "Midfield/attack",
-        "speed": 3, 
-        "technique": 3, 
-        "defending": 5, 
-        "shooting": 3,
-        "aerial": 5, 
-        "stamina": 5, 
-        "work_rate": 3,
-        "notes": "Good vision, occasionally gives great passes. Below average speed, technique, and shooting.",
-    },
-    {
-        "name": "Shefit",
-        "primary_position": PlayerPosition.DEF,
-        "skill_rating": 6,
-        "age": 42, 
-        "height_cm": 178, 
-        "build": "strong, bit overweight",
-        "preferred_role": "Defensive/midfield",
-        "speed": 5, 
-        "technique": 5, 
-        "defending": 7, 
-        "shooting": 5,
-        "aerial": 7, 
-        "stamina": 5, 
-        "work_rate": 8,
-        "notes": "Good tackling, positioning, passing, and aerial ability. Struggles with acceleration.",
-    },
-    {
-        "name": "Flori",
-        "primary_position": PlayerPosition.MID,
-        "skill_rating": 7,
-        "age": 27, 
-        "height_cm": 168, "build": "strong, bit overweight",
-        "preferred_role": "Midfield/attack",
-        "speed": 7, 
-        "technique": 7, 
-        "defending": 5, 
-        "shooting": 6,
-        "aerial": 3, 
-        "stamina": 7, 
-        "work_rate": 8,
-        "notes": "Good dribbling and passing. Weak in aerial duels. Does not track back.",
-    },
-    {
-        "name": "Marcin",
-        "primary_position": PlayerPosition.MID,
-        "skill_rating": 8,
-        "age": 36, 
-        "height_cm": 197, 
-        "build": "athletic/strong",
-        "preferred_role": "Midfield/attack",
-        "speed": 7, 
-        "technique": 6, 
-        "defending": 5, 
-        "shooting": 5,
-        "aerial": 9, 
-        "stamina": 7, 
-        "work_rate": 9,
-        "notes": "Excellent passing, vision, positioning, and aerial duels. Very high work rate.",
-    },
-    {
-        "name": "Meti",
-        "primary_position": PlayerPosition.MID,
-        "skill_rating": 3,
-        "age": 24, 
-        "height_cm": 178, 
-        "build": "athletic/slim",
-        "preferred_role": "Flexible – new player",
-        "speed": 3, 
-        "technique": 3, 
-        "defending": 4, 
-        "shooting": 3,
-        "aerial": 3, 
-        "stamina": 3, 
-        "work_rate": 3,
-        "notes": "New player, still learning. Does not give up. Weak in most attributes.",
-    },
-    {
-        "name": "Mondi",
-        "primary_position": PlayerPosition.GK,
-        "skill_rating": 5,
-        "age": 31, 
-        "height_cm": 180, 
-        "build": "slim",
-        "preferred_role": "Goalkeeper / midfield",
-        "speed": 5, 
-        "technique": 5, 
-        "defending": 5, 
-        "shooting": 3,
-        "aerial": 3, 
-        "stamina": 5, 
-        "work_rate": 5,
-        "notes": "Good goalkeeper. Also plays midfield. Weak acceleration and passing.",
-    },
-    {
-        "name": "Gent",
-        "primary_position": PlayerPosition.MID,
-        "skill_rating": 6,
-        "age": 42, 
-        "height_cm": 182, 
-        "build": "athletic",
-        "preferred_role": "Midfield/attack",
-        "speed": 5, 
-        "technique": 6, 
-        "defending": 5, 
-        "shooting": 5,
-        "aerial": 5, 
-        "stamina": 5, 
-        "work_rate": 5,
-        "notes": "Good positioning and passing. Average shooting.",
-    },
-    {
-        "name": "Noel",
-        "primary_position": PlayerPosition.ATT,
-        "skill_rating": 7,
-        "age": 22, 
-        "height_cm": 175, 
-        "build": "athletic",
-        "preferred_role": "Attacking",
-        "speed": 7, 
-        "technique": 7, 
-        "defending": 5, 
-        "shooting": 7,
-        "aerial": 5, 
-        "stamina": 7, 
-        "work_rate": 5,
-        "notes": "Good finisher. Tends to hold the ball too long.",
-    },
-    {
-        "name": "Enes",
-        "primary_position": PlayerPosition.DEF,
-        "skill_rating": 7,
-        "age": 20,
-        "height_cm": 175,
-        "build": "slim/athletic",
-        "preferred_role": "Defender",
-        "speed": 8,
-        "technique": 6,
-        "defending": 9,
-        "shooting": 6,
-        "aerial": 5,
-        "stamina": 8,
-        "work_rate": 9,
-        "notes": "Young and energetic. Aggressive defending, not afraid to tackle. Runs the wings and likes to cross into the box. Good passer.",
-    },
-    {
-        "name": "Guilherme",
-        "primary_position": PlayerPosition.ATT,
-        "skill_rating": 8,
-        "age": 30,
-        "height_cm": 185,
-        "build": "Athletic",
-        "preferred_role": "Attack",
-        "speed": 8,
-        "technique": 8,
-        "defending": 6,
-        "shooting": 7,
-        "aerial": 7,
-        "stamina": 6,
-        "work_rate": 5,
-        "notes": "Brazilian with great flair. Good passing and quick dribbling. Powerful shooting and good game vision.",
-    },
-    {
-        "name": "Miguel",
-        "primary_position": PlayerPosition.DEF,
-        "skill_rating": 5,
-        "age": 33,
-        "height_cm": 178,
-        "build": "Strong",
-        "preferred_role": "Defense, Mid",
-        "speed": 4,
-        "technique": 5,
-        "defending": 7,
-        "shooting": 6,
-        "aerial": 5,
-        "stamina": 4,
-        "work_rate": 5,
-        "notes": "Slightly overweight but good positional skills. Good area cover and anticipation in defence. Decent long-range shooting. Below average speed.",
-    },
-    {
-        "name": "Artur",
-        "primary_position": PlayerPosition.MID,
-        "skill_rating": 5,
-        "age": 42,
-        "height_cm": 186,
-        "build": "strong build",
-        "preferred_role": "Defender/Midfield",
-        "speed": 4,
-        "technique": 6,
-        "defending": 7,
-        "shooting": 6,
-        "aerial": 7,
-        "stamina": 4,
-        "work_rate": 5,
-        "notes": "Strong big build, slightly overweight. Good ball retention and positioning, often finds space in front of goal. Strong tackles in defence. Low stamina, tires quickly.",
-    },
-    {
-        "name": "Aleks",
-        "primary_position": PlayerPosition.MID,
-        "skill_rating": 5,
-        "age": 31, 
-        "height_cm": 175, 
-        "build": "strong",
-        "preferred_role": "Winger/midfield",
-        "speed": 5, 
-        "technique": 5, 
-        "defending": 5, 
-        "shooting": 3,
-        "aerial": 3, 
-        "stamina": 5, 
-        "work_rate": 5,
-        "notes": "Good tackling. Weak shooting and limited dribbling.",
-    },
-]
+def _load(filename: str) -> list[dict[str, Any]]:
+    with (SEED_DATA_DIR / filename).open(encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def _to_venue_payload(row: dict[str, Any]) -> dict[str, Any]:
+    """JSON has no time type, so default_time arrives as 'HH:MM'."""
+    hour, minute = (int(part) for part in row["default_time"].split(":"))
+    return {**row, "default_time": time(hour, minute)}
+
+
+def _to_player_payload(row: dict[str, Any]) -> dict[str, Any]:
+    return {**row, "primary_position": PlayerPosition(row["primary_position"])}
 
 
 async def seed_venues(session: AsyncSession) -> None:
-    for payload in VENUES:
+    """Create missing venues, and back-fill addresses on venues seeded before
+    addresses were tracked, without overwriting any manual edits."""
+    for row in _load("venues.json"):
+        payload = _to_venue_payload(row)
         existing = await session.scalar(select(Venue).where(Venue.name == payload["name"]))
         if existing is None:
             session.add(Venue(**payload))
         elif not existing.address:
-            # Back-fill the address on venues seeded before it was tracked, so
-            # the maps link works without wiping any manual edits.
             existing.address = payload["address"]
     await session.commit()
 
 
 async def seed_players(session: AsyncSession) -> None:
-    # Only seed on first run (when the table is empty) so that
-    # players deleted through the UI are not re-created on restart.
-    from sqlalchemy import func
-    count = await session.scalar(select(func.count()).select_from(Player))
-    if count and count > 0:
-        return
-    for payload in PLAYERS:
-        session.add(Player(**payload))
-    await session.commit()
+    """Populate player cards on first run only.
 
+    Seeding is skipped once the table has any rows, so players deleted through
+    the UI are not resurrected on the next restart.
+    """
+    existing_count = await session.scalar(select(func.count()).select_from(Player))
+    if existing_count:
+        return
+    for row in _load("players.json"):
+        session.add(Player(**_to_player_payload(row)))
+    await session.commit()

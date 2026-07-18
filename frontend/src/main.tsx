@@ -3,13 +3,13 @@ import ReactDOM from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
-import { NameEntryModal } from "./components/features/session/NameEntryModal";
 import { queryClient } from "./lib/queryClient";
 import { HomePage } from "./pages/HomePage";
 import { EventDetailPage } from "./pages/EventDetailPage";
 import { EventsListPage } from "./pages/EventsListPage";
 import { PitchPage } from "./pages/PitchPage";
 import { PlayersPage } from "./pages/PlayersPage";
+import { TermsPage } from "./pages/TermsPage";
 import "./index.css";
 
 // Reload the page whenever a new service worker takes control so users
@@ -36,9 +36,9 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
             <Route path="/events/new" element={<Navigate to="/?create=1" replace />} />
             <Route path="/pitch" element={<PitchPage />} />
             <Route path="/players" element={<PlayersPage />} />
+            <Route path="/terms" element={<TermsPage />} />
           </Routes>
         </AppShell>
-        <NameEntryModal />
       </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>

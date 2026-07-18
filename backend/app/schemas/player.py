@@ -1,3 +1,12 @@
+"""Pydantic schemas for player cards.
+
+`phone_number` is deliberately absent from every schema in this module. It lives
+on the model but must never be serialised to a client: `PlayerRead` is returned
+by the public `GET /api/v1/players`, which has no authentication in front of it.
+Numbers are written only through the shared-secret admin endpoint in
+`api/v1/routes/admin.py` and read only server-side by the notification services.
+"""
+
 import uuid
 from datetime import datetime
 
@@ -29,16 +38,23 @@ class PlayerBase(BaseModel):
     work_rate: int | None = Field(default=None, ge=1, le=10)
     notes: str | None = Field(default=None, max_length=500)
 
-    # Contact
-    phone_number: str | None = Field(default=None, max_length=32)
-
 
 class PlayerCreate(PlayerBase):
     pass
 
 
 class PlayerUpdate(PlayerBase):
-    pass
+    """Fields a player may change on their own card.
+
+    Applied with `exclude_unset=True`, so a payload that omits a field leaves the
+    stored value alone rather than resetting it to this schema's default.
+    """
+
+
+class PlayerPhoneUpdate(BaseModel):
+    """Admin-only phone write. Never part of PlayerBase — see the module docstring."""
+
+    phone_number: str | None = Field(default=None, max_length=32)
 
 
 class PlayerRead(PlayerBase):

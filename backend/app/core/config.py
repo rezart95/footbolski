@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     sms_max_per_event: int = 2
     reminder_cooldown_minutes: int = 10
 
+    # Shared secret guarding /api/v1/admin/* and the scheduler tick. There is no
+    # user authentication in this app, so these routes are protected by this
+    # value alone. Unset means the routes refuse every request rather than
+    # falling open.
+    internal_api_secret: str | None = None
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     @property

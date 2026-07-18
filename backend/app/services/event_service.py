@@ -1,6 +1,5 @@
 import asyncio
 import uuid
-from datetime import datetime, timedelta
 
 from fastapi import HTTPException, status
 from sqlalchemy import and_, desc, func, or_, select
@@ -8,6 +7,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from app.core import clock
 from app.models import Event, EventStatus, ListStatus, PushSubscription, Registration, Team, TeamPlayer, Venue
 from app.schemas.event import EventCreate
 from app.services import notification_service
@@ -22,11 +22,15 @@ async def _count(session: AsyncSession, event_id: uuid.UUID, list_status: ListSt
 
 
 def _effective_status(event: Event) -> EventStatus:
-    """Return completed if the match (+ 90 min) has already passed, even if DB still says upcoming."""
+    """Return completed if the match has already finished, even if the DB still says upcoming.
+
+    Compared in Warsaw local time — see `app.core.clock`. Using the server clock
+    directly would keep finished matches marked upcoming for the length of the
+    current UTC offset.
+    """
     if event.status != EventStatus.UPCOMING:
         return event.status
-    match_end = datetime.combine(event.event_date, event.event_time) + timedelta(minutes=90)
-    if datetime.now() > match_end:
+    if clock.has_finished(event.event_date, event.event_time):
         return EventStatus.COMPLETED
     return EventStatus.UPCOMING
 
@@ -71,8 +75,10 @@ async def list_events(
 
 
 async def upcoming_event(session: AsyncSession) -> dict | None:
-    # Exclude events whose match + 90 min has already passed (server may be in UTC)
-    cutoff = datetime.now() - timedelta(minutes=90)
+    # event_date/event_time hold Warsaw wall-clock, so the cutoff must be local
+    # wall-clock too — comparing them against the server's UTC clock leaves a
+    # finished match showing as the next event for hours.
+    cutoff = clock.local_cutoff_for_finished()
     stmt = (
         select(Event)
         .options(selectinload(Event.venue))
