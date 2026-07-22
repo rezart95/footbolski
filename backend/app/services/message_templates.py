@@ -1,17 +1,22 @@
-"""Message text, keyed by (template id, language).
+"""Message text, keyed by (template id, language), and the metadata needed to
+invoke each one as a Meta-approved WhatsApp template.
 
 Six launch languages, chosen from what the group actually speaks: English,
-Polish, Spanish, Portuguese, Albanian and Ukrainian. Anything else, and anyone
-with no stated preference, falls back to English rather than failing.
+Polish, Spanish, Brazilian Portuguese, Albanian and Ukrainian. Anything else,
+and anyone with no stated preference, falls back to English rather than
+failing.
 
-Every proactive WhatsApp message must correspond to a Meta-approved template.
-The wording here must match what was submitted for approval, placeholders and
-all, or Twilio rejects the send with error 63024. Treat edits to these strings
-as requiring re-approval.
+Every proactive WhatsApp message (anything outside the 24-hour window since
+the recipient last messaged us) must be sent as a **structured template
+invocation** — a template name, a Meta locale code, and an ordered list of
+parameters — not a rendered sentence. `TEMPLATES` below stays as human-
+readable text for documentation and template submission; `build_components()`
+turns it into the shape `meta_whatsapp_gateway` actually sends.
 
-Placeholders are named rather than positional. Meta numbers them {{1}}, {{2}},
-but named fields survive translation reordering, which positional ones do not:
-Polish and Ukrainian put the date and venue in a different order to English.
+Parameter order matters and must match what was submitted for approval in
+WhatsApp Manager exactly, or the send fails. `PARAM_ORDER` is the single
+source of truth for that order — change a template's parameters there and in
+WhatsApp Manager together.
 """
 
 from typing import Final
@@ -20,12 +25,42 @@ DEFAULT_LANGUAGE: Final = "en"
 
 SUPPORTED_LANGUAGES: Final[tuple[str, ...]] = ("en", "pl", "es", "pt", "sq", "uk")
 
+# Meta's exact template-language codes. Not the same as our internal 2-letter
+# codes — get one wrong and the send fails with "template not found" even
+# though the template name is right. Portuguese has no bare "pt"; this group's
+# Portuguese speakers are Brazilian (see the design doc's language premises),
+# so pt_BR, not pt_PT.
+META_LANGUAGE_CODE: Final[dict[str, str]] = {
+    "en": "en_US",
+    "pl": "pl",
+    "es": "es",
+    "pt": "pt_BR",
+    "sq": "sq",
+    "uk": "uk",
+}
+
 # Template identifiers. One per proactive message kind.
 INVITE: Final = "invite"
 PAYMENT_REMINDER: Final = "payment_reminder"
 MOTM_BALLOT: Final = "motm_ballot"
 WAITLIST_PROMOTED: Final = "waitlist_promoted"
 OPT_IN_CONFIRM: Final = "opt_in_confirm"
+
+# The exact name each template was (or will be) submitted under in WhatsApp
+# Manager, and the order its {{1}}, {{2}}, ... parameters appear in.
+TEMPLATE_META: Final[dict[str, dict]] = {
+    INVITE: {"meta_name": "footbolski_invite", "params": ("name", "when", "venue", "seats", "link")},
+    PAYMENT_REMINDER: {
+        "meta_name": "footbolski_payment_reminder",
+        "params": ("name", "amount", "when", "handle", "method", "link"),
+    },
+    MOTM_BALLOT: {"meta_name": "footbolski_motm_ballot", "params": ("name", "link")},
+    WAITLIST_PROMOTED: {
+        "meta_name": "footbolski_waitlist_promoted",
+        "params": ("name", "when", "venue", "link"),
+    },
+    OPT_IN_CONFIRM: {"meta_name": "footbolski_opt_in_confirm", "params": ("name",)},
+}
 
 TEMPLATES: Final[dict[str, dict[str, str]]] = {
     INVITE: {
@@ -80,11 +115,11 @@ def normalise_language(language: str | None) -> str:
 
 
 def render(template_id: str, language: str | None, **fields: object) -> str:
-    """Build the message body for one recipient.
+    """Human-readable rendering, for logs, previews and the setup guide.
 
-    Falls back to English for an unknown language, and leaves an unknown
-    placeholder visible rather than raising: a slightly wrong message still
-    reaches the player, whereas an exception inside a sweep would stop it.
+    Never sent to WhatsApp directly — Meta requires the structured form from
+    `build_components()`. Falls back to English for an unknown language, and
+    leaves an unknown placeholder visible rather than raising.
     """
     variants = TEMPLATES.get(template_id)
     if variants is None:
@@ -95,6 +130,27 @@ def render(template_id: str, language: str | None, **fields: object) -> str:
         return text.format(**fields)
     except (KeyError, IndexError):
         return text
+
+
+def build_components(template_id: str, language: str | None, **fields: str) -> dict:
+    """Build the `template` message body Meta's Cloud API expects.
+
+    Missing fields render as an empty string rather than raising — a template
+    with a blank slot still sends, whereas an exception here would drop the
+    message from a sweep entirely.
+    """
+    meta = TEMPLATE_META.get(template_id)
+    if meta is None:
+        raise KeyError(f"Unknown message template: {template_id}")
+
+    parameters = [
+        {"type": "text", "text": str(fields.get(param, ""))} for param in meta["params"]
+    ]
+    return {
+        "name": meta["meta_name"],
+        "language": {"code": META_LANGUAGE_CODE[normalise_language(language)]},
+        "components": [{"type": "body", "parameters": parameters}],
+    }
 
 
 def first_name(display_name: str | None) -> str:

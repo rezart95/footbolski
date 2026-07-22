@@ -108,23 +108,22 @@ async def run_payment_reminders(session: AsyncSession, event: Event) -> dict:
             continue
 
         language = player.preferred_language
-        body = message_templates.render(
-            message_templates.PAYMENT_REMINDER,
-            language,
-            name=message_templates.first_name(registration.display_name),
-            when=localised_dates.format_when(event.event_date, event.event_time, language),
-            amount=f"{event.price_per_person:g} zł" if event.price_per_person else "your share",
-            handle=event.payment_details or event.pay_to_name or "the organiser",
-            method=(event.payment_method or "transfer").replace("_", " "),
-            link=f"{settings.app_public_url}/events/{event.id}",
-            venue=where,
-        )
+        fields = {
+            "name": message_templates.first_name(registration.display_name),
+            "when": localised_dates.format_when(event.event_date, event.event_time, language),
+            "amount": f"{event.price_per_person:g} zł" if event.price_per_person else "your share",
+            "handle": event.payment_details or event.pay_to_name or "the organiser",
+            "method": (event.payment_method or "transfer").replace("_", " "),
+            "link": f"{settings.app_public_url}/events/{event.id}",
+            "venue": where,
+        }
         outcome, _row = await message_delivery.deliver(
             session,
             player=player,
             event_id=event.id,
             kind=ReminderKind.PAYMENT,
-            body=body,
+            template_id=message_templates.PAYMENT_REMINDER,
+            template_fields=fields,
             registration_id=registration.id,
         )
         await session.commit()
@@ -159,14 +158,17 @@ async def run_motm_ballots(session: AsyncSession, event: Event) -> dict:
             continue
         await session.commit()
 
-        body = message_templates.render(
-            message_templates.MOTM_BALLOT,
-            player.preferred_language,
-            name=message_templates.first_name(player.name),
-            link=f"{settings.app_public_url}/motm/{token.token}",
-        )
+        fields = {
+            "name": message_templates.first_name(player.name),
+            "link": f"{settings.app_public_url}/motm/{token.token}",
+        }
         outcome, _row = await message_delivery.deliver(
-            session, player=player, event_id=event.id, kind=ReminderKind.MOTM, body=body
+            session,
+            player=player,
+            event_id=event.id,
+            kind=ReminderKind.MOTM,
+            template_id=message_templates.MOTM_BALLOT,
+            template_fields=fields,
         )
         await session.commit()
         tally[outcome.reason.value] = tally.get(outcome.reason.value, 0) + 1

@@ -1,16 +1,20 @@
-"""Handling everything Twilio sends back to us.
+"""Handling everything Meta's Cloud API sends back to us.
 
-Three kinds of callback arrive at the same webhook:
+One webhook call can bundle several events at once, nested as
+`entry[].changes[].value`. Each `value` carries either a `messages` array
+(something a player sent) or a `statuses` array (a delivery/read receipt for
+something we sent), sometimes both. Three kinds of event matter:
 
-1. A **delivery receipt** (`MessageStatus`), matched to its audit row by
-   `provider_message_id`. This is what makes "zero seats lost without a
+1. A **delivery receipt**, matched to its audit row by `provider_message_id`
+   (Meta's `wamid...` id). This is what makes "zero seats lost without a
    delivered notification" verifiable rather than aspirational.
 2. An **opt-out** (`STOP` and its variants). Handled first and unconditionally.
 3. Any **other inbound message**, which counts as opt-in: it proves the person
    controls the number and opens WhatsApp's 24-hour service window.
 
-Nothing here trusts the payload's `From` beyond using it to look up a player we
-already know. An unknown number is ignored rather than creating anything.
+Nothing here trusts the payload's sender id beyond using it to look up a
+player we already know. An unknown number is ignored rather than creating
+anything.
 """
 
 import logging
@@ -32,15 +36,15 @@ DELIVERED_STATUSES = frozenset({"delivered", "read"})
 READ_STATUSES = frozenset({"read"})
 
 
-def strip_channel_prefix(address: str | None) -> str | None:
-    """Turn "whatsapp:+48514437184" into "+48514437184"."""
-    if not address:
+def _as_e164(wa_id: str | None) -> str | None:
+    """Meta sends sender ids as bare digits ("48792435709"), no '+'."""
+    if not wa_id:
         return None
-    return address.split(":", 1)[1] if ":" in address else address
+    return wa_id if wa_id.startswith("+") else f"+{wa_id}"
 
 
-async def _find_player_by_number(session: AsyncSession, address: str | None) -> Player | None:
-    number = notification_service.normalize_phone(strip_channel_prefix(address))
+async def _find_player_by_number(session: AsyncSession, wa_id: str | None) -> Player | None:
+    number = notification_service.normalize_phone(_as_e164(wa_id))
     if not number:
         return None
     # Stored numbers are not guaranteed normalised, so compare on the normalised
@@ -91,23 +95,20 @@ async def handle_opt_in(session: AsyncSession, player: Player) -> bool:
     return True
 
 
-async def process_inbound(
-    session: AsyncSession, form: dict[str, str]
-) -> dict[str, object]:
-    """Route one Twilio callback. Never raises on unknown shapes."""
-    provider_message_id = form.get("MessageSid") or form.get("SmsSid")
-    message_status = form.get("MessageStatus") or form.get("SmsStatus")
-    body = (form.get("Body") or "").strip()
-    sender = form.get("From")
+async def _handle_status(session: AsyncSession, status_event: dict) -> dict:
+    provider_message_id = status_event.get("id")
+    message_status = status_event.get("status")
+    matched = False
+    if provider_message_id and message_status:
+        matched = await record_delivery_receipt(
+            session, provider_message_id=provider_message_id, message_status=message_status
+        )
+    return {"handled": "status", "status": message_status, "matched": matched}
 
-    # A status callback carries a status but no body.
-    if message_status and not body:
-        matched = False
-        if provider_message_id:
-            matched = await record_delivery_receipt(
-                session, provider_message_id=provider_message_id, message_status=message_status
-            )
-        return {"handled": "status", "status": message_status, "matched": matched}
+
+async def _handle_message(session: AsyncSession, message: dict) -> dict:
+    sender = message.get("from")
+    body = ((message.get("text") or {}).get("body") or "").strip()
 
     player = await _find_player_by_number(session, sender)
     if player is None:
@@ -129,3 +130,20 @@ async def process_inbound(
         "newly_verified": newly_verified,
         "is_start_keyword": keyword in START_KEYWORDS,
     }
+
+
+async def process_webhook(session: AsyncSession, payload: dict) -> list[dict]:
+    """Route every event in one Meta webhook call. Never raises on unknown shapes.
+
+    Returns one result per event handled, since a single call can bundle
+    several messages and statuses together.
+    """
+    results: list[dict] = []
+    for entry in payload.get("entry", []):
+        for change in entry.get("changes", []):
+            value = change.get("value", {})
+            for status_event in value.get("statuses", []):
+                results.append(await _handle_status(session, status_event))
+            for message in value.get("messages", []):
+                results.append(await _handle_message(session, message))
+    return results

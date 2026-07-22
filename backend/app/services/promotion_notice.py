@@ -44,14 +44,12 @@ async def notify_promoted(
 
     settings = get_settings()
     language = player.preferred_language
-    body = message_templates.render(
-        message_templates.WAITLIST_PROMOTED,
-        language,
-        name=message_templates.first_name(player.name),
-        when=localised_dates.format_when(event.event_date, event.event_time, language),
-        venue=venue_name,
-        link=f"{settings.app_public_url}/events/{event.id}",
-    )
+    fields = {
+        "name": message_templates.first_name(player.name),
+        "when": localised_dates.format_when(event.event_date, event.event_time, language),
+        "venue": venue_name,
+        "link": f"{settings.app_public_url}/events/{event.id}",
+    }
 
     try:
         outcome, _row = await message_delivery.deliver(
@@ -59,7 +57,8 @@ async def notify_promoted(
             player=player,
             event_id=event.id,
             kind=ReminderKind.PROMOTION,
-            body=body,
+            template_id=message_templates.WAITLIST_PROMOTED,
+            template_fields=fields,
             registration_id=registration_id,
         )
         await session.commit()

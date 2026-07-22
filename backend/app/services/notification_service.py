@@ -79,30 +79,3 @@ def is_push_gone(detail: str | None) -> bool:
     if not detail:
         return False
     return "status=404" in detail or "status=410" in detail
-
-
-def send_sms(*, to: str, body: str) -> tuple[bool, str | None]:
-    settings = get_settings()
-    if not (settings.twilio_account_sid and settings.twilio_auth_token and settings.twilio_from_number):
-        return False, "Twilio not configured"
-
-    try:
-        from twilio.base.exceptions import TwilioRestException
-        from twilio.rest import Client
-    except ImportError:
-        return False, "twilio not installed"
-
-    try:
-        client = Client(settings.twilio_account_sid, settings.twilio_auth_token)
-        message = client.messages.create(
-            from_=settings.twilio_from_number,
-            to=to,
-            body=body,
-        )
-        return True, f"sid={message.sid}"
-    except TwilioRestException as exc:
-        logger.warning("Twilio send failed: %s", exc)
-        return False, f"twilio error: {exc.msg or exc}"
-    except Exception as exc:  # pragma: no cover - defensive
-        logger.exception("Unexpected SMS error")
-        return False, f"sms error: {exc}"

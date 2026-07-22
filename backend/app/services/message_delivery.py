@@ -5,6 +5,11 @@ refusal: no number, unverified, opted out, budget spent, provider rejected. A
 sweep over the squad must be able to skip somebody and keep going. Only genuine
 programming errors propagate.
 
+Callers pass a template id and its field values rather than a rendered string —
+Meta's Cloud API requires every proactive message to be a structured template
+invocation, not free text. `message_templates.build_components()` does that
+conversion in one place.
+
 Callers are responsible for committing. That lets a sweep write the dispatch
 token and the audit row in one transaction, so a crash cannot leave a message
 sent but unrecorded.
@@ -15,7 +20,7 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Player, Reminder, ReminderChannel, ReminderKind
-from app.services import message_log, notification_service, twilio_gateway
+from app.services import message_log, message_templates, meta_whatsapp_gateway, notification_service
 from app.services.message_outcome import DeliveryOutcome, DeliveryReason
 
 
@@ -43,13 +48,14 @@ async def deliver(
     player: Player,
     event_id: uuid.UUID,
     kind: ReminderKind,
-    body: str,
+    template_id: str,
+    template_fields: dict,
     registration_id: uuid.UUID | None = None,
     sent_by: str | None = None,
     require_verified: bool = True,
     enforce_cooldown: bool = False,
 ) -> tuple[DeliveryOutcome, Reminder]:
-    """Send one WhatsApp message and record the attempt.
+    """Send one WhatsApp template message and record the attempt.
 
     Returns the outcome and the audit row. The row is added to the session but
     not committed, so the caller controls the transaction boundary.
@@ -83,7 +89,7 @@ async def deliver(
             )
         )
 
-    if not twilio_gateway.is_configured("whatsapp"):
+    if not meta_whatsapp_gateway.is_configured():
         return record(
             DeliveryOutcome.failed(
                 "WhatsApp sender is not configured", DeliveryReason.CHANNEL_NOT_CONFIGURED
@@ -102,35 +108,12 @@ async def deliver(
             )
         )
 
-    sent, detail, provider_message_id = await twilio_gateway.send_whatsapp(to=number, body=body)
+    template = message_templates.build_components(
+        template_id, player.preferred_language, **template_fields
+    )
+    sent, detail, provider_message_id = await meta_whatsapp_gateway.send_template(
+        to=number, template=template
+    )
     if sent:
         return record(DeliveryOutcome.delivered_via(detail, provider_message_id))
     return record(DeliveryOutcome.failed(detail))
-
-
-async def deliver_to_many(
-    session: AsyncSession,
-    *,
-    players: list[Player],
-    event_id: uuid.UUID,
-    kind: ReminderKind,
-    body_for: callable,
-    require_verified: bool = True,
-) -> list[tuple[Player, DeliveryOutcome]]:
-    """Send to a whole audience, one at a time, never stopping on a failure.
-
-    `body_for` takes a player and returns their message text, so each recipient
-    gets their own language and their own link.
-    """
-    results: list[tuple[Player, DeliveryOutcome]] = []
-    for player in players:
-        outcome, _row = await deliver(
-            session,
-            player=player,
-            event_id=event_id,
-            kind=kind,
-            body=body_for(player),
-            require_verified=require_verified,
-        )
-        results.append((player, outcome))
-    return results

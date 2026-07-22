@@ -70,21 +70,17 @@ async def _load_registration(
     return registration
 
 
-def _payment_body(registration: Registration, language: str | None) -> str:
+def _payment_fields(registration: Registration, language: str | None) -> dict:
     event = registration.event
     settings = get_settings()
-    when = localised_dates.format_when(event.event_date, event.event_time, language)
-    amount = f"{event.price_per_person:g} zł" if event.price_per_person else "your share"
-    return message_templates.render(
-        message_templates.PAYMENT_REMINDER,
-        language,
-        name=message_templates.first_name(registration.display_name),
-        when=when,
-        amount=amount,
-        handle=event.payment_details or event.pay_to_name or "the organiser",
-        method=(event.payment_method or "transfer").replace("_", " "),
-        link=f"{settings.app_public_url}/events/{event.id}",
-    )
+    return {
+        "name": message_templates.first_name(registration.display_name),
+        "when": localised_dates.format_when(event.event_date, event.event_time, language),
+        "amount": f"{event.price_per_person:g} zł" if event.price_per_person else "your share",
+        "handle": event.payment_details or event.pay_to_name or "the organiser",
+        "method": (event.payment_method or "transfer").replace("_", " "),
+        "link": f"{settings.app_public_url}/events/{event.id}",
+    }
 
 
 def _raise_for(outcome: DeliveryOutcome) -> None:
@@ -113,9 +109,11 @@ async def send_reminder(
         )
 
     player = registration.player
-    body = _payment_body(registration, player.preferred_language)
+    fields = _payment_fields(registration, player.preferred_language)
 
     if channel is ReminderChannel.PUSH:
+        # Push has no template restriction, so a rendered sentence is fine here.
+        body = message_templates.render(message_templates.PAYMENT_REMINDER, player.preferred_language, **fields)
         outcome, _row = await push_delivery.deliver_push(
             session,
             player_id=player.id,
@@ -133,7 +131,8 @@ async def send_reminder(
             player=player,
             event_id=event_id,
             kind=ReminderKind.PAYMENT,
-            body=body,
+            template_id=message_templates.PAYMENT_REMINDER,
+            template_fields=fields,
             registration_id=registration.id,
             sent_by=sent_by,
             enforce_cooldown=True,
