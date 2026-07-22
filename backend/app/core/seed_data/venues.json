@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Parkowa Sport",
+    "address": "Centrum Sportu Parkowa, Parkowa 12a, 30-538 Kraków",
+    "default_day": 3,
+    "default_time": "19:30",
+    "players_per_side": 7,
+    "max_players": 14
+  },
+  {
+    "name": "Fame Sport",
+    "address": "Fame Sport Club, Jana Dekerta 21, 30-703 Kraków",
+    "default_day": 0,
+    "default_time": "21:00",
+    "players_per_side": 6,
+    "max_players": 12
+  }
+]

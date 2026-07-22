@@ -65,11 +65,26 @@ async def create_player(session: AsyncSession, payload: PlayerCreate) -> Player:
 
 
 async def update_player(session: AsyncSession, player_id: uuid.UUID, payload: PlayerUpdate) -> Player:
+    """Apply only the fields the caller actually sent.
+
+    `exclude_unset` matters here: without it an omitted field is filled from the
+    schema default and silently overwrites stored data. Explicit nulls are still
+    applied, so clearing a field from the form keeps working.
+    """
     player = await get_player(session, player_id)
-    for key, value in payload.model_dump().items():
+    for key, value in payload.model_dump(exclude_unset=True).items():
         setattr(player, key, value)
     await session.flush()
     await _backfill_registrations(session, player)
+    await session.commit()
+    await session.refresh(player)
+    return player
+
+
+async def set_player_phone(session: AsyncSession, player_id: uuid.UUID, phone_number: str | None) -> Player:
+    """Write a player's phone number. Callable only from the admin router."""
+    player = await get_player(session, player_id)
+    player.phone_number = phone_number
     await session.commit()
     await session.refresh(player)
     return player
