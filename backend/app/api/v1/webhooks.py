@@ -1,18 +1,27 @@
-"""Inbound Twilio callbacks: opt-in replies, STOP, and delivery receipts.
+"""Inbound Meta WhatsApp callbacks: opt-in replies, STOP, and delivery receipts.
 
-This endpoint is publicly reachable, so every request must carry a valid
-`X-Twilio-Signature`. The signature is an HMAC of the exact URL Twilio called
-plus the sorted form fields, keyed by the account auth token. Behind Cloudflare
-and Coolify the URL FastAPI sees is not the one Twilio signed, so the URL is
-taken from configuration.
+Two things this endpoint must do that a normal route doesn't.
 
-Twilio expects a 2xx with TwiML. Returning an error causes it to retry, so
-anything we cannot interpret is acknowledged and logged rather than rejected.
+**The GET handshake.** When you register a webhook URL in Meta's App
+Dashboard, Meta calls it once with `?hub.mode=subscribe&hub.verify_token=...
+&hub.challenge=...` and expects the challenge echoed back verbatim if the
+token matches. This is the one-time proof that we control this URL.
+
+**The POST signature.** Every subsequent call carries `X-Hub-Signature-256`,
+an HMAC-SHA256 of the *raw* request body keyed by the App Secret. It must be
+computed over the untouched bytes — re-serialising parsed JSON before
+verifying would silently break on any whitespace difference.
+
+Meta expects a 200 for any POST it can deliver. Returning an error causes
+retries, so anything we cannot interpret is acknowledged and logged rather
+than rejected.
 """
 
+import hashlib
+import hmac
 import logging
 
-from fastapi import APIRouter, Header, HTTPException, Request, Response, status
+from fastapi import APIRouter, Header, HTTPException, Query, Request, Response, status
 
 from app.core.config import get_settings
 from app.dependencies import SessionDep
@@ -22,55 +31,59 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
-EMPTY_TWIML = '<?xml version="1.0" encoding="UTF-8"?><Response></Response>'
+SIGNATURE_PREFIX = "sha256="
 
 
-def _verify_signature(url: str, form: dict[str, str], signature: str | None) -> None:
+def _verify_signature(raw_body: bytes, signature_header: str | None) -> None:
     settings = get_settings()
-    if not settings.twilio_validate_signature:
-        logger.warning("Twilio signature validation is disabled")
-        return
-
-    if not settings.twilio_auth_token:
+    if not settings.meta_app_secret:
         # Fail closed. An unconfigured server must not accept unauthenticated
         # writes just because it has nothing to check them against.
         raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE, "Twilio is not configured on this server."
+            status.HTTP_503_SERVICE_UNAVAILABLE, "WhatsApp is not configured on this server."
         )
-    if not signature:
+    if not signature_header or not signature_header.startswith(SIGNATURE_PREFIX):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Missing signature.")
 
-    try:
-        from twilio.request_validator import RequestValidator
-    except ImportError:
-        raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE, "Twilio package is not installed."
-        ) from None
-
-    if not RequestValidator(settings.twilio_auth_token).validate(url, form, signature):
+    presented = signature_header[len(SIGNATURE_PREFIX):]
+    expected = hmac.new(
+        settings.meta_app_secret.encode(), raw_body, hashlib.sha256
+    ).hexdigest()
+    if not hmac.compare_digest(presented, expected):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Invalid signature.")
+
+
+@router.get("/whatsapp")
+async def verify_whatsapp_webhook(
+    hub_mode: str = Query(alias="hub.mode"),
+    hub_verify_token: str = Query(alias="hub.verify_token"),
+    hub_challenge: str = Query(alias="hub.challenge"),
+):
+    """One-time handshake Meta performs when the webhook URL is registered."""
+    settings = get_settings()
+    if hub_mode != "subscribe" or hub_verify_token != settings.meta_webhook_verify_token:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Verification token mismatch.")
+    return Response(content=hub_challenge, media_type="text/plain")
 
 
 @router.post("/whatsapp")
 async def whatsapp_webhook(
     request: Request,
     session: SessionDep,
-    x_twilio_signature: str | None = Header(default=None, alias="X-Twilio-Signature"),
+    x_hub_signature_256: str | None = Header(default=None, alias="X-Hub-Signature-256"),
 ):
-    form = {key: str(value) for key, value in (await request.form()).items()}
-    settings = get_settings()
-    url = settings.twilio_webhook_url or str(request.url)
-
-    _verify_signature(url, form, x_twilio_signature)
+    raw_body = await request.body()
+    _verify_signature(raw_body, x_hub_signature_256)
 
     try:
-        result = await whatsapp_inbound.process_inbound(session, form)
+        payload = await request.json()
+        results = await whatsapp_inbound.process_webhook(session, payload)
         await session.commit()
-        logger.info("Twilio webhook handled: %s", result)
+        logger.info("Meta webhook handled: %s", results)
     except Exception:
-        # Acknowledge anyway. A 500 makes Twilio retry the same unparseable
+        # Acknowledge anyway. A 500 makes Meta retry the same unparseable
         # payload for hours, and the useful record is the log line.
         await session.rollback()
-        logger.exception("Failed to process Twilio webhook")
+        logger.exception("Failed to process Meta webhook")
 
-    return Response(content=EMPTY_TWIML, media_type="application/xml")
+    return Response(status_code=status.HTTP_200_OK)

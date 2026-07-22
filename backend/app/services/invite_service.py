@@ -121,17 +121,15 @@ async def venue_name(session: AsyncSession, event: Event) -> str:
     return venue.name if venue else "the usual pitch"
 
 
-def invite_body(player: Player, event: Event, seats: int, token: str, venue: str) -> str:
+def invite_fields(player: Player, event: Event, seats: int, token: str, venue: str) -> dict:
     settings = get_settings()
-    return message_templates.render(
-        message_templates.INVITE,
-        player.preferred_language,
-        name=message_templates.first_name(player.name),
-        when=localised_dates.format_when(event.event_date, event.event_time, player.preferred_language),
-        venue=venue,
-        seats=seats,
-        link=f"{settings.app_public_url}/invite/{token}",
-    )
+    return {
+        "name": message_templates.first_name(player.name),
+        "when": localised_dates.format_when(event.event_date, event.event_time, player.preferred_language),
+        "venue": venue,
+        "seats": str(seats),
+        "link": f"{settings.app_public_url}/invite/{token}",
+    }
 
 
 async def dispatch_rung(session: AsyncSession, event: Event, rung: LadderRung) -> dict[str, int]:
@@ -161,7 +159,8 @@ async def dispatch_rung(session: AsyncSession, event: Event, rung: LadderRung) -
             player=player,
             event_id=event.id,
             kind=ReminderKind.INVITE,
-            body=invite_body(player, event, seats, token.token, where),
+            template_id=message_templates.INVITE,
+            template_fields=invite_fields(player, event, seats, token.token, where),
         )
         await session.commit()
         tally[outcome.reason.value] = tally.get(outcome.reason.value, 0) + 1

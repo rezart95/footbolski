@@ -9,6 +9,7 @@ Numbers are written only through the shared-secret admin endpoint in
 
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -55,6 +56,15 @@ class PlayerPhoneUpdate(BaseModel):
     """Admin-only phone write. Never part of PlayerBase — see the module docstring."""
 
     phone_number: str | None = Field(default=None, max_length=32)
+
+
+class PlayerTierUpdate(BaseModel):
+    """Admin-only tier write. Same confidentiality rule as phone_number: `tier`
+    is never part of PlayerBase, so it can never reach a player-facing response —
+    a visible core/rest label in a friend group is a social hazard with no
+    product upside (see DESIGN.md)."""
+
+    tier: Literal["core", "rest"]
 
 
 class PlayerRead(PlayerBase):

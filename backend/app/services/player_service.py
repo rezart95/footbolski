@@ -90,6 +90,15 @@ async def set_player_phone(session: AsyncSession, player_id: uuid.UUID, phone_nu
     return player
 
 
+async def set_player_tier(session: AsyncSession, player_id: uuid.UUID, tier: str) -> Player:
+    """Write a player's invite-ladder tier. Callable only from the admin router."""
+    player = await get_player(session, player_id)
+    player.tier = tier
+    await session.commit()
+    await session.refresh(player)
+    return player
+
+
 async def delete_player(session: AsyncSession, player_id: uuid.UUID) -> None:
     player = await get_player(session, player_id)
     # Remove registrations first (FK has no CASCADE, and we allow deletion
