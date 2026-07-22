@@ -9,6 +9,11 @@ worked on the first real attempt.
 **Audience:** whoever next has to reconnect this, add a second number, or
 do the same thing on another project.
 
+**Scope:** English only, for now — see §3. Multi-language support was built
+once already, worked, and was deliberately scaled back to reduce the number
+of unproven things at once. Re-adding it is additive; §3 explains exactly
+what that involves.
+
 ## Why direct, not through a BSP
 
 A Business Solution Provider (Twilio, 360dialog, etc.) sits between you and
@@ -57,34 +62,43 @@ and parameter order). `build_components()` turns one into the other.
 `meta_whatsapp_gateway.send_template()` is the only send path in this app —
 there is no free-text send for anything proactive.
 
-## 3. Meta's language codes are not our language codes
+## 3. English only, for now
 
-Our internal codes are bare ISO 639-1 (`en`, `pl`, `es`, `pt`, `sq`, `uk`).
-Meta wants specific locale codes, and getting one wrong means "template not
-found" even when the template name is correct:
+The group speaks several languages, but the six-language version of this
+system was never actually proven — we never got past Twilio's stuck
+connection to submit a single non-English template, let alone confirm one of
+Meta's locale codes was right. Rather than debug six unknowns at once on a
+brand new integration, the templates are English-only until the basic
+pipeline is proven end to end with real people.
 
-| Ours | Meta's | Note |
-|---|---|---|
-| `en` | `en_US` | |
-| `pl` | `pl` | bare, no region |
-| `es` | `es` | bare generic Spanish exists, no need to pick a region |
-| `pt` | `pt_BR` | **no bare `pt`.** This group's Portuguese speakers are Brazilian, not European — `pt_PT` is a different code and will not match |
-| `sq` | `sq` | bare |
-| `uk` | `uk` | bare |
+Concretely: `message_templates.SUPPORTED_LANGUAGES` is `("en",)`,
+`META_LANGUAGE_CODE` is `{"en": "en_US"}`, and every `TEMPLATES` entry has
+only an `"en"` variant. `players.preferred_language` is still a real column
+— it's just not consulted for wording right now, since any value normalises
+to English (`normalise_language()` falls back for anything not in
+`SUPPORTED_LANGUAGES`). `localised_dates.py` matches: `WEEKDAYS` and
+`MONTHS` are English-only too, so a stale non-English preference can't
+produce an English sentence with a foreign-language date glued into it.
 
-This mapping lives in `message_templates.META_LANGUAGE_CODE`. If a new
-language is ever added, verify its exact code against Meta's own list
-before assuming a bare ISO code works — most don't.
+**Re-adding a language later is additive, not a rewrite.** Both modules stay
+keyed by language code on purpose — put the translated text back in
+`TEMPLATES`, the correct Meta locale code back in `META_LANGUAGE_CODE`
+(verify it against Meta's own list; most languages do **not** have a bare
+ISO 639-1 code — Brazilian Portuguese, for one, is `pt_BR`, there is no bare
+`pt`), and the weekday/month names back in `localised_dates.py`. Submit and
+get the new-language template variants approved in WhatsApp Manager before
+flipping `SUPPORTED_LANGUAGES` to include them, or a player normalises to a
+language with no approved template and the send fails.
 
 ## 4. Submit the real templates
 
-Same 30 templates (5 message kinds × 6 languages) as before, but submitted
-through **Meta's own WhatsApp Manager → Message Templates** on the
-production WABA — not through a BSP console. Category **Utility**. Text
-must match `message_templates.TEMPLATES` exactly, and the parameter order
-must match `TEMPLATE_META[...]["params"]` exactly — Meta numbers them
-`{{1}}, {{2}}, ...` positionally, so a reordering silently sends the wrong
-value into the wrong slot rather than failing outright.
+**5 templates, English only** — one per message kind, submitted through
+**Meta's own WhatsApp Manager → Message Templates** on the production WABA,
+not through a BSP console. Category **Utility**. Text must match
+`message_templates.TEMPLATES` exactly, and the parameter order must match
+`TEMPLATE_META[...]["params"]` exactly — Meta numbers them `{{1}}, {{2}},
+...` positionally, so a reordering silently sends the wrong value into the
+wrong slot rather than failing outright.
 
 Generate the current submission text from the source of truth:
 
@@ -153,25 +167,32 @@ rather than silently accepted.
 
 ## 8. The data problem no amount of API config fixes
 
-As of writing, **0 of 41 players have a phone number and 0 are tagged
-`core`.** The T-5 ladder rung only reaches `core` players, so with a
-perfectly working channel it would message nobody. This is data entry,
-through the admin endpoint — never the public API:
+The T-5 ladder rung only reaches `core` players, so a channel that works
+perfectly still messages nobody without phone numbers and tiers entered.
+As of writing, **12 of 40 players have a phone number and 7 are tagged
+`core`** — entered through the admin endpoints below, never the public API,
+never raw SQL:
 
 ```bash
 curl -X PUT https://api.footbolski.org/api/v1/admin/players/<PLAYER_ID>/phone \
   -H "X-Internal-Secret: <INTERNAL_API_SECRET>" \
   -H "Content-Type: application/json" \
   -d '{"phone_number": "792435709"}'
+
+curl -X PUT https://api.footbolski.org/api/v1/admin/players/<PLAYER_ID>/tier \
+  -H "X-Internal-Secret: <INTERNAL_API_SECRET>" \
+  -H "Content-Type: application/json" \
+  -d '{"tier": "core"}'
 ```
 
-Bare national format is fine — `default_phone_region: PL` resolves
-`792435709` to `+48792435709` automatically. Set the 6–7 reliable regulars
-to `tier = 'core'` directly in the database (no endpoint for this yet — a
-one-time pass over static data isn't worth an API surface):
+Bare national format is fine for phone — `default_phone_region: PL` resolves
+`792435709` to `+48792435709` automatically. `tier` only accepts `"core"` or
+`"rest"`; anything else is rejected with 422 rather than silently stored.
+Check current coverage without exposing any number:
 
-```sql
-UPDATE players SET tier = 'core' WHERE name IN ('...', '...');
+```bash
+curl https://api.footbolski.org/api/v1/admin/players/contact \
+  -H "X-Internal-Secret: <INTERNAL_API_SECRET>"
 ```
 
 ## 9. Everyone has to reply once
