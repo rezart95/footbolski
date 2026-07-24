@@ -6,13 +6,13 @@ export async function listPlayers() {
   return data;
 }
 
-export async function createPlayer(payload: PlayerPayload) {
-  const { data } = await api.post<Player>("/players", payload);
+export async function createPlayer(payload: PlayerPayload, requestedBy: string) {
+  const { data } = await api.post<Player>("/players", { ...payload, requested_by: requestedBy });
   return data;
 }
 
-export async function updatePlayer(id: string, payload: PlayerPayload) {
-  const { data } = await api.put<Player>(`/players/${id}`, payload);
+export async function updatePlayer(id: string, payload: PlayerPayload, requestedBy: string) {
+  const { data } = await api.put<Player>(`/players/${id}`, { ...payload, requested_by: requestedBy });
   return data;
 }
 

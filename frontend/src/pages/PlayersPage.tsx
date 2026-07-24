@@ -11,6 +11,14 @@ import { usePlayerActions, usePlayers } from "../hooks/usePlayers";
 import { useSession } from "../hooks/useSession";
 import type { Player, PlayerPayload } from "../types/player.types";
 
+/** Only this player maintains the squad's ratings — see `player_service.EDITOR_NAME` on the backend, which is the actual enforcement boundary. */
+const EDITOR_NAME = "jetmir çenko";
+
+function isEditorSession(sessionName: string): boolean {
+  const claimed = sessionName.trim().toLowerCase();
+  return claimed === EDITOR_NAME || claimed === EDITOR_NAME.split(" ")[0];
+}
+
 export function PlayersPage() {
   const { data: players = [], isLoading } = usePlayers();
   const { sessionName } = useSession();
@@ -19,6 +27,7 @@ export function PlayersPage() {
   const [editing, setEditing] = useState(false);
   const [initialName, setInitialName] = useState("");
   const myCard = players.find((player) => player.name.toLowerCase() === sessionName.toLowerCase());
+  const isEditor = isEditorSession(sessionName);
 
   function save(payload: PlayerPayload) {
     const onSuccess = () => {
@@ -27,9 +36,9 @@ export function PlayersPage() {
       setInitialName("");
     };
     if (selected) {
-      actions.update.mutate({ id: selected.id, payload }, { onSuccess });
+      actions.update.mutate({ id: selected.id, payload, requestedBy: sessionName }, { onSuccess });
     } else {
-      actions.create.mutate(payload, { onSuccess });
+      actions.create.mutate({ payload, requestedBy: sessionName }, { onSuccess });
     }
   }
 
@@ -39,15 +48,20 @@ export function PlayersPage() {
         eyebrow="Squad"
         title="Players"
         action={
-          <Button className="px-3" icon={<Plus size={18} />} onClick={() => { setSelected(null); setInitialName(""); setEditing(true); }}>Add</Button>
+          isEditor ? (
+            <Button className="px-3" icon={<Plus size={18} />} onClick={() => { setSelected(null); setInitialName(""); setEditing(true); }}>Add</Button>
+          ) : undefined
         }
       />
-      {!myCard && sessionName ? (
+      {!isEditor ? (
+        <Notice>Player cards are read-only — only Jetmir Çenko maintains ratings for the squad.</Notice>
+      ) : null}
+      {isEditor && !myCard && sessionName ? (
         <Notice>
           Your session name is not a player card yet. Create your card to add skill, position, and attributes.
         </Notice>
       ) : null}
-      {!myCard && sessionName ? (
+      {isEditor && !myCard && sessionName ? (
         <Button variant="secondary" onClick={() => { setSelected(null); setInitialName(sessionName); setEditing(true); }}>
           Create My Card
         </Button>
@@ -60,6 +74,7 @@ export function PlayersPage() {
         open={editing}
         player={selected}
         initialName={initialName}
+        readOnly={!isEditor}
         onClose={() => { setEditing(false); setSelected(null); setInitialName(""); }}
         onSave={save}
       />
