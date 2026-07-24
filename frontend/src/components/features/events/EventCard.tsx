@@ -1,10 +1,11 @@
 import { format, parseISO } from "date-fns";
-import { Clock, MapPin, UsersRound } from "lucide-react";
+import { Check, Clock, MapPin, Share2, UsersRound } from "lucide-react";
 import { Link } from "react-router-dom";
 import { EventStatusBadge } from "./EventStatusBadge";
 import { PaymentHandle } from "./PaymentHandle";
 import { PAYMENT_METHOD_LABELS, type EventSummary } from "../../../types/event.types";
 import { mapsUrl } from "../../../lib/maps";
+import { useShareEvent } from "../../../hooks/useShareEvent";
 
 interface EventCardProps {
   event: EventSummary;
@@ -14,6 +15,7 @@ interface EventCardProps {
 export function EventCard({ event, large = false }: EventCardProps) {
   const date = parseISO(event.event_date);
   const isCancelled = event.status === "cancelled";
+  const { share, copied } = useShareEvent(event);
 
   // API may return price as string (Decimal serialization) — normalise defensively
   const price = event.price_per_person != null ? Number(event.price_per_person) : null;
@@ -57,7 +59,17 @@ export function EventCard({ event, large = false }: EventCardProps) {
             {format(date, "d MMM yyyy")} at {event.event_time.slice(0, 5)}
           </p>
         </div>
-        {!isCancelled ? <EventStatusBadge status={event.status} /> : null}
+        <div className="flex shrink-0 flex-col items-end gap-2">
+          {!isCancelled ? <EventStatusBadge status={event.status} /> : null}
+          <button
+            aria-label="Share event"
+            className="rounded-md p-1.5 text-white/45 transition hover:bg-white/10 hover:text-pitch-400"
+            onClick={share}
+            type="button"
+          >
+            {copied ? <Check size={16} /> : <Share2 size={16} />}
+          </button>
+        </div>
       </div>
       <div className="mt-6 flex items-center justify-between rounded-lg border border-white/10 bg-white/[0.04] p-3">
         <p className="flex items-center gap-2 font-mono text-3xl font-black text-pitch-400">

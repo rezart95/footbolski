@@ -1,4 +1,4 @@
-import { CalendarDays, CheckCircle2, Clock, MapPin, TimerOff, Trash2, Wallet } from "lucide-react";
+import { CalendarDays, CalendarPlus, Check, Clock, CheckCircle2, MapPin, Share2, TimerOff, Trash2, Wallet } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useParams, useNavigate } from "react-router-dom";
 import { AIInsightsPanel } from "../components/features/teams/AIInsightsPanel";
@@ -16,8 +16,10 @@ import { Notice } from "../components/ui/Notice";
 import { useCancelEvent, useDeleteEvent, useEvent } from "../hooks/useEvents";
 import { useRegistrationActions, useRegistrations } from "../hooks/useRegistrations";
 import { useSession } from "../hooks/useSession";
+import { useShareEvent } from "../hooks/useShareEvent";
 import { useTeamActions, useTeams } from "../hooks/useTeams";
 import { usePlayers } from "../hooks/usePlayers";
+import { downloadEventIcs } from "../lib/calendar";
 import { errorMessage } from "../lib/errors";
 import { mapsUrl, streetAddress } from "../lib/maps";
 import { PAYMENT_METHOD_LABELS } from "../types/event.types";
@@ -35,6 +37,7 @@ export function EventDetailPage() {
   const teamActions = useTeamActions(id);
   const cancel = useCancelEvent(id);
   const deleteEvent = useDeleteEvent(id);
+  const { share, copied } = useShareEvent(event);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showRequireCard, setShowRequireCard] = useState(false);
   const { data: players = [] } = usePlayers();
@@ -130,6 +133,8 @@ export function EventDetailPage() {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button aria-label="Share event" icon={copied ? <Check size={16} /> : <Share2 size={16} />} onClick={share} variant="secondary" />
+            <Button aria-label="Add to calendar" icon={<CalendarPlus size={16} />} onClick={() => downloadEventIcs(event)} variant="secondary" />
             {creator && !isCompleted && !isCancelled ? (
               <Button onClick={() => setShowCancelConfirm(true)} variant="danger">Cancel</Button>
             ) : null}
