@@ -110,7 +110,7 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
       <form className="grid gap-4" onSubmit={submit}>
         {readOnly ? (
           <p className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/55">
-            Only Jetmir Çenko can edit player cards.
+            Player cards are read-only for the moment.
           </p>
         ) : null}
         {/* Photo upload */}

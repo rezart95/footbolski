@@ -4,7 +4,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models import Player, Registration
+from app.models import Player, Registration, TeamPlayer
 from app.schemas.player import PlayerCreate, PlayerUpdate
 
 EDITOR_NAME = "Jetmir Çenko"
@@ -13,15 +13,32 @@ otherwise view-only — see `_assert_is_editor`. A plain constant rather than
 a setting: this is a specific, named person by explicit request, not a
 configurable role."""
 
+ADMIN_NAMES = ("Rezart Abazi", "Jetmir Çenko")
+"""Who can reach the admin portal: delete cards and read/write scouting notes.
+The same weak name-based identity as everywhere else in this app, deliberately
+so — see `_assert_is_admin`. Kept separate from `EDITOR_NAME` because the two
+roles differ: Jetmir alone maintains ratings, but card deletion and notes are
+shared with the organiser."""
+
+
+def _matches(claimed: str, name: str) -> bool:
+    """Case-insensitive match on the full name or the first name alone —
+    the session name is free text with no auth, so we can't be stricter."""
+    claimed = claimed.casefold()
+    stored = name.casefold()
+    return claimed == stored or claimed == stored.split()[0]
+
 
 def _assert_is_editor(requested_by: str) -> None:
-    """Only `EDITOR_NAME` may create or edit player cards. Matched
-    case-insensitively, and on first name alone, because the session name is
-    free text with no auth (same convention as the event-creator checks)."""
-    claimed = requested_by.casefold()
-    stored = EDITOR_NAME.casefold()
-    if claimed != stored and claimed != stored.split()[0]:
+    """Only `EDITOR_NAME` may create or edit player cards."""
+    if not _matches(requested_by, EDITOR_NAME):
         raise HTTPException(status.HTTP_403_FORBIDDEN, f"Only {EDITOR_NAME} can edit player cards")
+
+
+def _assert_is_admin(requested_by: str) -> None:
+    """Only an `ADMIN_NAMES` member may delete cards or edit notes."""
+    if not any(_matches(requested_by, name) for name in ADMIN_NAMES):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Admin access required")
 
 
 async def list_players(session: AsyncSession) -> list[Player]:
@@ -115,3 +132,42 @@ async def set_player_tier(session: AsyncSession, player_id: uuid.UUID, tier: str
     await session.commit()
     await session.refresh(player)
     return player
+
+
+async def set_player_notes(
+    session: AsyncSession, player_id: uuid.UUID, notes: str | None, requested_by: str
+) -> Player:
+    """Admin-only scouting notes for a player. Separate from `update_player`
+    (which is editor-only and rewrites the whole card) so an admin who isn't
+    the ratings editor can still keep notes without touching ratings."""
+    _assert_is_admin(requested_by)
+    player = await get_player(session, player_id)
+    player.notes = notes
+    await session.commit()
+    await session.refresh(player)
+    return player
+
+
+async def delete_player(session: AsyncSession, player_id: uuid.UUID, requested_by: str) -> None:
+    """Admin-only hard delete of a player card, allowed even when the player
+    is linked to past or upcoming events.
+
+    Two foreign keys to `players` have no database-level `ondelete` rule:
+    `registrations.player_id` and `team_players.player_id`. Both are **unlinked**
+    (set to NULL) rather than deleted, so event rosters and past team line-ups
+    keep their `display_name` and stay intact — the card is removed without
+    rewriting history. If a card with the same name is created later,
+    `_backfill_registrations` re-links it. Every other reference
+    (reminders, consent → SET NULL; votes, tokens, push subs → CASCADE) is
+    handled by the schema.
+    """
+    _assert_is_admin(requested_by)
+    player = await get_player(session, player_id)
+    await session.execute(
+        update(Registration).where(Registration.player_id == player_id).values(player_id=None)
+    )
+    await session.execute(
+        update(TeamPlayer).where(TeamPlayer.player_id == player_id).values(player_id=None)
+    )
+    await session.delete(player)
+    await session.commit()

@@ -11,6 +11,7 @@ import { InviteConfirmPage } from "./pages/InviteConfirmPage";
 import { MotmBallotPage } from "./pages/MotmBallotPage";
 import { PitchPage } from "./pages/PitchPage";
 import { PlayersPage } from "./pages/PlayersPage";
+import { AdminPage } from "./pages/AdminPage";
 import { TermsPage } from "./pages/TermsPage";
 import "./index.css";
 
@@ -47,6 +48,7 @@ function App() {
               <Route path="/events/new" element={<Navigate to="/?create=1" replace />} />
               <Route path="/pitch" element={<PitchPage />} />
               <Route path="/players" element={<PlayersPage />} />
+              <Route path="/admin" element={<AdminPage />} />
               <Route path="/terms" element={<TermsPage />} />
             </Routes>
           </AppShell>
