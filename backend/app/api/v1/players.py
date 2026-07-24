@@ -1,10 +1,10 @@
 import uuid
 
-from fastapi import APIRouter, UploadFile
+from fastapi import APIRouter
 
 from app.dependencies import SessionDep
 from app.schemas.player import PlayerCreate, PlayerRead, PlayerUpdate
-from app.services import player_service, storage_service
+from app.services import player_service
 
 router = APIRouter(prefix="/players", tags=["players"])
 
@@ -34,11 +34,3 @@ async def relink_registrations(session: SessionDep):
     """Back-fill player_id on all registrations where display_name matches a known player."""
     count = await player_service.relink_all_registrations(session)
     return {"linked": count}
-
-
-@router.post("/{player_id}/photo")
-async def upload_photo(player_id: uuid.UUID, file: UploadFile, session: SessionDep):
-    player = await player_service.get_player(session, player_id)
-    player.photo_url = await storage_service.upload_player_photo(file, player_id)
-    await session.commit()
-    return {"photo_url": player.photo_url}

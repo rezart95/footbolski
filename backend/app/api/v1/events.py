@@ -1,11 +1,11 @@
 import uuid
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Response
 
 from app.dependencies import SessionDep
 from app.models import EventStatus
 from app.schemas.event import CreatorAction, EventCreate, EventRead
-from app.services import event_service
+from app.services import calendar_service, event_service
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -34,6 +34,16 @@ async def create_event(payload: EventCreate, session: SessionDep) -> dict:
 async def get_event(event_id: uuid.UUID, session: SessionDep) -> dict:
     event = await event_service.get_event(session, event_id)
     return await event_service.as_read(session, event)
+
+
+@router.get("/{event_id}/calendar.ics")
+async def event_calendar(event_id: uuid.UUID, session: SessionDep) -> Response:
+    event = await event_service.get_event(session, event_id)
+    return Response(
+        content=calendar_service.build_event_ics(event),
+        media_type="text/calendar; charset=utf-8",
+        headers={"Content-Disposition": f'inline; filename="footbolski-{event.event_date}.ics"'},
+    )
 
 
 @router.patch("/{event_id}/cancel", response_model=EventRead)

@@ -41,7 +41,7 @@ class PlayerBase(BaseModel):
 
 
 class PlayerCreate(PlayerBase):
-    pass
+    requested_by: str = Field(min_length=1, max_length=255)
 
 
 class PlayerUpdate(PlayerBase):
@@ -50,6 +50,8 @@ class PlayerUpdate(PlayerBase):
     Applied with `exclude_unset=True`, so a payload that omits a field leaves the
     stored value alone rather than resetting it to this schema's default.
     """
+
+    requested_by: str = Field(min_length=1, max_length=255)
 
 
 class PlayerPhoneUpdate(BaseModel):

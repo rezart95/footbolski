@@ -63,11 +63,11 @@ export function EventCard({ event, large = false }: EventCardProps) {
           {!isCancelled ? <EventStatusBadge status={event.status} /> : null}
           <button
             aria-label="Share event"
-            className="rounded-md p-1.5 text-white/45 transition hover:bg-white/10 hover:text-pitch-400"
+            className="tap-target rounded-md p-2 text-white/45 transition hover:bg-white/10 hover:text-pitch-400"
             onClick={share}
             type="button"
           >
-            {copied ? <Check size={16} /> : <Share2 size={16} />}
+            {copied ? <Check size={24} /> : <Share2 size={24} />}
           </button>
         </div>
       </div>

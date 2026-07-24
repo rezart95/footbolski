@@ -19,7 +19,7 @@ import { useSession } from "../hooks/useSession";
 import { useShareEvent } from "../hooks/useShareEvent";
 import { useTeamActions, useTeams } from "../hooks/useTeams";
 import { usePlayers } from "../hooks/usePlayers";
-import { downloadEventIcs } from "../lib/calendar";
+import { eventCalendarUrl } from "../lib/calendar";
 import { errorMessage } from "../lib/errors";
 import { mapsUrl, streetAddress } from "../lib/maps";
 import { PAYMENT_METHOD_LABELS } from "../types/event.types";
@@ -133,8 +133,8 @@ export function EventDetailPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button aria-label="Share event" icon={copied ? <Check size={16} /> : <Share2 size={16} />} onClick={share} variant="secondary" />
-            <Button aria-label="Add to calendar" icon={<CalendarPlus size={16} />} onClick={() => downloadEventIcs(event)} variant="secondary" />
+            <Button aria-label="Share event" icon={copied ? <Check size={20} /> : <Share2 size={20} />} onClick={share} variant="secondary" />
+            <Button aria-label="Add to calendar" href={eventCalendarUrl(event.id)} icon={<CalendarPlus size={20} />} variant="secondary" />
             {creator && !isCompleted && !isCancelled ? (
               <Button onClick={() => setShowCancelConfirm(true)} variant="danger">Cancel</Button>
             ) : null}

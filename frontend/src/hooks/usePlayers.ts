@@ -11,9 +11,14 @@ export function usePlayerActions() {
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["players"] });
 
   return {
-    create: useMutation({ mutationFn: createPlayer, onSuccess: invalidate }),
+    create: useMutation({
+      mutationFn: ({ payload, requestedBy }: { payload: PlayerPayload; requestedBy: string }) =>
+        createPlayer(payload, requestedBy),
+      onSuccess: invalidate
+    }),
     update: useMutation({
-      mutationFn: ({ id, payload }: { id: string; payload: PlayerPayload }) => updatePlayer(id, payload),
+      mutationFn: ({ id, payload, requestedBy }: { id: string; payload: PlayerPayload; requestedBy: string }) =>
+        updatePlayer(id, payload, requestedBy),
       onSuccess: invalidate
     })
   };

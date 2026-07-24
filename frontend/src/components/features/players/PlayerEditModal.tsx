@@ -41,6 +41,9 @@ interface PlayerEditModalProps {
   onClose: () => void;
   onSave: (payload: Omit<Player, "id">) => void;
   busy?: boolean;
+  /** View-only: every field disabled, no Save button. Used for everyone
+   * except the one player who maintains the squad's ratings. */
+  readOnly?: boolean;
 }
 
 const blank = {
@@ -58,7 +61,7 @@ const blank = {
   work_rate: 5,
 };
 
-export function PlayerEditModal({ player, initialName = "", open, onClose, onSave, busy }: PlayerEditModalProps) {
+export function PlayerEditModal({ player, initialName = "", open, onClose, onSave, busy, readOnly = false }: PlayerEditModalProps) {
   const [form, setForm] = useState<Omit<Player, "id">>(blank);
   const [uploading, setUploading] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -105,11 +108,16 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
   return (
     <Modal title={player ? "Edit Player" : "Add Player"} open={open} onClose={onClose}>
       <form className="grid gap-4" onSubmit={submit}>
+        {readOnly ? (
+          <p className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/55">
+            Only Jetmir Çenko can edit player cards.
+          </p>
+        ) : null}
         {/* Photo upload */}
         <div className="flex justify-center">
           <button
             className="group relative h-24 w-24 overflow-hidden rounded-full focus:outline-none"
-            disabled={uploading}
+            disabled={uploading || readOnly}
             onClick={() => fileRef.current?.click()}
             type="button"
           >
@@ -120,26 +128,33 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
                 {initials(form.name || "?")}
               </div>
             )}
-            <div className="absolute inset-0 flex items-center justify-center bg-pitch-950/60 opacity-0 transition group-hover:opacity-100">
-              {uploading ? (
-                <span className="text-xs font-bold text-white">Uploading…</span>
-              ) : (
-                <Camera size={22} className="text-white" />
-              )}
-            </div>
+            {readOnly ? null : (
+              <div className="absolute inset-0 flex items-center justify-center bg-pitch-950/60 opacity-0 transition group-hover:opacity-100">
+                {uploading ? (
+                  <span className="text-xs font-bold text-white">Uploading…</span>
+                ) : (
+                  <Camera size={22} className="text-white" />
+                )}
+              </div>
+            )}
           </button>
           <input accept="image/*" className="hidden" ref={fileRef} type="file" onChange={handlePhoto} />
-          {!form.photo_url && <p className="mt-1 text-center text-xs text-amber-400">Photo required</p>}
+          {!form.photo_url && !readOnly && <p className="mt-1 text-center text-xs text-amber-400">Photo required</p>}
         </div>
         <Field label="Name">
-          <Input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+          <Input disabled={readOnly} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
         </Field>
         <Field label={`Skill ${form.skill_rating}/10`}>
-          <Input min={1} max={10} type="range" value={form.skill_rating} onChange={(event) => setForm({ ...form, skill_rating: Number(event.target.value) })} />
+          <Input disabled={readOnly} min={1} max={10} type="range" value={form.skill_rating} onChange={(event) => setForm({ ...form, skill_rating: Number(event.target.value) })} />
         </Field>
         <div className="flex flex-wrap gap-2">
           {attributes.map((attribute) => (
-            <AttributeTag attribute={attribute} active={form.attributes.includes(attribute)} key={attribute} onClick={() => toggleAttribute(attribute)} />
+            <AttributeTag
+              attribute={attribute}
+              active={form.attributes.includes(attribute)}
+              key={attribute}
+              onClick={readOnly ? undefined : () => toggleAttribute(attribute)}
+            />
           ))}
         </div>
         {/* Physical info */}
@@ -147,6 +162,7 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
         <div className="grid grid-cols-2 gap-3">
           <Field label="Age *">
             <Input
+              disabled={readOnly}
               max={70} min={14} placeholder="–" required type="number"
               value={form.age ?? ""}
               onChange={(e) => setForm({ ...form, age: e.target.value ? Number(e.target.value) : null })}
@@ -154,6 +170,7 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
           </Field>
           <Field label="Height (cm) *">
             <Input
+              disabled={readOnly}
               max={220} min={140} placeholder="–" required type="number"
               value={form.height_cm ?? ""}
               onChange={(e) => setForm({ ...form, height_cm: e.target.value ? Number(e.target.value) : null })}
@@ -162,6 +179,7 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
         </div>
         <Field label="Build *">
           <Select
+            disabled={readOnly}
             value={form.build ?? ""}
             onChange={(e) => setForm({ ...form, build: e.target.value || null })}
           >
@@ -171,6 +189,7 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
         </Field>
         <Field label="Primary role *">
           <Select
+            disabled={readOnly}
             value={form.preferred_role ?? ""}
             onChange={(e) => setForm({ ...form, preferred_role: e.target.value || null, primary_position: roleToPrimaryPosition(e.target.value || null) })}
           >
@@ -182,31 +201,33 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
         {/* Attribute ratings */}
         <p className="text-xs font-bold uppercase text-white/55">Ratings</p>
         <Field label={`Speed ${form.speed ?? "–"}/10`}>
-          <Input min={1} max={10} type="range" value={form.speed ?? 5} onChange={(e) => setForm({ ...form, speed: Number(e.target.value) })} />
+          <Input disabled={readOnly} min={1} max={10} type="range" value={form.speed ?? 5} onChange={(e) => setForm({ ...form, speed: Number(e.target.value) })} />
         </Field>
         <Field label={`Technique ${form.technique ?? "–"}/10`}>
-          <Input min={1} max={10} type="range" value={form.technique ?? 5} onChange={(e) => setForm({ ...form, technique: Number(e.target.value) })} />
+          <Input disabled={readOnly} min={1} max={10} type="range" value={form.technique ?? 5} onChange={(e) => setForm({ ...form, technique: Number(e.target.value) })} />
         </Field>
         <Field label={`Defending ${form.defending ?? "–"}/10`}>
-          <Input min={1} max={10} type="range" value={form.defending ?? 5} onChange={(e) => setForm({ ...form, defending: Number(e.target.value) })} />
+          <Input disabled={readOnly} min={1} max={10} type="range" value={form.defending ?? 5} onChange={(e) => setForm({ ...form, defending: Number(e.target.value) })} />
         </Field>
         <Field label={`Shooting ${form.shooting ?? "–"}/10`}>
-          <Input min={1} max={10} type="range" value={form.shooting ?? 5} onChange={(e) => setForm({ ...form, shooting: Number(e.target.value) })} />
+          <Input disabled={readOnly} min={1} max={10} type="range" value={form.shooting ?? 5} onChange={(e) => setForm({ ...form, shooting: Number(e.target.value) })} />
         </Field>
         <Field label={`Aerial ${form.aerial ?? "–"}/10`}>
-          <Input min={1} max={10} type="range" value={form.aerial ?? 5} onChange={(e) => setForm({ ...form, aerial: Number(e.target.value) })} />
+          <Input disabled={readOnly} min={1} max={10} type="range" value={form.aerial ?? 5} onChange={(e) => setForm({ ...form, aerial: Number(e.target.value) })} />
         </Field>
         <Field label={`Stamina ${form.stamina ?? "–"}/10`}>
-          <Input min={1} max={10} type="range" value={form.stamina ?? 5} onChange={(e) => setForm({ ...form, stamina: Number(e.target.value) })} />
+          <Input disabled={readOnly} min={1} max={10} type="range" value={form.stamina ?? 5} onChange={(e) => setForm({ ...form, stamina: Number(e.target.value) })} />
         </Field>
         <Field label={`Work rate ${form.work_rate ?? "–"}/10`}>
-          <Input min={1} max={10} type="range" value={form.work_rate ?? 5} onChange={(e) => setForm({ ...form, work_rate: Number(e.target.value) })} />
+          <Input disabled={readOnly} min={1} max={10} type="range" value={form.work_rate ?? 5} onChange={(e) => setForm({ ...form, work_rate: Number(e.target.value) })} />
         </Field>
 
         {validationError ? (
           <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{validationError}</p>
         ) : null}
-        <Button disabled={busy || uploading} icon={<Save size={18} />} type="submit">Save</Button>
+        {readOnly ? null : (
+          <Button disabled={busy || uploading} icon={<Save size={18} />} type="submit">Save</Button>
+        )}
       </form>
     </Modal>
   );
