@@ -196,6 +196,7 @@ export function EventDetailPage() {
       <RegistrationList
         busy={registrationActions.payment.isPending}
         eventId={id}
+        isCreator={creator}
         maxPlayers={event.max_players}
         registrations={confirmed}
         onTogglePaid={(registration) => registrationActions.payment.mutate({ id: registration.id, paid: !registration.has_paid })}

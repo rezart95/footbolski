@@ -1,5 +1,5 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
-import { Camera, Save, Trash2 } from "lucide-react";
+import { Camera, Save } from "lucide-react";
 import { AttributeTag } from "./AttributeTag";
 import { Button } from "../../ui/Button";
 import { Field, Input, Select } from "../../ui/Field";
@@ -40,7 +40,6 @@ interface PlayerEditModalProps {
   open: boolean;
   onClose: () => void;
   onSave: (payload: Omit<Player, "id">) => void;
-  onDelete?: () => void;
   busy?: boolean;
 }
 
@@ -59,7 +58,7 @@ const blank = {
   work_rate: 5,
 };
 
-export function PlayerEditModal({ player, initialName = "", open, onClose, onSave, onDelete, busy }: PlayerEditModalProps) {
+export function PlayerEditModal({ player, initialName = "", open, onClose, onSave, busy }: PlayerEditModalProps) {
   const [form, setForm] = useState<Omit<Player, "id">>(blank);
   const [uploading, setUploading] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -207,10 +206,7 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
         {validationError ? (
           <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{validationError}</p>
         ) : null}
-        <div className="grid grid-cols-[1fr_auto] gap-2">
-          <Button disabled={busy || uploading} icon={<Save size={18} />} type="submit">Save</Button>
-          {player && onDelete ? <Button disabled={busy} icon={<Trash2 size={18} />} onClick={onDelete} type="button" variant="danger" /> : null}
-        </div>
+        <Button disabled={busy || uploading} icon={<Save size={18} />} type="submit">Save</Button>
       </form>
     </Modal>
   );

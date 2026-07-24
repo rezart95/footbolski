@@ -43,36 +43,69 @@ WAITLIST_PROMOTED: Final = "waitlist_promoted"
 OPT_IN_CONFIRM: Final = "opt_in_confirm"
 
 # The exact name each template was (or will be) submitted under in WhatsApp
-# Manager, and the order its {{1}}, {{2}}, ... parameters appear in.
+# Manager, the order its {{1}}, {{2}}, ... parameters appear in, and a sample
+# value for each. Meta's automated review rejects a template with reason
+# "Template variables without sample text" if `example` values aren't supplied
+# at submission time — this isn't optional metadata, submission fails without
+# it. Sample values are fictional, never a real player's data.
+#
+# The "_v2" suffix: the first submission (without example values) was
+# rejected on all 5, then deleted. Meta's backend held the old names in a
+# deletion tombstone far longer than the "retry in under a minute" its own
+# error suggested — still blocked hours later — so re-submitting under a
+# fresh name was faster than waiting out an unpredictable clear time.
+#
+# The invite template is separately on "_v3": "_v2" was approved but Meta's
+# review recategorised it from Utility to Marketing — the wording ("spots
+# are still open", "grab yours") read as a promotional CTA rather than a
+# scheduling notice. Rather than risk an in-place content edit re-triggering
+# the same recategorisation (or hitting the same delete-permission gaps hit
+# earlier this project), "_v3" reworded it as a plain availability statement
+# and was submitted fresh under Utility. The old "_v2" template still exists,
+# approved, in WhatsApp Manager but is no longer referenced here.
 TEMPLATE_META: Final[dict[str, dict]] = {
-    INVITE: {"meta_name": "footbolski_invite", "params": ("name", "when", "venue", "seats", "link")},
+    INVITE: {
+        "meta_name": "footbolski_invite_v3",
+        "params": ("name", "when", "venue", "seats", "link"),
+        "example": ("Alex", "Thu 23 Jul 19:30", "Centrum Sportu Parkowa", "3", "https://footbolski.org/invite/abc123xyz"),
+    },
     PAYMENT_REMINDER: {
-        "meta_name": "footbolski_payment_reminder",
+        "meta_name": "footbolski_payment_reminder_v2",
         "params": ("name", "amount", "when", "handle", "method", "link"),
+        "example": ("Alex", "25 zł", "Thu 23 Jul 19:30", "514 437 184", "BLIK", "https://footbolski.org/events/abc123xyz"),
     },
-    MOTM_BALLOT: {"meta_name": "footbolski_motm_ballot", "params": ("name", "link")},
+    MOTM_BALLOT: {
+        "meta_name": "footbolski_motm_ballot_v2",
+        "params": ("name", "link"),
+        "example": ("Alex", "https://footbolski.org/motm/abc123xyz"),
+    },
     WAITLIST_PROMOTED: {
-        "meta_name": "footbolski_waitlist_promoted",
+        "meta_name": "footbolski_waitlist_promoted_v2",
         "params": ("name", "when", "venue", "link"),
+        "example": ("Alex", "Thu 23 Jul 19:30", "Centrum Sportu Parkowa", "https://footbolski.org/events/abc123xyz"),
     },
-    OPT_IN_CONFIRM: {"meta_name": "footbolski_opt_in_confirm", "params": ("name",)},
+    OPT_IN_CONFIRM: {
+        "meta_name": "footbolski_opt_in_confirm_v2",
+        "params": ("name",),
+        "example": ("Alex",),
+    },
 }
 
 TEMPLATES: Final[dict[str, dict[str, str]]] = {
     INVITE: {
-        "en": "Hi {name}, football on {when} at {venue}. {seats} spots left. Tap to claim yours: {link}",
+        "en": "Hi {name}, a football session is scheduled for {when} at {venue}, with {seats} spot(s) available. Confirm your attendance here: {link}. Thanks for being part of the group.",
     },
     PAYMENT_REMINDER: {
-        "en": "Hi {name}, reminder to pay {amount} for football on {when}. Send to {handle} via {method}. Details: {link}",
+        "en": "Hi {name}, just a friendly reminder to send your payment of {amount} for the football match on {when}. Please send it to {handle} using {method}. Full details here: {link}. Thanks for playing!",
     },
     MOTM_BALLOT: {
-        "en": "Good game, {name}. Who was Man of the Match? Vote here, it's secret: {link}",
+        "en": "Good game today, {name}! It's time to vote for the Man of the Match. Your vote is completely secret and only takes a moment. Tap here to cast it: {link}. Thanks for playing with us!",
     },
     WAITLIST_PROMOTED: {
-        "en": "Good news {name}, a spot opened up. You're in for football on {when} at {venue}. Details: {link}",
+        "en": "Good news, {name}! A spot has opened up and you're now confirmed to play football on {when} at {venue}. Tap here for full details: {link}. See you there!",
     },
     OPT_IN_CONFIRM: {
-        "en": "You're set up for Footbolski messages, {name}. We'll only message you about games. Reply STOP at any time.",
+        "en": "Thanks {name}, you're all set to receive Footbolski messages. We'll only reach out about upcoming games and important updates.",
     },
 }
 
