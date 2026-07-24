@@ -65,5 +65,6 @@ async def remind(
         event_id=event_id,
         registration_id=registration_id,
         channel=ReminderChannel(payload.channel),
+        created_by_name=payload.created_by_name,
     )
 

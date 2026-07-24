@@ -89,16 +89,29 @@ def _raise_for(outcome: DeliveryOutcome) -> None:
     raise HTTPException(code, message)
 
 
+def _assert_is_creator(event: Event, creator_name: str) -> None:
+    """Only the organiser may send payment reminders — they're the one who
+    owes the venue, so they're the one who decides when to chase people.
+    Matched case-insensitively, and on first name alone, because the session
+    name is free text with no auth (same rule as cancelling or splitting
+    teams)."""
+    claimed = creator_name.casefold()
+    stored = event.created_by_name.casefold()
+    if claimed != stored and claimed != stored.split()[0]:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the event creator can send reminders")
+
+
 async def send_reminder(
     session: AsyncSession,
     *,
     event_id: uuid.UUID,
     registration_id: uuid.UUID,
     channel: ReminderChannel,
-    sent_by: str | None = None,
+    created_by_name: str,
 ) -> ReminderResult:
     """Send a payment reminder on the organiser's instruction."""
     registration = await _load_registration(session, event_id, registration_id)
+    _assert_is_creator(registration.event, created_by_name)
 
     if registration.has_paid:
         raise HTTPException(status.HTTP_409_CONFLICT, "This player has already paid.")
@@ -123,9 +136,11 @@ async def send_reminder(
             body=body,
             url=f"{get_settings().app_public_url}/events/{event_id}",
             registration_id=registration.id,
-            sent_by=sent_by,
+            sent_by=created_by_name,
         )
     else:
+        # Only "push" and "whatsapp" reach here (see ReminderRequest.channel) —
+        # WhatsApp is the only non-push send path since Twilio SMS was retired.
         outcome, _row = await message_delivery.deliver(
             session,
             player=player,
@@ -134,7 +149,7 @@ async def send_reminder(
             template_id=message_templates.PAYMENT_REMINDER,
             template_fields=fields,
             registration_id=registration.id,
-            sent_by=sent_by,
+            sent_by=created_by_name,
             enforce_cooldown=True,
         )
 
@@ -149,6 +164,6 @@ async def send_reminder(
         channel=channel,
         status=outcome.status,
         detail="Reminder sent",
-        sms_sent_count=sent_count,
-        sms_remaining=remaining,
+        messages_sent_count=sent_count,
+        messages_remaining=remaining,
     )

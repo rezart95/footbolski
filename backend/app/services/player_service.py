@@ -97,14 +97,3 @@ async def set_player_tier(session: AsyncSession, player_id: uuid.UUID, tier: str
     await session.commit()
     await session.refresh(player)
     return player
-
-
-async def delete_player(session: AsyncSession, player_id: uuid.UUID) -> None:
-    player = await get_player(session, player_id)
-    # Remove registrations first (FK has no CASCADE, and we allow deletion
-    # even when the player is linked to upcoming events)
-    await session.execute(
-        Registration.__table__.delete().where(Registration.player_id == player_id)
-    )
-    await session.delete(player)
-    await session.commit()

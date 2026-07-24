@@ -4,6 +4,7 @@ import { Bell, MessageSquare } from "lucide-react";
 import { Modal } from "../../ui/Modal";
 import { Notice } from "../../ui/Notice";
 import { errorMessage } from "../../../lib/errors";
+import { useSession } from "../../../hooks/useSession";
 import { sendReminder, type ReminderChannel, type ReminderResult } from "../../../services/reminders.service";
 
 interface RemindModalProps {
@@ -15,12 +16,13 @@ interface RemindModalProps {
 }
 
 export function RemindModal({ open, eventId, registrationId, displayName, onClose }: RemindModalProps) {
+  const { sessionName } = useSession();
   const [result, setResult] = useState<ReminderResult | null>(null);
 
   const mutation = useMutation({
     mutationFn: (channel: ReminderChannel) => {
       if (!registrationId) throw new Error("No registration selected");
-      return sendReminder(eventId, registrationId, channel);
+      return sendReminder(eventId, registrationId, channel, sessionName);
     },
     onSuccess: (data) => setResult(data),
   });
@@ -57,13 +59,13 @@ export function RemindModal({ open, eventId, registrationId, displayName, onClos
         <button
           className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-4 text-left transition hover:bg-white/[0.08] disabled:opacity-50"
           disabled={mutation.isPending}
-          onClick={() => trigger("sms")}
+          onClick={() => trigger("whatsapp")}
           type="button"
         >
-          <MessageSquare className="shrink-0 text-amber-300" size={20} />
+          <MessageSquare className="shrink-0 text-green-400" size={20} />
           <div>
-            <p className="font-bold">SMS</p>
-            <p className="text-xs text-white/55">Max 2 SMS per player per event.</p>
+            <p className="font-bold">WhatsApp</p>
+            <p className="text-xs text-white/55">Requires the player to have replied to the number once, to verify it.</p>
           </div>
         </button>
 
@@ -74,8 +76,8 @@ export function RemindModal({ open, eventId, registrationId, displayName, onClos
         {result ? (
           <Notice tone="success">
             {result.detail || "Reminder sent."}
-            {result.channel === "sms" && typeof result.sms_remaining === "number"
-              ? ` (${result.sms_remaining} SMS left for this event)`
+            {typeof result.messages_remaining === "number"
+              ? ` (${result.messages_remaining} messages left for this event)`
               : ""}
           </Notice>
         ) : null}

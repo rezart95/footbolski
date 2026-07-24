@@ -11,9 +11,11 @@ interface RegistrationListProps {
   maxPlayers?: number;
   busy?: boolean;
   eventId?: string;
+  /** Only the event creator may remind players to pay — they're the one who owes the venue. */
+  isCreator?: boolean;
 }
 
-export function RegistrationList({ registrations, onTogglePaid, maxPlayers, busy, eventId }: RegistrationListProps) {
+export function RegistrationList({ registrations, onTogglePaid, maxPlayers, busy, eventId, isCreator }: RegistrationListProps) {
   const [remindTarget, setRemindTarget] = useState<Registration | null>(null);
 
   return (
@@ -26,7 +28,7 @@ export function RegistrationList({ registrations, onTogglePaid, maxPlayers, busy
       </div>
       <div className="grid gap-2">
         {registrations.map((registration) => {
-          const canRemind = Boolean(eventId) && !registration.has_paid;
+          const canRemind = Boolean(eventId) && Boolean(isCreator) && !registration.has_paid;
           return (
             <div className="flex items-center gap-2 rounded-lg bg-pitch-950/35 p-2" key={registration.id}>
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-white/10 font-mono text-xs font-black text-white/75">{registration.position}</span>

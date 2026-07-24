@@ -16,10 +16,6 @@ export async function updatePlayer(id: string, payload: PlayerPayload) {
   return data;
 }
 
-export async function deletePlayer(id: string) {
-  await api.delete(`/players/${id}`);
-}
-
 export async function uploadPlayerPhoto(file: File) {
   const formData = new FormData();
   formData.append("file", file);

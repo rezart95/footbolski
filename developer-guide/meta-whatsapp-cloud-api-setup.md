@@ -90,15 +90,55 @@ get the new-language template variants approved in WhatsApp Manager before
 flipping `SUPPORTED_LANGUAGES` to include them, or a player normalises to a
 language with no approved template and the send fails.
 
-## 4. Submit the real templates
+## 4. What a template actually is, and when you need a new one
+
+WhatsApp splits every conversation into two modes. **Inside 24 hours** since
+the recipient last messaged the business number, free text is allowed —
+send anything. **Outside that window** — which is every proactive message
+this app sends, since nobody messages first when an event is created — the
+send **must** use a pre-approved **template**: fixed wording with named
+blanks (`{{1}}, {{2}}, ...`) that Meta reviewed once, in advance. This is
+Meta's spam control: the wording is reviewed once, and afterwards a sender
+may only fill in the blanks, never change the surrounding sentence.
+
+**A template is matched by name at send-time, not by content.** The app
+says "use `footbolski_invite`, in English, with these 5 values" — it never
+sends the sentence itself. This also means **one approved template covers
+every future occurrence of that message, forever** — Thursday's invite and
+next month's invite both reuse the same `footbolski_invite` template with
+different values; you never resubmit per event.
+
+**A new template is only needed for a genuinely new sentence shape**, not
+for every new notification idea you have. Concretely, as of this writing:
+
+| Message | Template |
+|---|---|
+| New event needs players | `footbolski_invite` |
+| Payment reminder | `footbolski_payment_reminder` |
+| Post-match Man of the Match vote | `footbolski_motm_ballot` |
+| A confirmed spot opened up for you | `footbolski_waitlist_promoted` |
+| First-reply confirmation | `footbolski_opt_in_confirm` |
+
+**A gap worth knowing about:** when a confirmed player drops out, the
+promoted waitlist player is told (`footbolski_waitlist_promoted`), but the
+**organiser** is not told over WhatsApp — that notification currently only
+exists as a push notification (a channel with essentially no adoption; see
+`CLAUDE.md`). If the organiser should hear about drop-outs over WhatsApp
+too, that is a genuinely new template and a small code change in
+`registration_service.py`'s `unregister()`, not something already covered
+by the five below.
+
+## 5. Submit the real templates
 
 **5 templates, English only** — one per message kind, submitted through
 **Meta's own WhatsApp Manager → Message Templates** on the production WABA,
-not through a BSP console. Category **Utility**. Text must match
-`message_templates.TEMPLATES` exactly, and the parameter order must match
-`TEMPLATE_META[...]["params"]` exactly — Meta numbers them `{{1}}, {{2}},
-...` positionally, so a reordering silently sends the wrong value into the
-wrong slot rather than failing outright.
+not through a BSP console, or via the Message Templates API directly
+(`POST /{waba-id}/message_templates`) — faster than clicking through the
+UI five times, and what this project actually does. Category **Utility**.
+Text must match `message_templates.TEMPLATES` exactly, and the parameter
+order must match `TEMPLATE_META[...]["params"]` exactly — Meta numbers them
+`{{1}}, {{2}}, ...` positionally, so a reordering silently sends the wrong
+value into the wrong slot rather than failing outright.
 
 Generate the current submission text from the source of truth:
 
@@ -119,7 +159,43 @@ for template_id, meta in mt.TEMPLATE_META.items():
 
 Utility templates typically approve within minutes.
 
-## 5. Get a production number and a long-lived token
+## 6. When a template doesn't clear review cleanly
+
+Two things went wrong in practice here, worth knowing before they cost you
+an evening:
+
+**Resubmitting after a rejection can hang for hours.** The first submission
+of all 5 templates was rejected instantly with a generic `INVALID_FORMAT`
+reason the API never explains — the real cause, only visible in WhatsApp
+Manager's UI, not the API, was **missing `example.body_text` sample values**
+for every `{{n}}` placeholder. Meta's automated review rejects a template
+outright if it can't see a filled-in example for each variable — this isn't
+optional metadata, submission silently fails without it (see the `example`
+field on every entry in `TEMPLATE_META`). After deleting the rejected
+templates and adding example values, resubmitting under the *same* name
+still failed for hours with "content is being deleted... retry in less than
+1 minute" — that window did not hold in practice. The fix was to submit
+under a new name instead of waiting out an unpredictable clear time, hence
+the `_v2` suffix on every `meta_name`.
+
+**Approval doesn't guarantee the category you asked for.** `footbolski_invite_v2`
+was approved, then separately **recategorised from Utility to Marketing**
+days later — Meta's notice cited phrasing like "spots are still open" and
+"grab yours" as a promotional CTA rather than a scheduling notice. Marketing
+templates are priced higher and are subject to stricter delivery throttling
+if a business's messaging quality drops, which matters more for the invite
+than the other four templates since it's the recurring weekly send. The fix
+was not to edit the approved template in place (risking either the same
+recategorisation again, or the delete-permission gaps the System User token
+already hit in this project — see Security notes) but to reword the body to
+remove scarcity/CTA language and resubmit fresh as `footbolski_invite_v3`,
+declaring `"category": "UTILITY"` explicitly in the submission payload.
+`footbolski_invite_v2` still exists, approved, in WhatsApp Manager; nothing
+in the codebase references it anymore. If another template gets
+recategorised later, the same approach applies: reword, bump the version
+suffix, resubmit — don't try to edit a live template's category.
+
+## 7. Get a production number and a long-lived token
 
 The test number only works with up to 5 verified recipients — useless for
 41 players. In WhatsApp Manager, add a real production number to the same
@@ -136,23 +212,26 @@ token expiration **Never**. This is what goes into
 `META_WHATSAPP_TOKEN` — not a per-session user token, which expires and
 silently breaks every scheduled send until someone notices.
 
-## 6. Configure
+## 8. Configure
 
 | Variable | Where it comes from |
 |---|---|
-| `META_WHATSAPP_TOKEN` | The long-lived System User token from step 5 |
+| `META_WHATSAPP_TOKEN` | The long-lived System User token from step 7 |
 | `META_PHONE_NUMBER_ID` | The **production** number's Phone Number ID (WhatsApp Manager → your number → API details) |
 | `META_WABA_ID` | The WABA ID shown on the same page |
 | `META_WEBHOOK_VERIFY_TOKEN` | Any string you choose — set the same value in the webhook subscription below |
 | `META_APP_SECRET` | Meta App Dashboard → **Settings → Basic → App Secret** (click "Show") |
 
-## 7. Subscribe the webhook
+## 9. Subscribe the webhook
 
-Meta App Dashboard → **WhatsApp → Configuration → Webhook**:
+Meta App Dashboard → **WhatsApp → Configuration → Webhook** (or, in the
+redesigned "Use Cases" console, Dashboard → *Connect with customers through
+WhatsApp* → **Step 2. Production setup → Webhooks**):
 
 - Callback URL: `https://api.footbolski.org/api/v1/webhooks/whatsapp`
 - Verify token: the exact value of `META_WEBHOOK_VERIFY_TOKEN`
-- Subscribe to fields: **messages**
+- Subscribe to fields: **messages** (this single field carries both inbound
+  messages and delivery/read status updates)
 
 Meta calls the URL once with a `GET` carrying `hub.mode=subscribe`,
 `hub.verify_token`, and `hub.challenge` — our endpoint echoes the challenge
@@ -165,7 +244,34 @@ Every subsequent `POST` carries `X-Hub-Signature-256`, an HMAC-SHA256 of the
 if `META_APP_SECRET` is unset, every inbound call is refused with 503
 rather than silently accepted.
 
-## 8. The data problem no amount of API config fixes
+**A separate, easy-to-miss step: link the WABA to the app.** Toggling
+"messages" to Subscribed in the console only configures the *app's* webhook
+fields — it does not by itself connect a specific WABA to receive them. A
+WABA can show the field as Subscribed while still having zero apps
+subscribed to it, which silently blocks every inbound event with no error
+anywhere. Verify and fix explicitly:
+
+```bash
+# Check: does this WABA have any app subscribed to it?
+curl "https://graph.facebook.com/v22.0/${META_WABA_ID}/subscribed_apps" \
+  -H "Authorization: Bearer ${META_WHATSAPP_TOKEN}"
+# {"data":[]}  <- means nothing is actually linked, even if the console looks right
+
+# Fix: link this app to the WABA
+curl -X POST "https://graph.facebook.com/v22.0/${META_WABA_ID}/subscribed_apps" \
+  -H "Authorization: Bearer ${META_WHATSAPP_TOKEN}"
+# {"success":true}
+```
+
+To check the *app-level* field subscriptions (as opposed to the WABA link
+above), the System User bearer token isn't accepted — this endpoint wants
+an app access token (`app-id|app-secret`) instead:
+
+```bash
+curl "https://graph.facebook.com/v22.0/${META_APP_ID}/subscriptions?access_token=${META_APP_ID}|${META_APP_SECRET}"
+```
+
+## 10. The data problem no amount of API config fixes
 
 The T-5 ladder rung only reaches `core` players, so a channel that works
 perfectly still messages nobody without phone numbers and tiers entered.
@@ -195,7 +301,7 @@ curl https://api.footbolski.org/api/v1/admin/players/contact \
   -H "X-Internal-Secret: <INTERNAL_API_SECRET>"
 ```
 
-## 9. Everyone has to reply once
+## 11. Everyone has to reply once
 
 WhatsApp will not let a business message someone proactively until that
 person has sent at least one message first — that reply is also what marks
@@ -203,7 +309,7 @@ person has sent at least one message first — that reply is also what marks
 it anything once. One message in the WhatsApp group covers the whole
 squad.
 
-## 10. Verification, cheapest first
+## 12. Verification, cheapest first
 
 1. Reply to the number from your own phone. `phone_verified_at` should get
    set and a `reminders` row should appear with `kind=manual` (or whichever

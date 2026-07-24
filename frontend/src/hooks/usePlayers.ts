@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createPlayer, deletePlayer, listPlayers, updatePlayer } from "../services/players.service";
+import { createPlayer, listPlayers, updatePlayer } from "../services/players.service";
 import type { PlayerPayload } from "../types/player.types";
 
 export function usePlayers() {
@@ -15,7 +15,6 @@ export function usePlayerActions() {
     update: useMutation({
       mutationFn: ({ id, payload }: { id: string; payload: PlayerPayload }) => updatePlayer(id, payload),
       onSuccess: invalidate
-    }),
-    remove: useMutation({ mutationFn: deletePlayer, onSuccess: invalidate })
+    })
   };
 }
