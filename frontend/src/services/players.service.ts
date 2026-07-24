@@ -16,6 +16,17 @@ export async function updatePlayer(id: string, payload: PlayerPayload, requested
   return data;
 }
 
+/** Admin-only. `requestedBy` is the session name, re-checked server-side. */
+export async function updatePlayerNotes(id: string, notes: string | null, requestedBy: string) {
+  const { data } = await api.patch<Player>(`/players/${id}/notes`, { notes, requested_by: requestedBy });
+  return data;
+}
+
+/** Admin-only. Sends the body on DELETE (matches the event-delete pattern). */
+export async function deletePlayer(id: string, requestedBy: string) {
+  await api.delete(`/players/${id}`, { data: { requested_by: requestedBy } });
+}
+
 export async function uploadPlayerPhoto(file: File) {
   const formData = new FormData();
   formData.append("file", file);

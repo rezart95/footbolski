@@ -69,6 +69,21 @@ class PlayerTierUpdate(BaseModel):
     tier: Literal["core", "rest"]
 
 
+class PlayerNotesUpdate(BaseModel):
+    """Admin-portal scouting-notes write. `requested_by` is the free-text
+    session name, checked against `player_service.ADMIN_NAMES`."""
+
+    notes: str | None = Field(default=None, max_length=500)
+    requested_by: str = Field(min_length=1, max_length=255)
+
+
+class PlayerDelete(BaseModel):
+    """Admin-portal card deletion. `requested_by` is the free-text session name,
+    checked against `player_service.ADMIN_NAMES`."""
+
+    requested_by: str = Field(min_length=1, max_length=255)
+
+
 class PlayerRead(PlayerBase):
     id: uuid.UUID
     created_at: datetime

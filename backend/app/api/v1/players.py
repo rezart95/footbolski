@@ -1,9 +1,9 @@
 import uuid
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response, status
 
 from app.dependencies import SessionDep
-from app.schemas.player import PlayerCreate, PlayerRead, PlayerUpdate
+from app.schemas.player import PlayerCreate, PlayerDelete, PlayerNotesUpdate, PlayerRead, PlayerUpdate
 from app.services import player_service
 
 router = APIRouter(prefix="/players", tags=["players"])
@@ -27,6 +27,17 @@ async def get_player(player_id: uuid.UUID, session: SessionDep):
 @router.put("/{player_id}", response_model=PlayerRead)
 async def update_player(player_id: uuid.UUID, payload: PlayerUpdate, session: SessionDep):
     return await player_service.update_player(session, player_id, payload)
+
+
+@router.patch("/{player_id}/notes", response_model=PlayerRead)
+async def update_player_notes(player_id: uuid.UUID, payload: PlayerNotesUpdate, session: SessionDep):
+    return await player_service.set_player_notes(session, player_id, payload.notes, payload.requested_by)
+
+
+@router.delete("/{player_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_player(player_id: uuid.UUID, payload: PlayerDelete, session: SessionDep) -> Response:
+    await player_service.delete_player(session, player_id, payload.requested_by)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
 
 
 @router.post("/relink-registrations", response_model=dict)

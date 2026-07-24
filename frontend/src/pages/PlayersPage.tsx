@@ -9,15 +9,8 @@ import { PlayerGridSkeleton } from "../components/ui/Skeleton";
 import { Notice } from "../components/ui/Notice";
 import { usePlayerActions, usePlayers } from "../hooks/usePlayers";
 import { useSession } from "../hooks/useSession";
+import { isEditorSession } from "../lib/roles";
 import type { Player, PlayerPayload } from "../types/player.types";
-
-/** Only this player maintains the squad's ratings — see `player_service.EDITOR_NAME` on the backend, which is the actual enforcement boundary. */
-const EDITOR_NAME = "jetmir çenko";
-
-function isEditorSession(sessionName: string): boolean {
-  const claimed = sessionName.trim().toLowerCase();
-  return claimed === EDITOR_NAME || claimed === EDITOR_NAME.split(" ")[0];
-}
 
 export function PlayersPage() {
   const { data: players = [], isLoading } = usePlayers();
@@ -54,7 +47,7 @@ export function PlayersPage() {
         }
       />
       {!isEditor ? (
-        <Notice>Player cards are read-only — only Jetmir Çenko maintains ratings for the squad.</Notice>
+        <Notice>Player cards are read-only for the moment.</Notice>
       ) : null}
       {isEditor && !myCard && sessionName ? (
         <Notice>

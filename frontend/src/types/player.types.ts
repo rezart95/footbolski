@@ -28,6 +28,7 @@ export interface Player {
   aerial?: number | null;
   stamina?: number | null;
   work_rate?: number | null;
+  notes?: string | null;
 }
 
 export interface PlayerPayload {

@@ -1,5 +1,5 @@
 import { Check } from "lucide-react";
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
+import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 import { cn } from "../../lib/utils";
 
 interface FieldProps {
@@ -29,6 +29,15 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       className={cn("tap-target rounded-lg border border-white/10 bg-pitch-800 px-3 text-base font-semibold text-white outline-none focus:border-pitch-400", props.className)}
+      {...props}
+    />
+  );
+}
+
+export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
+  return (
+    <textarea
+      className={cn("min-h-[4.5rem] rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2 text-sm text-white outline-none focus:border-pitch-400 disabled:opacity-50", props.className)}
       {...props}
     />
   );
