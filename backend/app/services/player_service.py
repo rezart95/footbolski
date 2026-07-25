@@ -13,7 +13,7 @@ otherwise view-only — see `_assert_is_editor`. A plain constant rather than
 a setting: this is a specific, named person by explicit request, not a
 configurable role."""
 
-ADMIN_NAMES = ("Rezart Abazi", "Jetmir Çenko")
+ADMIN_NAMES = ("Rezart Abazi", "Jetmir Çenko", "Bledar Ndreca")
 """Who can reach the admin portal: delete cards and read/write scouting notes.
 The same weak name-based identity as everywhere else in this app, deliberately
 so — see `_assert_is_admin`. Kept separate from `EDITOR_NAME` because the two
@@ -30,9 +30,30 @@ def _matches(claimed: str, name: str) -> bool:
 
 
 def _assert_is_editor(requested_by: str) -> None:
-    """Only `EDITOR_NAME` may create or edit player cards."""
+    """Only `EDITOR_NAME` may *edit* an existing player card. Creation is
+    looser — see `_assert_can_create`."""
     if not _matches(requested_by, EDITOR_NAME):
         raise HTTPException(status.HTTP_403_FORBIDDEN, f"Only {EDITOR_NAME} can edit player cards")
+
+
+async def _assert_can_create(session: AsyncSession, *, name: str, requested_by: str) -> None:
+    """Who may *create* a card.
+
+    The editor can create anyone's card. Anyone else may create exactly one
+    card, for their own name — that's how a new member self-onboards so they
+    can enrol in events. After that the card is editor-only (see
+    `update_player`), so a member sets their starting values once but can't
+    keep re-rating themselves.
+    """
+    if _matches(requested_by, EDITOR_NAME):
+        return
+    if name.strip().casefold() != requested_by.strip().casefold():
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "You can only create your own card")
+    existing = await session.scalar(
+        select(Player).where(func.lower(Player.name) == name.strip().casefold())
+    )
+    if existing is not None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "A card with this name already exists")
 
 
 def _assert_is_admin(requested_by: str) -> None:
@@ -88,7 +109,7 @@ async def relink_all_registrations(session: AsyncSession) -> int:
 
 
 async def create_player(session: AsyncSession, payload: PlayerCreate) -> Player:
-    _assert_is_editor(payload.requested_by)
+    await _assert_can_create(session, name=payload.name, requested_by=payload.requested_by)
     player = Player(**payload.model_dump(exclude={"requested_by"}))
     session.add(player)
     await session.flush()  # get the player.id before backfill
