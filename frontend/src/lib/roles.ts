@@ -11,7 +11,7 @@
 const EDITOR_NAME = "jetmir çenko";
 
 /** Reach the admin portal: delete cards and edit scouting notes. */
-const ADMIN_NAMES = ["rezart abazi", "jetmir çenko"];
+const ADMIN_NAMES = ["rezart abazi", "jetmir çenko", "bledar ndreca"];
 
 function matches(sessionName: string, fullName: string): boolean {
   const claimed = sessionName.trim().toLowerCase();

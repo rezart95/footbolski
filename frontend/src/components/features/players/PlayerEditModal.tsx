@@ -44,6 +44,9 @@ interface PlayerEditModalProps {
   /** View-only: every field disabled, no Save button. Used for everyone
    * except the one player who maintains the squad's ratings. */
   readOnly?: boolean;
+  /** Lock just the name field while the rest stays editable — for a new member
+   * self-creating their own card, whose name must match their session name. */
+  lockName?: boolean;
 }
 
 const blank = {
@@ -61,7 +64,7 @@ const blank = {
   work_rate: 5,
 };
 
-export function PlayerEditModal({ player, initialName = "", open, onClose, onSave, busy, readOnly = false }: PlayerEditModalProps) {
+export function PlayerEditModal({ player, initialName = "", open, onClose, onSave, busy, readOnly = false, lockName = false }: PlayerEditModalProps) {
   const [form, setForm] = useState<Omit<Player, "id">>(blank);
   const [uploading, setUploading] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -142,7 +145,7 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
           {!form.photo_url && !readOnly && <p className="mt-1 text-center text-xs text-amber-400">Photo required</p>}
         </div>
         <Field label="Name">
-          <Input disabled={readOnly} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
+          <Input disabled={readOnly || lockName} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
         </Field>
         <Field label={`Skill ${form.skill_rating}/10`}>
           <Input disabled={readOnly} min={1} max={10} type="range" value={form.skill_rating} onChange={(event) => setForm({ ...form, skill_rating: Number(event.target.value) })} />
