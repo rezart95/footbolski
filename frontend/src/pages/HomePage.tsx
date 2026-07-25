@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { EventCard } from "../components/features/events/EventCard";
+import { AddToCalendar } from "../components/features/events/AddToCalendar";
 import { CreateEventModal } from "../components/features/events/CreateEventModal";
 import { JoinButton } from "../components/features/registration/JoinButton";
 import { RequireCardModal } from "../components/features/players/RequireCardModal";
@@ -83,6 +84,7 @@ export function HomePage() {
             onJoin={tryJoin}
             onLeave={leave}
           />
+          <AddToCalendar event={event} label="Add to calendar" />
           <RegistrationList
             busy={actions.payment.isPending}
             eventId={event.id}
