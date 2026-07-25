@@ -21,6 +21,15 @@ export function PlayersPage() {
   const [initialName, setInitialName] = useState("");
   const myCard = players.find((player) => player.name.toLowerCase() === sessionName.toLowerCase());
   const isEditor = isEditorSession(sessionName);
+  // A new member with no card can create their own so they can enrol in events.
+  // After saving it's editor-only (backend), so they set their values once.
+  const canSelfCreate = Boolean(sessionName) && !myCard;
+
+  function openMyCard() {
+    setSelected(null);
+    setInitialName(sessionName);
+    setEditing(true);
+  }
 
   function save(payload: PlayerPayload) {
     const onSuccess = () => {
@@ -46,18 +55,16 @@ export function PlayersPage() {
           ) : undefined
         }
       />
-      {!isEditor ? (
-        <Notice>Player cards are read-only for the moment.</Notice>
-      ) : null}
-      {isEditor && !myCard && sessionName ? (
+      {canSelfCreate ? (
         <Notice>
-          Your session name is not a player card yet. Create your card to add skill, position, and attributes.
+          You don't have a player card yet. Create yours to set your attributes and join events — once saved, only the squad's rating keeper can change it.
         </Notice>
       ) : null}
-      {isEditor && !myCard && sessionName ? (
-        <Button variant="secondary" onClick={() => { setSelected(null); setInitialName(sessionName); setEditing(true); }}>
-          Create My Card
-        </Button>
+      {canSelfCreate ? (
+        <Button variant="secondary" onClick={openMyCard}>Create My Card</Button>
+      ) : null}
+      {!isEditor && myCard ? (
+        <Notice>Player cards are read-only for the moment.</Notice>
       ) : null}
       {isLoading ? <PlayerGridSkeleton /> : null}
       {!isLoading && players.length === 0 ? <EmptyState title="No players yet" detail="Add cards for the regular group, including your own." /> : null}
@@ -67,7 +74,8 @@ export function PlayersPage() {
         open={editing}
         player={selected}
         initialName={initialName}
-        readOnly={!isEditor}
+        readOnly={!isEditor && selected !== null}
+        lockName={!isEditor}
         onClose={() => { setEditing(false); setSelected(null); setInitialName(""); }}
         onSave={save}
       />
