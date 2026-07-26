@@ -52,7 +52,6 @@ async def deliver(
     template_fields: dict,
     registration_id: uuid.UUID | None = None,
     sent_by: str | None = None,
-    require_verified: bool = True,
     enforce_cooldown: bool = False,
 ) -> tuple[DeliveryOutcome, Reminder]:
     """Send one WhatsApp template message and record the attempt.
@@ -60,9 +59,12 @@ async def deliver(
     Returns the outcome and the audit row. The row is added to the session but
     not committed, so the caller controls the transaction boundary.
 
-    `require_verified` is on by default: WhatsApp only permits proactive
-    messages to a number whose owner has replied at least once, which is also
-    what proves they control it. The opt-in message itself is the exception.
+    No prior-reply check: Meta's Cloud API doesn't require the recipient to
+    have messaged first for a template send to go through — that's a Twilio
+    Sandbox quirk, not a Meta rule. Consent comes from the Terms and Conditions
+    acceptance at registration instead. (`phone_verified_at` is still set by
+    the inbound webhook on a player's first reply, but nothing here gates on it
+    anymore — it's just a record of who has engaged.)
     """
 
     def record(outcome: DeliveryOutcome) -> tuple[DeliveryOutcome, Reminder]:
@@ -81,13 +83,6 @@ async def deliver(
     number, refusal = _addressable(player)
     if refusal is not None:
         return record(refusal)
-
-    if require_verified and player.phone_verified_at is None:
-        return record(
-            DeliveryOutcome.skipped(
-                DeliveryReason.NOT_VERIFIED, "player has not yet replied to confirm their number"
-            )
-        )
 
     if not meta_whatsapp_gateway.is_configured():
         return record(

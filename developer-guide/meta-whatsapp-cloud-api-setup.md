@@ -301,27 +301,40 @@ curl https://api.footbolski.org/api/v1/admin/players/contact \
   -H "X-Internal-Secret: <INTERNAL_API_SECRET>"
 ```
 
-## 11. Everyone has to reply once
+## 11. Nobody has to reply first
 
-WhatsApp will not let a business message someone proactively until that
-person has sent at least one message first — that reply is also what marks
-`phone_verified_at`. Post the number in the group and ask everyone to send
-it anything once. One message in the WhatsApp group covers the whole
-squad.
+An earlier version of this doc said WhatsApp won't let a business message
+someone proactively until they've replied at least once. That's wrong — it
+was carried over from the **Twilio Sandbox**, which genuinely does require a
+join code first. The direct Meta Cloud API has no such rule: an approved
+template can reach a number that has never messaged the business, as long as
+the business has *some* opt-in (Meta relaxed this to not require a
+WhatsApp-specific one). Here, that's the Terms and Conditions acceptance
+captured at registration — see `consent_records`.
+
+So `message_delivery.deliver()` no longer gates on `phone_verified_at`
+(dropped the `require_verified` check entirely — see its docstring). A phone
+number entered for a player is reachable immediately once a message is due,
+no "everyone text the number once" onboarding step needed.
+
+`phone_verified_at` still exists and is still set by the inbound webhook on a
+player's first reply — it's just a record of engagement now, not a gate. That
+first reply also still fires `footbolski_opt_in_confirm` back to them (see
+`whatsapp_inbound._send_opt_in_confirmation`), sent directly through
+`meta_whatsapp_gateway` rather than `deliver()` — a first reply isn't tied to
+any event, and `Reminder.event_id` is `NOT NULL`, so there's nothing to
+attach that one send's audit row to.
 
 ## 12. Verification, cheapest first
 
-1. Reply to the number from your own phone. `phone_verified_at` should get
-   set and a `reminders` row should appear with `kind=manual` (or whichever
-   kind triggered it) and `channel=whatsapp`.
-2. Reply **STOP**. Your number should be cleared and `opted_out_at` set.
-   Re-add the number and reply again to re-verify.
-3. Create a test event 5 days out, set yourself as the only `core` player,
+1. Reply **STOP** to the number from your own phone. Your number should be
+   cleared and `opted_out_at` set. Re-add the number to send to it again.
+2. Create a test event 5 days out, set yourself as the only `core` player,
    call `POST /internal/run-scheduler` manually. You should get exactly one
-   invite.
-4. Tap the invite link — confirms with no install banner, no bottom nav.
+   invite — with no prior reply needed.
+3. Tap the invite link — confirms with no install banner, no bottom nav.
    Tap it again — says you're already registered, doesn't dead-end.
-5. Check `delivered_at` fills in on that reminder row via the inbound
+4. Check `delivered_at` fills in on that reminder row via the inbound
    webhook. That receipt is what makes "zero seats lost without a
    delivered notification" verifiable rather than aspirational.
 
