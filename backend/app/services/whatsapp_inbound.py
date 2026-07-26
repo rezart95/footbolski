@@ -24,7 +24,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Player, Reminder
-from app.services import notification_service
+from app.services import message_templates, meta_whatsapp_gateway, notification_service
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +95,29 @@ async def handle_opt_in(session: AsyncSession, player: Player) -> bool:
     return True
 
 
+async def _send_opt_in_confirmation(player: Player) -> None:
+    """Confirms the number is now set up to receive messages.
+
+    Sent directly through the gateway rather than `message_delivery.deliver()`:
+    that path writes a `Reminder` audit row, and `Reminder.event_id` is
+    NOT NULL — a first reply isn't about any particular event, so there's
+    nothing to attach it to. Fire-and-forget: a failure here must not affect
+    the webhook's 200 response, and there's no event-scoped budget or cooldown
+    for it to respect.
+    """
+    number = notification_service.normalize_phone(player.phone_number)
+    if not number:
+        return
+    template = message_templates.build_components(
+        message_templates.OPT_IN_CONFIRM,
+        player.preferred_language,
+        name=message_templates.first_name(player.name),
+    )
+    ok, detail, _id = await meta_whatsapp_gateway.send_template(to=number, template=template)
+    if not ok:
+        logger.warning("Opt-in confirmation to %s failed: %s", player.name, detail)
+
+
 async def _handle_status(session: AsyncSession, status_event: dict) -> dict:
     provider_message_id = status_event.get("id")
     message_status = status_event.get("status")
@@ -124,6 +147,8 @@ async def _handle_message(session: AsyncSession, message: dict) -> dict:
         return {"handled": "opt_out", "player": player.name}
 
     newly_verified = await handle_opt_in(session, player)
+    if newly_verified:
+        await _send_opt_in_confirmation(player)
     return {
         "handled": "opt_in" if newly_verified else "message",
         "player": player.name,

@@ -25,7 +25,6 @@ class DeliveryReason(enum.StrEnum):
     NO_PLAYER_CARD = "no_player_card"
     NO_PHONE_NUMBER = "no_phone_number"
     INVALID_PHONE_NUMBER = "invalid_phone_number"
-    NOT_VERIFIED = "not_verified"
     OPTED_OUT = "opted_out"
     NO_PUSH_SUBSCRIPTION = "no_push_subscription"
 
@@ -45,7 +44,6 @@ SKIP_REASONS = frozenset(
         DeliveryReason.NO_PLAYER_CARD,
         DeliveryReason.NO_PHONE_NUMBER,
         DeliveryReason.INVALID_PHONE_NUMBER,
-        DeliveryReason.NOT_VERIFIED,
         DeliveryReason.OPTED_OUT,
         DeliveryReason.NO_PUSH_SUBSCRIPTION,
         DeliveryReason.COOLDOWN_ACTIVE,

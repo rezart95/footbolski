@@ -31,7 +31,6 @@ _HTTP_STATUS_FOR_REASON = {
     DeliveryReason.NO_PLAYER_CARD: status.HTTP_409_CONFLICT,
     DeliveryReason.NO_PHONE_NUMBER: status.HTTP_409_CONFLICT,
     DeliveryReason.INVALID_PHONE_NUMBER: status.HTTP_409_CONFLICT,
-    DeliveryReason.NOT_VERIFIED: status.HTTP_409_CONFLICT,
     DeliveryReason.OPTED_OUT: status.HTTP_409_CONFLICT,
     DeliveryReason.NO_PUSH_SUBSCRIPTION: status.HTTP_409_CONFLICT,
     DeliveryReason.COOLDOWN_ACTIVE: status.HTTP_429_TOO_MANY_REQUESTS,
@@ -44,7 +43,6 @@ _HTTP_STATUS_FOR_REASON = {
 _MESSAGE_FOR_REASON = {
     DeliveryReason.NO_PHONE_NUMBER: "No phone number on file for this player.",
     DeliveryReason.INVALID_PHONE_NUMBER: "This player's phone number could not be read.",
-    DeliveryReason.NOT_VERIFIED: "This player has not confirmed their number yet. They need to reply to the opt-in message first.",
     DeliveryReason.OPTED_OUT: "This player has opted out of messages.",
     DeliveryReason.NO_PUSH_SUBSCRIPTION: "This player has not enabled notifications.",
     DeliveryReason.COOLDOWN_ACTIVE: "A reminder was just sent. Give it a few minutes.",
