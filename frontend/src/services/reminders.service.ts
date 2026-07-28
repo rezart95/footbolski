@@ -1,6 +1,6 @@
 import { api } from "../lib/axios";
 
-export type ReminderChannel = "push" | "whatsapp";
+export type ReminderChannel = "whatsapp";
 
 export interface ReminderResult {
   channel: ReminderChannel;

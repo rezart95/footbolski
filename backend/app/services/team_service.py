@@ -6,7 +6,6 @@ split, writing teams, and notifying players. The balancing rules live in
 about *what happens* rather than *how a side is chosen*.
 """
 
-import asyncio
 import uuid
 
 from fastapi import HTTPException, status
@@ -14,10 +13,10 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from app.models import ListStatus, PlayerPosition, PushSubscription, Registration, Team, TeamPlayer
+from app.models import ListStatus, PlayerPosition, Registration, Team, TeamPlayer
 from app.schemas.team import FormationUpdate
 from app.services import pitch_layout, team_balance
-from app.services.event_service import _app_url, _send_pushes_bg, get_event
+from app.services.event_service import get_event
 
 FALLBACK_SLOT = {"x": 50.0, "y": 50.0, "role": PlayerPosition.MID}
 """Used if a side somehow has more players than its formation has slots."""
@@ -86,29 +85,6 @@ def _persist_side(
         )
 
 
-async def _notify_teams_posted(session: AsyncSession, event) -> None:
-    """Tell confirmed players their side is up. Once per match, participants only."""
-    stmt = (
-        select(PushSubscription)
-        .join(Registration, Registration.player_id == PushSubscription.player_id)
-        .where(Registration.event_id == event.id, Registration.list_status == ListStatus.CONFIRMED)
-    )
-    subscriptions = list((await session.scalars(stmt)).all())
-    if not subscriptions:
-        return
-
-    payload = [{"endpoint": s.endpoint, "p256dh": s.p256dh, "auth": s.auth} for s in subscriptions]
-    when = event.event_date.strftime("%a %d %b")
-    asyncio.ensure_future(
-        _send_pushes_bg(
-            payload,
-            title="Teams are up!",
-            body=f"Teams have been posted for the match at {event.venue.name} on {when}. Tap to see your side.",
-            url=f"{_app_url()}/events/{event.id}",
-        )
-    )
-
-
 async def generate_teams(session: AsyncSession, event_id: uuid.UUID, creator_name: str) -> list[Team]:
     event = await get_event(session, event_id)
     _assert_is_creator(event, creator_name)
@@ -155,7 +131,6 @@ async def generate_teams(session: AsyncSession, event_id: uuid.UUID, creator_nam
     event.teams_generated = True
     await session.commit()
 
-    await _notify_teams_posted(session, event)
     return await get_teams(session, event_id) or []
 
 

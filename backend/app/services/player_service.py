@@ -179,8 +179,8 @@ async def delete_player(session: AsyncSession, player_id: uuid.UUID, requested_b
     keep their `display_name` and stay intact — the card is removed without
     rewriting history. If a card with the same name is created later,
     `_backfill_registrations` re-links it. Every other reference
-    (reminders, consent → SET NULL; votes, tokens, push subs → CASCADE) is
-    handled by the schema.
+    (reminders, consent → SET NULL; votes, tokens → CASCADE) is handled by
+    the schema.
     """
     _assert_is_admin(requested_by)
     player = await get_player(session, player_id)

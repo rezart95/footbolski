@@ -18,11 +18,6 @@ class Settings(BaseSettings):
     # Public URL used inside reminder messages
     app_public_url: str = "http://localhost:5174"
 
-    # Web Push (VAPID) — generate with `vapid --gen` or `pywebpush`'s helper
-    vapid_public_key: str | None = None
-    vapid_private_key: str | None = None
-    vapid_subject: str = "mailto:admin@example.com"
-
     # Meta WhatsApp Cloud API — direct, no BSP in between. WhatsApp is the
     # primary channel: SMS to Poland costs roughly ten times as much and
     # doubles again for any message containing Cyrillic or Albanian characters,

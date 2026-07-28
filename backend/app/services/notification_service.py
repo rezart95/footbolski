@@ -1,21 +1,11 @@
-"""Low-level transports for push and SMS notifications.
-
-All functions are best-effort and return a (success, detail) tuple. The
-reminder service is responsible for orchestration, rate limits and logging.
-"""
+"""Phone number normalisation, shared by whichever channel needs an E.164 number."""
 
 from __future__ import annotations
-
-import json
-import logging
-from typing import Any
 
 import phonenumbers
 from phonenumbers import NumberParseException
 
 from app.core.config import get_settings
-
-logger = logging.getLogger(__name__)
 
 
 def normalize_phone(raw: str | None, region: str | None = None) -> str | None:
@@ -29,53 +19,3 @@ def normalize_phone(raw: str | None, region: str | None = None) -> str | None:
     if not phonenumbers.is_valid_number(parsed):
         return None
     return phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.E164)
-
-
-def send_push(
-    *,
-    endpoint: str,
-    p256dh: str,
-    auth: str,
-    title: str,
-    body: str,
-    url: str | None = None,
-) -> tuple[bool, str | None]:
-    settings = get_settings()
-    if not settings.vapid_private_key or not settings.vapid_public_key:
-        return False, "VAPID keys not configured"
-
-    try:
-        from pywebpush import WebPushException, webpush
-    except ImportError:
-        return False, "pywebpush not installed"
-
-    payload: dict[str, Any] = {"title": title, "body": body}
-    if url:
-        payload["url"] = url
-
-    try:
-        webpush(
-            subscription_info={
-                "endpoint": endpoint,
-                "keys": {"p256dh": p256dh, "auth": auth},
-            },
-            data=json.dumps(payload),
-            vapid_private_key=settings.vapid_private_key,
-            vapid_claims={"sub": settings.vapid_subject},
-        )
-        return True, None
-    except WebPushException as exc:
-        status = getattr(getattr(exc, "response", None), "status_code", None)
-        detail = f"push failed (status={status}): {exc}"
-        logger.warning(detail)
-        return False, detail
-    except Exception as exc:  # pragma: no cover - defensive
-        logger.exception("Unexpected push error")
-        return False, f"push error: {exc}"
-
-
-def is_push_gone(detail: str | None) -> bool:
-    """Return True if a previous push failure means the subscription is dead."""
-    if not detail:
-        return False
-    return "status=404" in detail or "status=410" in detail

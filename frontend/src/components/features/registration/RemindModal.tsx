@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Bell, MessageSquare } from "lucide-react";
+import { MessageSquare } from "lucide-react";
 import { Modal } from "../../ui/Modal";
 import { Notice } from "../../ui/Notice";
 import { errorMessage } from "../../../lib/errors";
 import { useSession } from "../../../hooks/useSession";
-import { sendReminder, type ReminderChannel, type ReminderResult } from "../../../services/reminders.service";
+import { sendReminder, type ReminderResult } from "../../../services/reminders.service";
 
 interface RemindModalProps {
   open: boolean;
@@ -20,9 +20,9 @@ export function RemindModal({ open, eventId, registrationId, displayName, onClos
   const [result, setResult] = useState<ReminderResult | null>(null);
 
   const mutation = useMutation({
-    mutationFn: (channel: ReminderChannel) => {
+    mutationFn: () => {
       if (!registrationId) throw new Error("No registration selected");
-      return sendReminder(eventId, registrationId, channel, sessionName);
+      return sendReminder(eventId, registrationId, "whatsapp", sessionName);
     },
     onSuccess: (data) => setResult(data),
   });
@@ -33,39 +33,26 @@ export function RemindModal({ open, eventId, registrationId, displayName, onClos
     onClose();
   };
 
-  const trigger = (channel: ReminderChannel) => {
+  const trigger = () => {
     setResult(null);
-    mutation.mutate(channel);
+    mutation.mutate();
   };
 
   return (
     <Modal open={open} title={`Remind ${displayName}`} onClose={handleClose}>
       <div className="grid gap-3">
-        <p className="text-sm text-white/65">Choose how to send the payment reminder.</p>
+        <p className="text-sm text-white/65">Send a payment reminder over WhatsApp.</p>
 
         <button
           className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-4 text-left transition hover:bg-white/[0.08] disabled:opacity-50"
           disabled={mutation.isPending}
-          onClick={() => trigger("push")}
-          type="button"
-        >
-          <Bell className="shrink-0 text-pitch-400" size={20} />
-          <div>
-            <p className="font-bold">Push notification</p>
-            <p className="text-xs text-white/55">Free. Requires the player to have opened the app at least once.</p>
-          </div>
-        </button>
-
-        <button
-          className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-4 text-left transition hover:bg-white/[0.08] disabled:opacity-50"
-          disabled={mutation.isPending}
-          onClick={() => trigger("whatsapp")}
+          onClick={trigger}
           type="button"
         >
           <MessageSquare className="shrink-0 text-green-400" size={20} />
           <div>
             <p className="font-bold">WhatsApp</p>
-            <p className="text-xs text-white/55">Requires the player to have replied to the number once, to verify it.</p>
+            <p className="text-xs text-white/55">Sends the payment reminder now.</p>
           </div>
         </button>
 

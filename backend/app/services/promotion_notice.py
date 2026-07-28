@@ -10,7 +10,7 @@ nobody was watching.
 
 Sent over WhatsApp, and **exempt from the per-event message budget**: a player
 who has already had three messages is exactly the one whose seat you most want
-filled. Push is attempted too, but it is a dead channel and is not relied upon.
+filled.
 """
 
 import logging

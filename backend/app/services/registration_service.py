@@ -6,8 +6,8 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import EventStatus, ListStatus, Player, Registration
-from app.services import promotion_notice, push_notices
-from app.services.event_service import _app_url, get_event
+from app.services import promotion_notice
+from app.services.event_service import get_event
 
 
 async def list_registrations(session: AsyncSession, event_id: uuid.UUID) -> list[Registration]:
@@ -25,14 +25,6 @@ async def _next_position(session: AsyncSession, event_id: uuid.UUID, status_: Li
         Registration.list_status == status_,
     )
     return int(await session.scalar(stmt) or 0) + 1
-
-
-async def _confirmed_count(session: AsyncSession, event_id: uuid.UUID) -> int:
-    stmt = select(func.count()).select_from(Registration).where(
-        Registration.event_id == event_id,
-        Registration.list_status == ListStatus.CONFIRMED,
-    )
-    return int(await session.scalar(stmt) or 0)
 
 
 async def _matching_player(session: AsyncSession, name: str) -> Player | None:
@@ -69,22 +61,6 @@ async def register(session: AsyncSession, event_id: uuid.UUID, name: str) -> Reg
     session.add(registration)
     await session.commit()
     await session.refresh(registration)
-
-    # Notify the match creator that a player enrolled. Skip when the creator
-    # joins their own match.
-    if name.casefold() != event.created_by_name.casefold():
-        creator = await _matching_player(session, event.created_by_name)
-        if creator:
-            if list_status == ListStatus.CONFIRMED:
-                body = f"{name} joined your match at {event.venue.name} ({confirmed + 1}/{event.max_players})."
-            else:
-                body = f"{name} joined the waitlist for your match at {event.venue.name}."
-            await push_notices.notify_player(
-                session, creator.id,
-                title="New player enrolled",
-                body=body,
-                url=f"{_app_url()}/events/{event.id}",
-            )
     return registration
 
 
@@ -117,40 +93,16 @@ async def unregister(session: AsyncSession, event_id: uuid.UUID, registration_id
     await _resequence(session, event_id)
     await session.commit()
 
-    # Notifications (fire-and-forget). Fetch a fresh event for venue + creator.
-    event = await get_event(session, event_id)
-    when = f"{event.event_date.strftime('%a %d %b')} at {str(event.event_time)[:5]}"
-    url = f"{_app_url()}/events/{event.id}"
-
-    # 1. Tell the creator someone left (unless the creator left their own match).
-    if leaver_name.casefold() != event.created_by_name.casefold():
-        creator = await _matching_player(session, event.created_by_name)
-        if creator:
-            confirmed_now = await _confirmed_count(session, event_id)
-            await push_notices.notify_player(
-                session, creator.id,
-                title="Player dropped out",
-                body=f"{leaver_name} left your match at {event.venue.name} ({confirmed_now}/{event.max_players}).",
-                url=url,
-            )
-
-    # 2. Tell the auto-promoted waitlist player they now have a confirmed spot.
-    #    WhatsApp is the channel that actually reaches people; push is attempted
-    #    as well but adoption never happened, so nothing depends on it. This
-    #    message is exempt from the per-event budget: a silently promoted player
-    #    who does not turn up is the exact failure the ladder exists to prevent.
+    # Tell the auto-promoted waitlist player they now have a confirmed spot.
+    # Exempt from the per-event message budget: a silently promoted player who
+    # does not turn up is the exact failure the ladder exists to prevent.
     if promoted_player_id and (promoted_name or "").casefold() != leaver_name.casefold():
+        event = await get_event(session, event_id)
         await promotion_notice.notify_promoted(
             session,
             player_id=promoted_player_id,
             event=event,
             venue_name=event.venue.name,
-        )
-        await push_notices.notify_player(
-            session, promoted_player_id,
-            title="You're in!",
-            body=f"A spot opened up — you're now confirmed for the match at {event.venue.name} on {when}.",
-            url=url,
         )
 
 

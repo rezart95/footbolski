@@ -26,7 +26,6 @@ class DeliveryReason(enum.StrEnum):
     NO_PHONE_NUMBER = "no_phone_number"
     INVALID_PHONE_NUMBER = "invalid_phone_number"
     OPTED_OUT = "opted_out"
-    NO_PUSH_SUBSCRIPTION = "no_push_subscription"
 
     # Rate limiting.
     COOLDOWN_ACTIVE = "cooldown_active"
@@ -45,7 +44,6 @@ SKIP_REASONS = frozenset(
         DeliveryReason.NO_PHONE_NUMBER,
         DeliveryReason.INVALID_PHONE_NUMBER,
         DeliveryReason.OPTED_OUT,
-        DeliveryReason.NO_PUSH_SUBSCRIPTION,
         DeliveryReason.COOLDOWN_ACTIVE,
         DeliveryReason.BUDGET_EXHAUSTED,
     }

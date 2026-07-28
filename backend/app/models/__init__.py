@@ -4,7 +4,6 @@ from app.models.enums import EventStatus, ListStatus, PlayerPosition
 from app.models.event import Event
 from app.models.motm_vote import MotmVote
 from app.models.player import Player
-from app.models.push_subscription import PushSubscription
 from app.models.registration import Registration
 from app.models.reminder import (
     BUDGET_EXEMPT_KINDS,
@@ -30,7 +29,6 @@ __all__ = [
     "MotmVote",
     "Player",
     "PlayerPosition",
-    "PushSubscription",
     "Registration",
     "Reminder",
     "ReminderChannel",

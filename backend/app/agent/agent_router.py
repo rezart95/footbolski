@@ -14,7 +14,7 @@ from app.core.config import get_settings
 from app.core.database import SessionLocal
 from app.models import ListStatus, Registration
 from app.models.player import Player
-from app.services.team_service import _composite
+from app.services.team_balance import composite_score
 
 
 # ---------------------------------------------------------------------------
@@ -28,7 +28,7 @@ def _player_payload(player: Player | None, display_name: str, guest_profile: dic
             return {
                 "name": display_name,
                 **guest_profile,
-                "_composite_score": round(_composite(None, guest_profile), 2),
+                "_composite_score": round(composite_score(None, guest_profile), 2),
             }
         return {
             "name": display_name,
@@ -50,7 +50,7 @@ def _player_payload(player: Player | None, display_name: str, guest_profile: dic
         "stamina": player.stamina,
         "work_rate": player.work_rate,
         "notes": player.notes,
-        "_composite_score": round(_composite(player), 2),
+        "_composite_score": round(composite_score(player), 2),
     }
 
 
@@ -142,7 +142,7 @@ async def run_split(event_id: str, regs: list | None = None) -> dict:
         {
             "reg": r,
             "payload": _player_payload(r.player, r.display_name, r.guest_profile),
-            "score": _composite(r.player, r.guest_profile),
+            "score": composite_score(r.player, r.guest_profile),
         }
         for r in regs
     ]
