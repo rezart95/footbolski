@@ -6,7 +6,7 @@ sweep over the squad must be able to skip somebody and keep going. Only genuine
 programming errors propagate.
 
 Callers pass a template id and its field values rather than a rendered string —
-Meta's Cloud API requires every proactive message to be a structured template
+WhatsApp requires every proactive message to be a structured template
 invocation, not free text. `message_templates.build_components()` does that
 conversion in one place.
 
@@ -20,7 +20,7 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Player, Reminder, ReminderChannel, ReminderKind
-from app.services import message_log, message_templates, meta_whatsapp_gateway, notification_service
+from app.services import message_log, message_templates, notification_service, twilio_gateway
 from app.services.message_outcome import DeliveryOutcome, DeliveryReason
 
 
@@ -59,12 +59,13 @@ async def deliver(
     Returns the outcome and the audit row. The row is added to the session but
     not committed, so the caller controls the transaction boundary.
 
-    No prior-reply check: Meta's Cloud API doesn't require the recipient to
-    have messaged first for a template send to go through — that's a Twilio
-    Sandbox quirk, not a Meta rule. Consent comes from the Terms and Conditions
-    acceptance at registration instead. (`phone_verified_at` is still set by
-    the inbound webhook on a player's first reply, but nothing here gates on it
-    anymore — it's just a record of who has engaged.)
+    No prior-reply check: the underlying WhatsApp Business Platform doesn't
+    require the recipient to have messaged first for an approved template
+    send to go through — that requirement is specific to Twilio's free
+    Sandbox tier, which this project doesn't use. Consent comes from the
+    Terms and Conditions acceptance at registration instead. (`phone_verified_at`
+    is still set by the inbound webhook on a player's first reply, but nothing
+    here gates on it anymore — it's just a record of who has engaged.)
     """
 
     def record(outcome: DeliveryOutcome) -> tuple[DeliveryOutcome, Reminder]:
@@ -84,7 +85,7 @@ async def deliver(
     if refusal is not None:
         return record(refusal)
 
-    if not meta_whatsapp_gateway.is_configured():
+    if not twilio_gateway.is_configured():
         return record(
             DeliveryOutcome.failed(
                 "WhatsApp sender is not configured", DeliveryReason.CHANNEL_NOT_CONFIGURED
@@ -106,7 +107,7 @@ async def deliver(
     template = message_templates.build_components(
         template_id, player.preferred_language, **template_fields
     )
-    sent, detail, provider_message_id = await meta_whatsapp_gateway.send_template(
+    sent, detail, provider_message_id = await twilio_gateway.send_template(
         to=number, template=template
     )
     if sent:

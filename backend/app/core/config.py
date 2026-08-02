@@ -18,23 +18,22 @@ class Settings(BaseSettings):
     # Public URL used inside reminder messages
     app_public_url: str = "http://localhost:5174"
 
-    # Meta WhatsApp Cloud API — direct, no BSP in between. WhatsApp is the
-    # primary channel: SMS to Poland costs roughly ten times as much and
-    # doubles again for any message containing Cyrillic or Albanian characters,
-    # and is not implemented here.
-    meta_whatsapp_token: str | None = None
-    meta_phone_number_id: str | None = None
-    meta_waba_id: str | None = None
+    # Twilio — WhatsApp via Twilio's Business Solution Provider layer over the
+    # same underlying WABA. `twilio_whatsapp_from` is a bare E.164 number (no
+    # "whatsapp:" prefix — the gateway adds it); WhatsApp is the primary
+    # channel, SMS is not implemented here.
+    twilio_account_sid: str | None = None
+    twilio_auth_token: str | None = None
+    twilio_whatsapp_from: str | None = None
 
-    # Verifies the initial GET handshake when Meta subscribes the webhook
-    # (the `hub.verify_token` challenge) — a string we choose, set the same
-    # value in Meta's App Dashboard webhook configuration.
-    meta_webhook_verify_token: str | None = None
+    # The exact public URL Twilio is configured to call. Signature validation
+    # hashes the URL, and behind Cloudflare plus Coolify the URL FastAPI sees is
+    # not the one Twilio signed, so it must be stated rather than inferred.
+    twilio_webhook_url: str | None = None
 
-    # Meta App Dashboard → Settings → Basic → App Secret. Verifies
-    # X-Hub-Signature-256 on every inbound webhook call, proving it actually
-    # came from Meta. Fails closed: unset means every inbound call is refused.
-    meta_app_secret: str | None = None
+    # Reject unsigned webhook calls. Leave true in production. Turning it off
+    # makes the endpoint world-writable, so it exists only for local testing.
+    twilio_validate_signature: bool = True
 
     # Reminder policy
     default_phone_region: str = "PL"

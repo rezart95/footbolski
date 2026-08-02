@@ -1,26 +1,26 @@
 """Message text, keyed by template id, and the metadata needed to invoke each
-one as a Meta-approved WhatsApp template.
+one as a Twilio Content Template over WhatsApp.
 
-English only, for now. The group speaks several languages, but getting Meta's
-locale codes and template approval right across six languages added real risk
-for no proven benefit yet — simplify to one language, prove the whole pipeline
-works end to end, then re-expand. `SUPPORTED_LANGUAGES` and `META_LANGUAGE_CODE`
-are still keyed by language on purpose: re-adding a language later is adding
-rows back to these tables, not restructuring the module. `players.preferred_language`
-stays in the schema; it's simply not consulted for wording yet, since every
-language normalises to English until more are added back.
+English only, for now. The group speaks several languages, but getting locale
+codes and template approval right across six languages added real risk for no
+proven benefit yet — simplify to one language, prove the whole pipeline works
+end to end, then re-expand. `SUPPORTED_LANGUAGES` is still keyed by language on
+purpose: re-adding a language later is adding rows back to this table, not
+restructuring the module. `players.preferred_language` stays in the schema;
+it's simply not consulted for wording yet, since every language normalises to
+English until more are added back.
 
 Every proactive WhatsApp message (anything outside the 24-hour window since
 the recipient last messaged us) must be sent as a **structured template
-invocation** — a template name, a Meta locale code, and an ordered list of
-parameters — not a rendered sentence. `TEMPLATES` below stays as human-
-readable text for documentation and template submission; `build_components()`
-turns it into the shape `meta_whatsapp_gateway` actually sends.
+invocation** — a Twilio Content SID and ordered variables — not a rendered
+sentence. `TEMPLATES` below stays as human-readable text for documentation and
+template submission; `build_components()` turns it into the shape
+`twilio_gateway` actually sends.
 
-Parameter order matters and must match what was submitted for approval in
-WhatsApp Manager exactly, or the send fails. `PARAM_ORDER` is the single
-source of truth for that order — change a template's parameters there and in
-WhatsApp Manager together.
+Parameter order matters and must match what was submitted for approval
+exactly, or the wrong value lands in the wrong slot. `TEMPLATE_META[...]["params"]`
+is the single source of truth for that order — change a template's parameters
+there and in the Twilio Content Template together.
 """
 
 from typing import Final
@@ -29,12 +29,6 @@ DEFAULT_LANGUAGE: Final = "en"
 
 SUPPORTED_LANGUAGES: Final[tuple[str, ...]] = ("en",)
 
-# Meta's exact template-language codes, not our internal ones. Only English is
-# supported today; see the module docstring for why.
-META_LANGUAGE_CODE: Final[dict[str, str]] = {
-    "en": "en_US",
-}
-
 # Template identifiers. One per proactive message kind.
 INVITE: Final = "invite"
 PAYMENT_REMINDER: Final = "payment_reminder"
@@ -42,52 +36,39 @@ MOTM_BALLOT: Final = "motm_ballot"
 WAITLIST_PROMOTED: Final = "waitlist_promoted"
 OPT_IN_CONFIRM: Final = "opt_in_confirm"
 
-# The exact name each template was (or will be) submitted under in WhatsApp
-# Manager, the order its {{1}}, {{2}}, ... parameters appear in, and a sample
-# value for each. Meta's automated review rejects a template with reason
-# "Template variables without sample text" if `example` values aren't supplied
-# at submission time — this isn't optional metadata, submission fails without
-# it. Sample values are fictional, never a real player's data.
+# `content_sid` is the Twilio Content Template this maps to (created via
+# POST /v1/Content, submitted via .../ApprovalRequests/whatsapp — see
+# developer-guide/whatsapp-twilio-setup.md). `params` is the order values are
+# substituted into {{1}}, {{2}}, ... — must match the order submitted for
+# approval exactly, same rule as the Meta-direct setup this replaced.
 #
-# The "_v2" suffix: the first submission (without example values) was
-# rejected on all 5, then deleted. Meta's backend held the old names in a
-# deletion tombstone far longer than the "retry in under a minute" its own
-# error suggested — still blocked hours later — so re-submitting under a
-# fresh name was faster than waiting out an unpredictable clear time.
-#
-# The invite template is separately on "_v3": "_v2" was approved but Meta's
-# review recategorised it from Utility to Marketing — the wording ("spots
-# are still open", "grab yours") read as a promotional CTA rather than a
-# scheduling notice. Rather than risk an in-place content edit re-triggering
-# the same recategorisation (or hitting the same delete-permission gaps hit
-# earlier this project), "_v3" reworded it as a plain availability statement
-# and was submitted fresh under Utility. The old "_v2" template still exists,
-# approved, in WhatsApp Manager but is no longer referenced here.
+# These were resubmitted fresh through Twilio's Content API rather than
+# reusing the WABA's existing Meta-approved templates of the same name:
+# Twilio's Content catalog is a separate system from Meta's WABA-level
+# template approval, even on the same account — an already-approved WABA
+# template does not appear there automatically (confirmed empirically: the
+# account's Content list showed only Twilio's own example templates before
+# these were created).
 TEMPLATE_META: Final[dict[str, dict]] = {
     INVITE: {
-        "meta_name": "footbolski_invite_v3",
+        "content_sid": "HX603ba9f77e560460ceb34ce30e26f715",
         "params": ("name", "when", "venue", "seats", "link"),
-        "example": ("Alex", "Thu 23 Jul 19:30", "Centrum Sportu Parkowa", "3", "https://footbolski.org/invite/abc123xyz"),
     },
     PAYMENT_REMINDER: {
-        "meta_name": "footbolski_payment_reminder_v2",
+        "content_sid": "HXc120d2e2f8bdd656e62c774191452012",
         "params": ("name", "amount", "when", "handle", "method", "link"),
-        "example": ("Alex", "25 zł", "Thu 23 Jul 19:30", "514 437 184", "BLIK", "https://footbolski.org/events/abc123xyz"),
     },
     MOTM_BALLOT: {
-        "meta_name": "footbolski_motm_ballot_v2",
+        "content_sid": "HX41ca5225ceeb37c1548b8f896fdcabd1",
         "params": ("name", "link"),
-        "example": ("Alex", "https://footbolski.org/motm/abc123xyz"),
     },
     WAITLIST_PROMOTED: {
-        "meta_name": "footbolski_waitlist_promoted_v2",
+        "content_sid": "HXcc7f874768ecacb290db4629d52513c2",
         "params": ("name", "when", "venue", "link"),
-        "example": ("Alex", "Thu 23 Jul 19:30", "Centrum Sportu Parkowa", "https://footbolski.org/events/abc123xyz"),
     },
     OPT_IN_CONFIRM: {
-        "meta_name": "footbolski_opt_in_confirm_v2",
+        "content_sid": "HX1902fb51dc095cc77499a54ac3f3b9a0",
         "params": ("name",),
-        "example": ("Alex",),
     },
 }
 
@@ -125,9 +106,9 @@ def normalise_language(language: str | None) -> str:
 def render(template_id: str, language: str | None, **fields: object) -> str:
     """Human-readable rendering, for logs, previews and the setup guide.
 
-    Never sent to WhatsApp directly — Meta requires the structured form from
-    `build_components()`. Leaves an unknown placeholder visible rather than
-    raising.
+    Never sent to WhatsApp directly — Twilio requires the structured form
+    from `build_components()`. Leaves an unknown placeholder visible rather
+    than raising.
     """
     variants = TEMPLATES.get(template_id)
     if variants is None:
@@ -141,24 +122,22 @@ def render(template_id: str, language: str | None, **fields: object) -> str:
 
 
 def build_components(template_id: str, language: str | None, **fields: str) -> dict:
-    """Build the `template` message body Meta's Cloud API expects.
+    """Build the payload `twilio_gateway.send_template` needs: a Content SID
+    and its ordered variables as Twilio expects them — string keys "1", "2",
+    ... matching the {{1}}, {{2}}, ... placeholders in the approved content.
 
     Missing fields render as an empty string rather than raising — a template
     with a blank slot still sends, whereas an exception here would drop the
-    message from a sweep entirely.
+    message from a sweep entirely. `language` is accepted for interface
+    parity with the rest of the delivery pipeline but unused: only English is
+    submitted today, so the content SID already fixes the language.
     """
     meta = TEMPLATE_META.get(template_id)
     if meta is None:
         raise KeyError(f"Unknown message template: {template_id}")
 
-    parameters = [
-        {"type": "text", "text": str(fields.get(param, ""))} for param in meta["params"]
-    ]
-    return {
-        "name": meta["meta_name"],
-        "language": {"code": META_LANGUAGE_CODE[normalise_language(language)]},
-        "components": [{"type": "body", "parameters": parameters}],
-    }
+    variables = {str(i + 1): str(fields.get(param, "")) for i, param in enumerate(meta["params"])}
+    return {"content_sid": meta["content_sid"], "content_variables": variables}
 
 
 def first_name(display_name: str | None) -> str:
