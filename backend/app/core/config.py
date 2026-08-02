@@ -66,7 +66,11 @@ class Settings(BaseSettings):
     # falling open.
     internal_api_secret: str | None = None
 
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    # extra="ignore": .env can carry values nothing here reads (e.g. the old
+    # META_* credentials, kept around on request rather than deleted) without
+    # crashing startup — pydantic-settings otherwise rejects any env var that
+    # isn't a declared field.
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     @property
     def cors_origin_list(self) -> list[str]:
