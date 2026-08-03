@@ -1,10 +1,13 @@
 """Pydantic schemas for player cards.
 
-`phone_number` is deliberately absent from every schema in this module. It lives
-on the model but must never be serialised to a client: `PlayerRead` is returned
-by the public `GET /api/v1/players`, which has no authentication in front of it.
-Numbers are written only through the shared-secret admin endpoint in
-`api/v1/routes/admin.py` and read only server-side by the notification services.
+`phone_number` is absent from every *player-facing* schema — `PlayerRead` is
+returned by the public `GET /api/v1/players`, which has no authentication in
+front of it, so a number must never reach that response. The one deliberate
+exception is `PlayerContactDetail`, reachable only through the session-name-
+gated admin portal (same trust boundary as notes and card deletion) — the
+group has chosen to trust that boundary with the number itself, not just
+whether one exists. `PlayerContactStatus` (no digits) remains for the
+secret-gated `/admin` router used by the scheduler and other server-side callers.
 """
 
 import uuid
@@ -69,14 +72,25 @@ class PlayerPhoneUpdateByName(PlayerPhoneUpdate):
 
 
 class PlayerContactStatus(BaseModel):
-    """A player's reachability and ladder tier, with no digits in it. Safe to
-    return from any admin-gated route — the confidentiality rule is that a
-    phone number never reaches a *player-facing* response, not that it can
-    never be read at all."""
+    """A player's reachability and ladder tier, with no digits in it. Used by
+    the secret-gated `/admin` router — see `PlayerContactDetail` for the
+    admin-portal counterpart that does carry the number."""
 
     id: uuid.UUID
     name: str
     has_phone: bool
+    tier: str
+
+
+class PlayerContactDetail(BaseModel):
+    """Admin-portal view of a player's phone number — unlike `PlayerContactStatus`,
+    this carries the actual digits. Reachable only via the session-name-gated
+    admin portal route, so the admin UI can show what's already on file
+    instead of always rendering a blank field, matching how notes behave."""
+
+    id: uuid.UUID
+    name: str
+    phone_number: str | None
     tier: str
 
 

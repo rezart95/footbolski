@@ -4,7 +4,7 @@ from fastapi import APIRouter, Query, Response, status
 
 from app.dependencies import SessionDep
 from app.schemas.player import (
-    PlayerContactStatus,
+    PlayerContactDetail,
     PlayerCreate,
     PlayerDelete,
     PlayerNotesUpdate,
@@ -22,11 +22,13 @@ async def list_players(session: SessionDep):
     return await player_service.list_players(session)
 
 
-@router.get("/admin/contact", response_model=list[PlayerContactStatus])
-async def list_contact_status(session: SessionDep, requested_by: str = Query(min_length=1, max_length=255)):
-    """Admin-portal view of who's reachable, with no digits in it — the
-    session-name-gated counterpart to the secret-gated `/admin/players/contact`."""
-    return await player_service.list_contact_status_for_admin(session, requested_by)
+@router.get("/admin/contact", response_model=list[PlayerContactDetail])
+async def list_contact_detail(session: SessionDep, requested_by: str = Query(min_length=1, max_length=255)):
+    """Admin-portal view of every player's phone number — the session-name-gated
+    counterpart to the secret-gated `/admin/players/contact`, which deliberately
+    carries the digits so the UI can show what's already on file (see
+    `PlayerContactDetail`)."""
+    return await player_service.list_contact_detail_for_admin(session, requested_by)
 
 
 @router.post("", response_model=PlayerRead, status_code=201)
@@ -49,10 +51,9 @@ async def update_player_notes(player_id: uuid.UUID, payload: PlayerNotesUpdate, 
     return await player_service.set_player_notes(session, player_id, payload.notes, payload.requested_by)
 
 
-@router.patch("/{player_id}/phone", response_model=PlayerContactStatus)
+@router.patch("/{player_id}/phone", response_model=PlayerContactDetail)
 async def update_player_phone(player_id: uuid.UUID, payload: PlayerPhoneUpdateByName, session: SessionDep):
-    """Admin-portal phone write — same session-name gate as notes and deletion.
-    Never returns the number itself, only whether one is now on file."""
+    """Admin-portal phone write — same session-name gate as notes and deletion."""
     return await player_service.set_player_phone_for_admin(
         session, player_id, payload.phone_number, payload.requested_by
     )

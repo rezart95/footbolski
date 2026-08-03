@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createPlayer,
   deletePlayer,
-  listPlayerContactStatus,
+  listPlayerContactDetail,
   listPlayers,
   setPlayerPhone,
   updatePlayer,
@@ -14,13 +14,14 @@ export function usePlayers() {
   return useQuery({ queryKey: ["players"], queryFn: listPlayers });
 }
 
-/** Admin-portal only: whether each player has a phone number on file, never
- * the number itself. Disabled without a session name since the backend
- * re-checks it against `player_service.ADMIN_NAMES` anyway. */
-export function usePlayerContactStatus(requestedBy: string) {
+/** Admin-portal only: every player's phone number, digits included — the
+ * one place in the app this is shown, so the field can be pre-filled like
+ * notes rather than always rendering blank. Disabled without a session name
+ * since the backend re-checks it against `player_service.ADMIN_NAMES` anyway. */
+export function usePlayerContactDetail(requestedBy: string) {
   return useQuery({
-    queryKey: ["players", "contact-status", requestedBy],
-    queryFn: () => listPlayerContactStatus(requestedBy),
+    queryKey: ["players", "contact-detail", requestedBy],
+    queryFn: () => listPlayerContactDetail(requestedBy),
     enabled: requestedBy.trim().length > 0
   });
 }
@@ -39,7 +40,7 @@ export function useAdminPlayerActions() {
       onSuccess: invalidate
     }),
     setPhone: useMutation({
-      mutationFn: ({ id, phoneNumber, requestedBy }: { id: string; phoneNumber: string; requestedBy: string }) =>
+      mutationFn: ({ id, phoneNumber, requestedBy }: { id: string; phoneNumber: string | null; requestedBy: string }) =>
         setPlayerPhone(id, phoneNumber, requestedBy),
       onSuccess: invalidate
     }),

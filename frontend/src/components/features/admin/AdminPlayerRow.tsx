@@ -9,42 +9,39 @@ interface AdminPlayerRowProps {
   player: Player;
   savingNotes: boolean;
   onSaveNotes: (notes: string | null) => void;
-  hasPhone: boolean | undefined;
+  /** undefined while the contact-detail query is still loading. */
+  phoneNumber: string | null | undefined;
   savingPhone: boolean;
-  onSavePhone: (phoneNumber: string) => void;
+  onSavePhone: (phoneNumber: string | null) => void;
   onDelete: () => void;
 }
 
 /** One squad member in the admin portal: identity, editable scouting notes,
- * a phone-number field, and delete. Notes and phone are the two things with
- * no home elsewhere in the app — the number itself is never sent to the
- * browser (see `PlayerContactStatus`), so the field always renders empty and
- * only ever *replaces* what's on file, whether or not something's there. */
+ * a phone-number field, and delete. Phone behaves exactly like notes — the
+ * admin portal is the one place in the app trusted with the actual digits
+ * (see `PlayerContactDetail`), so the field is pre-filled when a number is
+ * on file and genuinely empty only when one isn't. */
 export function AdminPlayerRow({
   player,
   savingNotes,
   onSaveNotes,
-  hasPhone,
+  phoneNumber,
   savingPhone,
   onSavePhone,
   onDelete
 }: AdminPlayerRowProps) {
   const stored = player.notes ?? "";
   const [notes, setNotes] = useState(stored);
-  const [phone, setPhone] = useState("");
+  const storedPhone = phoneNumber ?? "";
+  const [phone, setPhone] = useState(storedPhone);
 
   // Re-sync when a save resolves and the query refetches, or when switching
-  // between filtered lists, so the textarea reflects the server's value.
+  // between filtered lists, so the fields reflect the server's value.
   useEffect(() => setNotes(stored), [stored]);
+  useEffect(() => setPhone(storedPhone), [storedPhone]);
 
   const dirty = notes !== stored;
-  const phoneDirty = phone.trim().length > 0;
-
-  const savePhone = () => {
-    if (!phoneDirty) return;
-    onSavePhone(phone.trim());
-    setPhone("");
-  };
+  const phoneDirty = phone !== storedPhone;
 
   return (
     <div className="surface flex flex-col gap-3 rounded-xl p-3">
@@ -70,27 +67,32 @@ export function AdminPlayerRow({
       </div>
 
       <div className="grid gap-2">
-        <div className="flex items-center gap-2 text-xs font-semibold">
-          <Phone className={hasPhone ? "text-pitch-400" : "text-white/35"} size={14} />
-          <span className={hasPhone ? "text-white/70" : "text-white/40"}>
-            {hasPhone === undefined ? "Checking…" : hasPhone ? "Phone on file" : "No phone number"}
-          </span>
+        <div className="flex items-center gap-2 text-xs font-semibold text-white/50">
+          <Phone size={14} />
+          Phone number
         </div>
-        <div className="flex items-center gap-2">
-          <Input
-            className="flex-1"
-            inputMode="tel"
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder={hasPhone ? "Enter a new number to replace it…" : "+48501234567"}
-            type="tel"
-            value={phone}
-          />
-          {phoneDirty ? (
-            <Button className="px-3 py-2 text-xs" disabled={savingPhone} icon={<Check size={15} />} onClick={savePhone}>
-              {savingPhone ? "Saving…" : "Save"}
+        <Input
+          inputMode="tel"
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="+48501234567"
+          type="tel"
+          value={phone}
+        />
+        {phoneDirty ? (
+          <div className="flex items-center gap-2">
+            <Button
+              className="px-3 py-2 text-xs"
+              disabled={savingPhone}
+              icon={<Check size={15} />}
+              onClick={() => onSavePhone(phone.trim() ? phone.trim() : null)}
+            >
+              {savingPhone ? "Saving…" : "Save phone"}
             </Button>
-          ) : null}
-        </div>
+            <button className="text-xs font-semibold text-white/50 hover:text-white/80" onClick={() => setPhone(storedPhone)} type="button">
+              Cancel
+            </button>
+          </div>
+        ) : null}
       </div>
 
       <Textarea

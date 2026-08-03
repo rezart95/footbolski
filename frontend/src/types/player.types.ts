@@ -31,12 +31,12 @@ export interface Player {
   notes?: string | null;
 }
 
-/** Whether a player is reachable, with no digits in it — the backend never
- * serves the phone number itself to a client. See `players.service.ts`. */
-export interface PlayerContactStatus {
+/** Admin-portal view of a player's phone number — carries the actual digits,
+ * unlike every other player-facing response. See `players.service.ts`. */
+export interface PlayerContactDetail {
   id: string;
   name: string;
-  has_phone: boolean;
+  phone_number: string | null;
 }
 
 export interface PlayerPayload {

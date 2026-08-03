@@ -5,7 +5,7 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Player, Registration, TeamPlayer
-from app.schemas.player import PlayerContactStatus, PlayerCreate, PlayerUpdate
+from app.schemas.player import PlayerContactDetail, PlayerContactStatus, PlayerCreate, PlayerUpdate
 from app.services.notification_service import normalize_phone
 
 EDITOR_NAME = "Jetmir Çenko"
@@ -156,20 +156,30 @@ def to_contact_status(player: Player) -> PlayerContactStatus:
     )
 
 
+def to_contact_detail(player: Player) -> PlayerContactDetail:
+    return PlayerContactDetail(
+        id=player.id,
+        name=player.name,
+        phone_number=player.phone_number,
+        tier=player.tier,
+    )
+
+
 async def list_contact_status(session: AsyncSession) -> list[PlayerContactStatus]:
     return [to_contact_status(player) for player in await list_players(session)]
 
 
-async def list_contact_status_for_admin(session: AsyncSession, requested_by: str) -> list[PlayerContactStatus]:
-    """Same listing as the secret-gated admin router, reachable from the
-    admin portal instead — see `set_player_phone_for_admin`."""
+async def list_contact_detail_for_admin(session: AsyncSession, requested_by: str) -> list[PlayerContactDetail]:
+    """Admin-portal listing that includes the actual numbers — see
+    `PlayerContactDetail` for why this differs from the secret-gated
+    `/admin` router's `list_contact_status`."""
     _assert_is_admin(requested_by)
-    return await list_contact_status(session)
+    return [to_contact_detail(player) for player in await list_players(session)]
 
 
 async def set_player_phone_for_admin(
     session: AsyncSession, player_id: uuid.UUID, phone_number: str | None, requested_by: str
-) -> PlayerContactStatus:
+) -> PlayerContactDetail:
     """Admin-portal phone write (session-name gated, same trust boundary as
     notes and card deletion) rather than the secret-gated `/admin` router.
     A non-empty number that doesn't parse is rejected rather than stored
@@ -187,7 +197,7 @@ async def set_player_phone_for_admin(
                 "Could not read this phone number. Include a country code, e.g. +48501234567.",
             )
     player = await set_player_phone(session, player_id, normalized)
-    return to_contact_status(player)
+    return to_contact_detail(player)
 
 
 async def set_player_tier(session: AsyncSession, player_id: uuid.UUID, tier: str) -> Player:
