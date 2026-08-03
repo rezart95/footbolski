@@ -60,6 +60,26 @@ class PlayerPhoneUpdate(BaseModel):
     phone_number: str | None = Field(default=None, max_length=32)
 
 
+class PlayerPhoneUpdateByName(PlayerPhoneUpdate):
+    """Same write, reachable from the admin *portal* (session-name gated)
+    rather than the secret-gated `/admin` router — see `player_service._assert_is_admin`.
+    `requested_by` is re-checked server-side, same as notes and deletion."""
+
+    requested_by: str = Field(min_length=1, max_length=255)
+
+
+class PlayerContactStatus(BaseModel):
+    """A player's reachability and ladder tier, with no digits in it. Safe to
+    return from any admin-gated route — the confidentiality rule is that a
+    phone number never reaches a *player-facing* response, not that it can
+    never be read at all."""
+
+    id: uuid.UUID
+    name: str
+    has_phone: bool
+    tier: str
+
+
 class PlayerTierUpdate(BaseModel):
     """Admin-only tier write. Same confidentiality rule as phone_number: `tier`
     is never part of PlayerBase, so it can never reach a player-facing response —

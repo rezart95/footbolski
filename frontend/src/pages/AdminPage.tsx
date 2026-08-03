@@ -7,7 +7,7 @@ import { Modal } from "../components/ui/Modal";
 import { Notice } from "../components/ui/Notice";
 import { PageHeader } from "../components/ui/PageHeader";
 import { PlayerGridSkeleton } from "../components/ui/Skeleton";
-import { useAdminPlayerActions, usePlayers } from "../hooks/usePlayers";
+import { useAdminPlayerActions, usePlayerContactStatus, usePlayers } from "../hooks/usePlayers";
 import { useSession } from "../hooks/useSession";
 import { errorMessage } from "../lib/errors";
 import { isAdminSession } from "../lib/roles";
@@ -16,9 +16,16 @@ import type { Player } from "../types/player.types";
 export function AdminPage() {
   const { sessionName } = useSession();
   const { data: players = [], isLoading } = usePlayers();
+  const { data: contactStatus = [] } = usePlayerContactStatus(sessionName);
   const actions = useAdminPlayerActions();
   const [query, setQuery] = useState("");
   const [toDelete, setToDelete] = useState<Player | null>(null);
+
+  const hasPhoneById = useMemo(() => {
+    const map = new Map<string, boolean>();
+    for (const status of contactStatus) map.set(status.id, status.has_phone);
+    return map;
+  }, [contactStatus]);
 
   // The nav button is already admin-only, but the route must guard itself too —
   // anyone can type /admin. The real enforcement is server-side; this just keeps
@@ -63,6 +70,9 @@ export function AdminPage() {
       {actions.setNotes.isError ? (
         <Notice tone="error">{errorMessage(actions.setNotes.error, "Could not save notes.")}</Notice>
       ) : null}
+      {actions.setPhone.isError ? (
+        <Notice tone="error">{errorMessage(actions.setPhone.error, "Could not save this phone number.")}</Notice>
+      ) : null}
 
       <div className="grid gap-3">
         {filtered.map((player) => (
@@ -71,6 +81,9 @@ export function AdminPage() {
             player={player}
             savingNotes={actions.setNotes.isPending && actions.setNotes.variables?.id === player.id}
             onSaveNotes={(notes) => actions.setNotes.mutate({ id: player.id, notes, requestedBy: sessionName })}
+            hasPhone={hasPhoneById.get(player.id)}
+            savingPhone={actions.setPhone.isPending && actions.setPhone.variables?.id === player.id}
+            onSavePhone={(phoneNumber) => actions.setPhone.mutate({ id: player.id, phoneNumber, requestedBy: sessionName })}
             onDelete={() => setToDelete(player)}
           />
         ))}

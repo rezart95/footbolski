@@ -5,7 +5,8 @@ from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models import Player, Registration, TeamPlayer
-from app.schemas.player import PlayerCreate, PlayerUpdate
+from app.schemas.player import PlayerContactStatus, PlayerCreate, PlayerUpdate
+from app.services.notification_service import normalize_phone
 
 EDITOR_NAME = "Jetmir Çenko"
 """The one player who maintains everyone's ratings. Player cards are
@@ -144,6 +145,49 @@ async def set_player_phone(session: AsyncSession, player_id: uuid.UUID, phone_nu
     await session.commit()
     await session.refresh(player)
     return player
+
+
+def to_contact_status(player: Player) -> PlayerContactStatus:
+    return PlayerContactStatus(
+        id=player.id,
+        name=player.name,
+        has_phone=bool(player.phone_number),
+        tier=player.tier,
+    )
+
+
+async def list_contact_status(session: AsyncSession) -> list[PlayerContactStatus]:
+    return [to_contact_status(player) for player in await list_players(session)]
+
+
+async def list_contact_status_for_admin(session: AsyncSession, requested_by: str) -> list[PlayerContactStatus]:
+    """Same listing as the secret-gated admin router, reachable from the
+    admin portal instead — see `set_player_phone_for_admin`."""
+    _assert_is_admin(requested_by)
+    return await list_contact_status(session)
+
+
+async def set_player_phone_for_admin(
+    session: AsyncSession, player_id: uuid.UUID, phone_number: str | None, requested_by: str
+) -> PlayerContactStatus:
+    """Admin-portal phone write (session-name gated, same trust boundary as
+    notes and card deletion) rather than the secret-gated `/admin` router.
+    A non-empty number that doesn't parse is rejected rather than stored
+    unreachable — the org-wide default region backs numbers with no country
+    code, but a genuinely malformed number should fail loudly here, not
+    silently at send time weeks later.
+    """
+    _assert_is_admin(requested_by)
+    normalized = phone_number.strip() if phone_number else None
+    if normalized:
+        normalized = normalize_phone(normalized)
+        if normalized is None:
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                "Could not read this phone number. Include a country code, e.g. +48501234567.",
+            )
+    player = await set_player_phone(session, player_id, normalized)
+    return to_contact_status(player)
 
 
 async def set_player_tier(session: AsyncSession, player_id: uuid.UUID, tier: str) -> Player:

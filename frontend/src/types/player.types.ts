@@ -31,6 +31,14 @@ export interface Player {
   notes?: string | null;
 }
 
+/** Whether a player is reachable, with no digits in it — the backend never
+ * serves the phone number itself to a client. See `players.service.ts`. */
+export interface PlayerContactStatus {
+  id: string;
+  name: string;
+  has_phone: boolean;
+}
+
 export interface PlayerPayload {
   name: string;
   photo_url?: string | null;

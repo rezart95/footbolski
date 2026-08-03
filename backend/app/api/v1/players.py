@@ -1,9 +1,17 @@
 import uuid
 
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Query, Response, status
 
 from app.dependencies import SessionDep
-from app.schemas.player import PlayerCreate, PlayerDelete, PlayerNotesUpdate, PlayerRead, PlayerUpdate
+from app.schemas.player import (
+    PlayerContactStatus,
+    PlayerCreate,
+    PlayerDelete,
+    PlayerNotesUpdate,
+    PlayerPhoneUpdateByName,
+    PlayerRead,
+    PlayerUpdate,
+)
 from app.services import player_service
 
 router = APIRouter(prefix="/players", tags=["players"])
@@ -12,6 +20,13 @@ router = APIRouter(prefix="/players", tags=["players"])
 @router.get("", response_model=list[PlayerRead])
 async def list_players(session: SessionDep):
     return await player_service.list_players(session)
+
+
+@router.get("/admin/contact", response_model=list[PlayerContactStatus])
+async def list_contact_status(session: SessionDep, requested_by: str = Query(min_length=1, max_length=255)):
+    """Admin-portal view of who's reachable, with no digits in it — the
+    session-name-gated counterpart to the secret-gated `/admin/players/contact`."""
+    return await player_service.list_contact_status_for_admin(session, requested_by)
 
 
 @router.post("", response_model=PlayerRead, status_code=201)
@@ -32,6 +47,15 @@ async def update_player(player_id: uuid.UUID, payload: PlayerUpdate, session: Se
 @router.patch("/{player_id}/notes", response_model=PlayerRead)
 async def update_player_notes(player_id: uuid.UUID, payload: PlayerNotesUpdate, session: SessionDep):
     return await player_service.set_player_notes(session, player_id, payload.notes, payload.requested_by)
+
+
+@router.patch("/{player_id}/phone", response_model=PlayerContactStatus)
+async def update_player_phone(player_id: uuid.UUID, payload: PlayerPhoneUpdateByName, session: SessionDep):
+    """Admin-portal phone write — same session-name gate as notes and deletion.
+    Never returns the number itself, only whether one is now on file."""
+    return await player_service.set_player_phone_for_admin(
+        session, player_id, payload.phone_number, payload.requested_by
+    )
 
 
 @router.delete("/{player_id}", status_code=status.HTTP_204_NO_CONTENT)

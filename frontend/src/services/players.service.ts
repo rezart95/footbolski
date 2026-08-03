@@ -1,5 +1,5 @@
 import { api } from "../lib/axios";
-import type { Player, PlayerPayload } from "../types/player.types";
+import type { Player, PlayerContactStatus, PlayerPayload } from "../types/player.types";
 
 export async function listPlayers() {
   const { data } = await api.get<Player[]>("/players");
@@ -25,6 +25,23 @@ export async function updatePlayerNotes(id: string, notes: string | null, reques
 /** Admin-only. Sends the body on DELETE (matches the event-delete pattern). */
 export async function deletePlayer(id: string, requestedBy: string) {
   await api.delete(`/players/${id}`, { data: { requested_by: requestedBy } });
+}
+
+/** Admin-only. Never returns the number itself — only whether one is on file. */
+export async function listPlayerContactStatus(requestedBy: string) {
+  const { data } = await api.get<PlayerContactStatus[]>("/players/admin/contact", {
+    params: { requested_by: requestedBy }
+  });
+  return data;
+}
+
+/** Admin-only. Pass `null` to clear a number. */
+export async function setPlayerPhone(id: string, phoneNumber: string | null, requestedBy: string) {
+  const { data } = await api.patch<PlayerContactStatus>(`/players/${id}/phone`, {
+    phone_number: phoneNumber,
+    requested_by: requestedBy
+  });
+  return data;
 }
 
 export async function uploadPlayerPhoto(file: File) {
