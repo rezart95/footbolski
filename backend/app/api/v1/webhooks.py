@@ -47,7 +47,18 @@ def _verify_signature(url: str, form: dict[str, str], signature: str | None) -> 
             status.HTTP_503_SERVICE_UNAVAILABLE, "Twilio package is not installed."
         ) from None
 
-    if not RequestValidator(settings.twilio_auth_token).validate(url, form, signature):
+    validator = RequestValidator(settings.twilio_auth_token)
+    if not validator.validate(url, form, signature):
+        # TEMPORARY: diagnosing a live 403 mismatch (see reminders/webhook
+        # investigation). Logs shapes, not values, to avoid putting phone
+        # numbers/message bodies in logs. Remove once root-caused.
+        logger.warning(
+            "Twilio signature mismatch: url=%r form_keys=%s received_sig=%r expected_sig=%r",
+            url,
+            sorted(form.keys()),
+            signature,
+            validator.compute_signature(url, form),
+        )
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Invalid signature.")
 
 
