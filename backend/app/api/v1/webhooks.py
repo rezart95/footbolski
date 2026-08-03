@@ -72,6 +72,20 @@ async def whatsapp_webhook(
     settings = get_settings()
     url = settings.twilio_webhook_url or str(request.url)
 
+    # TEMPORARY: diagnosing a live 403 mismatch. Logs shapes and header
+    # names, not values, to avoid putting phone numbers/message bodies or
+    # the signature itself in logs where it's not needed. Remove once
+    # root-caused.
+    logger.warning(
+        "Twilio webhook received: configured_url=%r request_url=%r has_sig_header=%s "
+        "header_names=%s form_keys=%s",
+        url,
+        str(request.url),
+        x_twilio_signature is not None,
+        sorted(request.headers.keys()),
+        sorted(form.keys()),
+    )
+
     _verify_signature(url, form, x_twilio_signature)
 
     try:
