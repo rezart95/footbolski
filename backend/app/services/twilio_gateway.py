@@ -53,7 +53,9 @@ def _as_whatsapp(number: str) -> str:
     return number if number.startswith(WHATSAPP_PREFIX) else f"{WHATSAPP_PREFIX}{number}"
 
 
-def _send_blocking(*, from_: str, to: str, content_sid: str, content_variables: str) -> tuple[bool, str, str | None]:
+def _send_blocking(
+    *, from_: str, to: str, content_sid: str, content_variables: str, status_callback: str | None
+) -> tuple[bool, str, str | None]:
     """Returns (ok, detail, provider_message_id). Runs on a worker thread."""
     try:
         from twilio.base.exceptions import TwilioRestException
@@ -62,7 +64,11 @@ def _send_blocking(*, from_: str, to: str, content_sid: str, content_variables: 
 
     try:
         message = _client().messages.create(
-            from_=from_, to=to, content_sid=content_sid, content_variables=content_variables
+            from_=from_,
+            to=to,
+            content_sid=content_sid,
+            content_variables=content_variables,
+            status_callback=status_callback,
         )
         return True, f"queued ({message.status})", message.sid
     except TwilioNotConfigured as exc:
@@ -93,6 +99,7 @@ async def send_template(*, to: str, template: dict) -> tuple[bool, str, str | No
             to=_as_whatsapp(to),
             content_sid=template["content_sid"],
             content_variables=json.dumps(template["content_variables"]),
+            status_callback=settings.twilio_webhook_url,
         )
 
 

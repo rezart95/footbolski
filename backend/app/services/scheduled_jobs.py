@@ -174,3 +174,43 @@ async def run_motm_ballots(session: AsyncSession, event: Event) -> dict:
         tally[outcome.reason.value] = tally.get(outcome.reason.value, 0) + 1
 
     return {"event": str(event.id), **tally} if tally else {}
+
+
+async def run_motm_results(session: AsyncSession, event: Event) -> dict:
+    """Announce the Man of the Match winner once voting has closed.
+
+    `motm_service.result()` already encodes "closed" as either the window
+    elapsing or everyone having voted, so this fires as soon as either
+    happens rather than waiting out the full window unnecessarily.
+    """
+    outcome_result = await motm_service.result(session, event)
+    if outcome_result["state"] != "decided" or not outcome_result["winners"]:
+        return {}
+
+    settings = get_settings()
+    where = message_templates.winner_names([w["name"] for w in outcome_result["winners"]])
+    tally: dict[str, int] = {}
+
+    for player in await motm_service.confirmed_players(session, event.id):
+        if await message_log.already_sent(session, event.id, player.id, ReminderKind.MOTM_RESULT):
+            tally["already_sent"] = tally.get("already_sent", 0) + 1
+            continue
+
+        fields = {
+            "name": message_templates.first_name(player.name),
+            "when": localised_dates.format_when(event.event_date, event.event_time, player.preferred_language),
+            "winner": where,
+            "link": f"{settings.app_public_url}/events/{event.id}",
+        }
+        outcome, _row = await message_delivery.deliver(
+            session,
+            player=player,
+            event_id=event.id,
+            kind=ReminderKind.MOTM_RESULT,
+            template_id=message_templates.MOTM_WINNER,
+            template_fields=fields,
+        )
+        await session.commit()
+        tally[outcome.reason.value] = tally.get(outcome.reason.value, 0) + 1
+
+    return {"event": str(event.id), **tally} if tally else {}

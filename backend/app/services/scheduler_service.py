@@ -117,10 +117,13 @@ async def run_tick(session: AsyncSession) -> dict:
             logger.exception("Scheduler failed on event %s", event.id)
 
     ballots: list[dict] = []
+    results: list[dict] = []
     for event in await _recently_completed(session):
         try:
             if result := await scheduled_jobs.run_motm_ballots(session, event):
                 ballots.append(result)
+            if result := await scheduled_jobs.run_motm_results(session, event):
+                results.append(result)
         except Exception:
             await session.rollback()
             logger.exception("Ballot dispatch failed on event %s", event.id)
@@ -128,6 +131,7 @@ async def run_tick(session: AsyncSession) -> dict:
     report["invites"] = invites
     report["payment_reminders"] = payments
     report["motm_ballots"] = ballots
+    report["motm_results"] = results
 
     await _record_heartbeat(session)
     return report

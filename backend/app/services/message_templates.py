@@ -33,6 +33,7 @@ SUPPORTED_LANGUAGES: Final[tuple[str, ...]] = ("en",)
 INVITE: Final = "invite"
 PAYMENT_REMINDER: Final = "payment_reminder"
 MOTM_BALLOT: Final = "motm_ballot"
+MOTM_WINNER: Final = "motm_winner"
 WAITLIST_PROMOTED: Final = "waitlist_promoted"
 OPT_IN_CONFIRM: Final = "opt_in_confirm"
 
@@ -62,6 +63,10 @@ TEMPLATE_META: Final[dict[str, dict]] = {
         "content_sid": "HX41ca5225ceeb37c1548b8f896fdcabd1",
         "params": ("name", "link"),
     },
+    MOTM_WINNER: {
+        "content_sid": "HX1ea3946718babb1243c47778575c729f",
+        "params": ("name", "when", "winner", "link"),
+    },
     WAITLIST_PROMOTED: {
         "content_sid": "HXcc7f874768ecacb290db4629d52513c2",
         "params": ("name", "when", "venue", "link"),
@@ -81,6 +86,9 @@ TEMPLATES: Final[dict[str, dict[str, str]]] = {
     },
     MOTM_BALLOT: {
         "en": "Good game today, {name}! It's time to vote for the Man of the Match. Your vote is completely secret and only takes a moment. Tap here to cast it: {link}. Thanks for playing with us!",
+    },
+    MOTM_WINNER: {
+        "en": "Good game, {name}! Man of the Match for {when}: {winner}. Congrats from the whole squad! Full details here: {link}.",
     },
     WAITLIST_PROMOTED: {
         "en": "Good news, {name}! A spot has opened up and you're now confirmed to play football on {when} at {venue}. Tap here for full details: {link}. See you there!",
@@ -150,3 +158,13 @@ def first_name(display_name: str | None) -> str:
     if not display_name or not display_name.strip():
         return "there"
     return display_name.strip().split()[0]
+
+
+def winner_names(names: list[str]) -> str:
+    """Join Man of the Match winners for the announcement. A tie is rare but
+    `motm_service.result()` reports every top-voted player, so this must
+    read naturally for one name or several."""
+    first_names = [first_name(name) for name in names]
+    if len(first_names) <= 1:
+        return first_names[0] if first_names else "nobody this time"
+    return " & ".join(first_names)

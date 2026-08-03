@@ -47,6 +47,9 @@ class ReminderKind(str, enum.Enum):
     MOTM = "motm"
     """Man of the Match ballot link."""
 
+    MOTM_RESULT = "motm_result"
+    """Man of the Match winner announcement, once voting has closed."""
+
     PROMOTION = "promotion"
     """A seat opened up and the player moved off the waitlist.
 
