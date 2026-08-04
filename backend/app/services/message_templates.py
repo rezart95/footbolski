@@ -52,49 +52,49 @@ OPT_IN_CONFIRM: Final = "opt_in_confirm"
 # these were created).
 TEMPLATE_META: Final[dict[str, dict]] = {
     INVITE: {
-        "content_sid": "HX603ba9f77e560460ceb34ce30e26f715",
+        "content_sid": "HX9b7adb67e8adad98920c49db43a23229",  # footbolski_invite_v4
         "params": ("name", "when", "venue", "seats", "link"),
     },
     PAYMENT_REMINDER: {
-        "content_sid": "HXc120d2e2f8bdd656e62c774191452012",
+        "content_sid": "HXa4671c49c29da785b444c741e336c746",  # footbolski_payment_reminder_v3
         "params": ("name", "amount", "when", "handle", "method", "link"),
     },
     MOTM_BALLOT: {
-        "content_sid": "HX41ca5225ceeb37c1548b8f896fdcabd1",
+        "content_sid": "HXdd5063489a7e44e85d228eb0c375810e",  # footbolski_motm_ballot_v3
         "params": ("name", "link"),
     },
     MOTM_WINNER: {
-        "content_sid": "HX1ea3946718babb1243c47778575c729f",
+        "content_sid": "HX1ea3946718babb1243c47778575c729f",  # footbolski_motm_winner_v2
         "params": ("name", "when", "winner", "link"),
     },
     WAITLIST_PROMOTED: {
-        "content_sid": "HXcc7f874768ecacb290db4629d52513c2",
+        "content_sid": "HXbb8834d0184769559e4057df0df2df38",  # footbolski_waitlist_promoted_v3
         "params": ("name", "when", "venue", "link"),
     },
     OPT_IN_CONFIRM: {
-        "content_sid": "HX1902fb51dc095cc77499a54ac3f3b9a0",
+        "content_sid": "HX5175963d41b6d96882afb98c45e56fb2",  # footbolski_opt_in_confirm_v3
         "params": ("name",),
     },
 }
 
 TEMPLATES: Final[dict[str, dict[str, str]]] = {
     INVITE: {
-        "en": "Hi {name}, a football session is scheduled for {when} at {venue}, with {seats} spot(s) available. Confirm your attendance here: {link}. Thanks for being part of the group.",
+        "en": "Hi {name}!\n\n⚽ Football session\n📅 {when}\n📍 {venue}\n🟢 {seats} spot(s) available\n\nConfirm your attendance: {link}\n\nThanks for being part of the group!",
     },
     PAYMENT_REMINDER: {
-        "en": "Hi {name}, just a friendly reminder to send your payment of {amount} for the football match on {when}. Please send it to {handle} using {method}. Full details here: {link}. Thanks for playing!",
+        "en": "Hi {name}!\n\n💰 Payment reminder\nAmount: {amount}\nMatch: {when}\nSend to: {handle} ({method})\n\nFull details: {link}\n\nThanks for playing! ⚽",
     },
     MOTM_BALLOT: {
-        "en": "Good game today, {name}! It's time to vote for the Man of the Match. Your vote is completely secret and only takes a moment. Tap here to cast it: {link}. Thanks for playing with us!",
+        "en": "Good game today, {name}! 🏆\n\nMan of the Match voting is open.\nYour vote is completely secret and only takes a moment.\n\nCast your vote: {link}\n\nThanks for playing with us! ⚽",
     },
     MOTM_WINNER: {
-        "en": "Good game, {name}! Man of the Match for {when}: {winner}. Congrats from the whole squad! Full details here: {link}.",
+        "en": "Good game, {name}! 🏆\n\nMan of the Match — {when}\nWinner: {winner}\n\nCongrats from the whole squad! ⚽\n\nFull details: {link} — see you next time!",
     },
     WAITLIST_PROMOTED: {
-        "en": "Good news, {name}! A spot has opened up and you're now confirmed to play football on {when} at {venue}. Tap here for full details: {link}. See you there!",
+        "en": "Good news, {name}! 🎉\n\nA spot opened up — you're now confirmed to play.\n\n📅 {when}\n📍 {venue}\n\nFull details: {link}\n\nSee you there! ⚽",
     },
     OPT_IN_CONFIRM: {
-        "en": "Thanks {name}, you're all set to receive Footbolski messages. We'll only reach out about upcoming games and important updates.",
+        "en": "Thanks {name}! ✅\n\nYou're all set to receive Footbolski messages.\n\nWe'll only reach out about upcoming games and important updates.",
     },
 }
 
