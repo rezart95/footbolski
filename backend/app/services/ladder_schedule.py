@@ -38,16 +38,19 @@ class LadderRung:
 def rungs() -> list[LadderRung]:
     """Build the ladder from configuration, soonest-firing last.
 
-    The first rung reaches core players only; every later rung reaches everyone.
-    Configured as days before kickoff, e.g. "5,3".
+    The *last* rung (soonest before kickoff) reaches everyone; every earlier
+    rung reaches core players only. Configured as days before kickoff, e.g.
+    "5,3" for a two-step ladder, or a single value like "3" to collapse it to
+    one core+rest send with no separate core-only advance rung.
     """
     raw = get_settings().invite_ladder_days
     days = sorted({int(part) for part in raw.split(",") if part.strip()}, reverse=True)
+    last = len(days) - 1
     return [
         LadderRung(
             index=position,
             days_before=day_count,
-            tiers=(CORE_TIER,) if position == 0 else (CORE_TIER, REST_TIER),
+            tiers=(CORE_TIER, REST_TIER) if position == last else (CORE_TIER,),
         )
         for position, day_count in enumerate(days)
     ]

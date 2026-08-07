@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__coolify__deployment",
+      "Bash(curl -s -X POST https://api.footbolski.org/api/v1/webhooks/whatsapp -d \"Body=test\" -w \"\\\\nHTTP_STATUS:%{http_code}\\\\n\")",
+      "Bash(curl -s -o /dev/null -w \"players endpoint: %{http_code}\\\\n\" https://api.footbolski.org/api/v1/players)",
+      "Bash(curl -s -o /dev/null -w \"frontend: %{http_code}\\\\n\" https://footbolski.org/)",
+      "mcp__coolify__application_logs",
+      "mcp__coolify__github_apps",
+      "PowerShell(Get-Command gh -ErrorAction SilentlyContinue)"
+    ]
+  }
+}

@@ -44,8 +44,11 @@ class Settings(BaseSettings):
     max_messages_per_event: int = 3
 
     # Invite ladder: days before kickoff at which each rung fires, widest last.
-    # Rung 0 goes to core players only; later rungs widen to everyone.
-    invite_ladder_days: str = "5,3"
+    # Every rung but the last (soonest before kickoff) goes to core players
+    # only; the last one widens to everyone. Currently a single rung — the
+    # 5-day core-only rung is disabled, not removed: add "5," back
+    # (e.g. "5,3") to restore it, no code change needed.
+    invite_ladder_days: str = "3"
 
     # Nothing is sent outside these local hours. The upper bound is 22 so the
     # Man of the Match ballot at kickoff+100min (about 21:10) stays legal.
