@@ -9,10 +9,11 @@ dist/
 __pycache__/
 *.pyc
 .vscode
-pitchup-master-prompt.md
 backend/uv.lock
 auth-prompt.md
 # Local MCP config (contains secrets) — use .mcp.json.example as template
 .mcp.json
 .gstack/
 .claude/
+player_notes.json
+players_cards_internal.json
