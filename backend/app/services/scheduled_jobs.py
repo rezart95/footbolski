@@ -134,6 +134,9 @@ async def run_payment_reminders(session: AsyncSession, event: Event) -> dict:
 
 async def run_motm_ballots(session: AsyncSession, event: Event) -> dict:
     """Send the ballot link once the match has finished and the window is open."""
+    if not get_settings().motm_messages_enabled:
+        return {}
+
     now = clock.now_local()
     opens_at = ladder_schedule.motm_opens_at(event.event_date, event.event_time)
     closes_at = ladder_schedule.motm_closes_at(event.event_date, event.event_time)
@@ -183,6 +186,9 @@ async def run_motm_results(session: AsyncSession, event: Event) -> dict:
     elapsing or everyone having voted, so this fires as soon as either
     happens rather than waiting out the full window unnecessarily.
     """
+    if not get_settings().motm_messages_enabled:
+        return {}
+
     outcome_result = await motm_service.result(session, event)
     if outcome_result["state"] != "decided" or not outcome_result["winners"]:
         return {}

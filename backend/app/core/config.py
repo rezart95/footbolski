@@ -63,6 +63,12 @@ class Settings(BaseSettings):
     motm_open_after_minutes: int = 100
     motm_window_hours: int = 24
 
+    # Feature switch, not a deletion: the ballot and winner-announcement jobs
+    # (scheduled_jobs.run_motm_ballots / run_motm_results) both check this and
+    # no-op when False, so no MOTM message goes out after a match ends while
+    # the feature itself stays fully implemented. Flip back to True to resume.
+    motm_messages_enabled: bool = False
+
     # Shared secret guarding /api/v1/admin/* and the scheduler tick. There is no
     # user authentication in this app, so these routes are protected by this
     # value alone. Unset means the routes refuse every request rather than
