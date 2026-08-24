@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useSession } from "../../../hooks/useSession";
 import { useTermsAcceptance } from "../../../hooks/useTermsAcceptance";
 import { TERMS_SUMMARY } from "../../../content/terms";
+import { WHATSAPP_GROUP_LINK } from "../../../content/whatsapp";
 import { Button } from "../../ui/Button";
 import { Checkbox, Field, Input } from "../../ui/Field";
 import { Modal } from "../../ui/Modal";
@@ -15,16 +16,25 @@ interface NameEntryModalProps {
 }
 
 export function NameEntryModal({ forceOpen = false, onClose }: NameEntryModalProps) {
-  const { sessionName, setSessionName, isSessionSet } = useSession();
+  const { sessionName, setSessionName, isSessionSet, hasJoinedWhatsapp, setHasJoinedWhatsapp } = useSession();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [accepted, setAccepted] = useState(false);
+  const [groupLinkOpened, setGroupLinkOpened] = useState(false);
+  const [joinConfirmed, setJoinConfirmed] = useState(false);
   const { needsAcceptance, accept, isSaving, error } = useTermsAcceptance();
 
   // Terms are captured here because this is the one moment the app already stops
   // someone for their identity, and that name is what the consent record attaches
   // to. Existing users are re-prompted only when the terms version changes.
   const open = forceOpen || !isSessionSet || needsAcceptance;
+
+  // The WhatsApp step only applies to a brand-new registration (no name saved
+  // yet), never to an existing member re-prompted for updated terms, and never
+  // to "edit my name" (forceOpen from Settings) — those aren't first-time
+  // registrations. Once joined, the flag persists on the device so this never
+  // resurfaces for that person again.
+  const needsWhatsappJoin = !isSessionSet && !forceOpen && !hasJoinedWhatsapp;
 
   useEffect(() => {
     if (open) {
@@ -35,7 +45,13 @@ export function NameEntryModal({ forceOpen = false, onClose }: NameEntryModalPro
   }, [open, sessionName]);
 
   const nameComplete = Boolean(firstName.trim() && lastName.trim());
-  const canSubmit = nameComplete && (!needsAcceptance || accepted) && !isSaving;
+  const canSubmit =
+    nameComplete && (!needsAcceptance || accepted) && (!needsWhatsappJoin || joinConfirmed) && !isSaving;
+
+  function openGroupLink() {
+    window.open(WHATSAPP_GROUP_LINK, "_blank", "noopener,noreferrer");
+    setGroupLinkOpened(true);
+  }
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -48,6 +64,9 @@ export function NameEntryModal({ forceOpen = false, onClose }: NameEntryModalPro
     if (needsAcceptance) {
       const saved = await accept(fullName);
       if (!saved) return;
+    }
+    if (needsWhatsappJoin) {
+      setHasJoinedWhatsapp(true);
     }
     setSessionName(fullName);
     onClose?.();
@@ -74,6 +93,28 @@ export function NameEntryModal({ forceOpen = false, onClose }: NameEntryModalPro
             onChange={(e) => setLastName(e.target.value)}
           />
         </Field>
+
+        {needsWhatsappJoin ? (
+          <div className="grid gap-2 border-t border-white/10 pt-4">
+            <p className="text-xs font-bold uppercase tracking-wide text-white/50">
+              Join the WhatsApp Group
+            </p>
+            <p className="text-sm leading-relaxed text-white/60">
+              Matches are organised in the group chat — that's where you'll hear about new games,
+              changes, and reminders. Join before you finish registering.
+            </p>
+            <Button type="button" variant="secondary" onClick={openGroupLink}>
+              Open WhatsApp Group
+            </Button>
+            <Checkbox
+              checked={joinConfirmed}
+              disabled={!groupLinkOpened}
+              onChange={(e) => setJoinConfirmed(e.target.checked)}
+            >
+              I've joined the WhatsApp group.
+            </Checkbox>
+          </div>
+        ) : null}
 
         {needsAcceptance ? (
           <div className="grid gap-2 border-t border-white/10 pt-4">
