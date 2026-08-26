@@ -12,7 +12,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.database import SessionLocal
 from app.models import ListStatus, Registration
-from app.services.team_service import _composite
+from app.services.team_balance import composite_score
 
 
 async def fetch_event_player_payloads(event_id: str) -> list[dict]:
@@ -44,18 +44,17 @@ async def fetch_event_player_payloads(event_id: str) -> list[dict]:
                 "height_cm": p.height_cm if p else gp.get("height_cm"),
                 "build": p.build if p else gp.get("build"),
                 "preferred_role": p.preferred_role if p else gp.get("preferred_role"),
-                "attributes": list(p.attributes) if p else gp.get("attributes", []),
                 "skill_rating": p.skill_rating if p else gp.get("skill_rating", 5),
                 "speed": p.speed if p else gp.get("speed"),
                 "technique": p.technique if p else gp.get("technique"),
+                "passing": p.passing if p else gp.get("passing"),
                 "defending": p.defending if p else gp.get("defending"),
                 "shooting": p.shooting if p else gp.get("shooting"),
                 "aerial": p.aerial if p else gp.get("aerial"),
                 "stamina": p.stamina if p else gp.get("stamina"),
                 "work_rate": p.work_rate if p else gp.get("work_rate"),
                 "notes": p.notes if p else gp.get("notes"),
-                "_composite_score": round(_composite(p, gp or None), 2),
+                "_composite_score": round(composite_score(p, gp or None), 2),
             }
         )
     return payloads
-

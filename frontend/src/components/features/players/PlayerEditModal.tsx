@@ -1,14 +1,11 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { Camera, Save } from "lucide-react";
-import { AttributeTag } from "./AttributeTag";
 import { Button } from "../../ui/Button";
 import { Field, Input, Select } from "../../ui/Field";
 import { Modal } from "../../ui/Modal";
 import { uploadPlayerPhoto } from "../../../services/players.service";
 import { colorFromName, initials } from "../../../lib/utils";
-import type { Player, PlayerAttribute, PlayerPosition } from "../../../types/player.types";
-
-const attributes: PlayerAttribute[] = ["fast", "playmaker", "physical", "leader", "goalkeeper", "creative", "defensive", "clinical"];
+import type { Player, PlayerPosition } from "../../../types/player.types";
 
 const BUILD_OPTIONS = ["Slim", "Athletic", "Strong", "Stocky"] as const;
 const ROLE_OPTIONS = [
@@ -50,7 +47,7 @@ interface PlayerEditModalProps {
 }
 
 const blank = {
-  name: "", photo_url: null, skill_rating: 5, primary_position: "MID" as PlayerPosition, attributes: [],
+  name: "", photo_url: null, skill_rating: 5, primary_position: "MID" as PlayerPosition,
   age: null as number | null,
   height_cm: null as number | null,
   build: null as string | null,
@@ -60,6 +57,7 @@ const blank = {
   defending: 5,
   shooting: 5,
   aerial: 5,
+  passing: 5,
   stamina: 5,
   work_rate: 5,
 };
@@ -86,14 +84,6 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
       setUploading(false);
       event.target.value = "";
     }
-  }
-
-  function toggleAttribute(attribute: PlayerAttribute) {
-    setForm((current) => {
-      const exists = current.attributes.includes(attribute);
-      const next = exists ? current.attributes.filter((item) => item !== attribute) : [...current.attributes, attribute].slice(0, 4);
-      return { ...current, attributes: next };
-    });
   }
 
   function submit(event: FormEvent) {
@@ -150,16 +140,6 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
         <Field label={`Skill ${form.skill_rating}/10`}>
           <Input disabled={readOnly} min={1} max={10} type="range" value={form.skill_rating} onChange={(event) => setForm({ ...form, skill_rating: Number(event.target.value) })} />
         </Field>
-        <div className="flex flex-wrap gap-2">
-          {attributes.map((attribute) => (
-            <AttributeTag
-              attribute={attribute}
-              active={form.attributes.includes(attribute)}
-              key={attribute}
-              onClick={readOnly ? undefined : () => toggleAttribute(attribute)}
-            />
-          ))}
-        </div>
         {/* Physical info */}
         <p className="text-xs font-bold uppercase text-white/55">Physical</p>
         <div className="grid grid-cols-2 gap-3">
@@ -211,6 +191,9 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
         </Field>
         <Field label={`Defending ${form.defending ?? "–"}/10`}>
           <Input disabled={readOnly} min={1} max={10} type="range" value={form.defending ?? 5} onChange={(e) => setForm({ ...form, defending: Number(e.target.value) })} />
+        </Field>
+        <Field label={`Passing ${form.passing ?? "–"}/10`}>
+          <Input disabled={readOnly} min={1} max={10} type="range" value={form.passing ?? 5} onChange={(e) => setForm({ ...form, passing: Number(e.target.value) })} />
         </Field>
         <Field label={`Shooting ${form.shooting ?? "–"}/10`}>
           <Input disabled={readOnly} min={1} max={10} type="range" value={form.shooting ?? 5} onChange={(e) => setForm({ ...form, shooting: Number(e.target.value) })} />
