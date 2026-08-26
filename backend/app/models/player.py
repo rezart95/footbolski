@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, Enum, SmallInteger, String, Text, func
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.database import Base
@@ -20,7 +20,6 @@ class Player(Base):
         Enum(PlayerPosition, name="player_position"),
         default=PlayerPosition.MID,
     )
-    attributes: Mapped[list[str]] = mapped_column(JSONB, default=list)
 
     # Physical profile
     age: Mapped[int | None] = mapped_column(SmallInteger)
@@ -31,6 +30,7 @@ class Player(Base):
     # Attribute ratings (1–10)
     speed: Mapped[int | None] = mapped_column(SmallInteger)
     technique: Mapped[int | None] = mapped_column(SmallInteger)
+    passing: Mapped[int | None] = mapped_column(SmallInteger)
     defending: Mapped[int | None] = mapped_column(SmallInteger)
     shooting: Mapped[int | None] = mapped_column(SmallInteger)
     aerial: Mapped[int | None] = mapped_column(SmallInteger)
@@ -71,4 +71,3 @@ class Player(Base):
         server_default=func.now(),
         onupdate=func.now(),
     )
-
