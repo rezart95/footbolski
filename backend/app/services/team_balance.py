@@ -15,7 +15,6 @@ ATTRIBUTE_WEIGHTS: dict[str, float] = {
     "skill_rating": 3.0,
     "speed": 1.0,
     "technique": 1.5,
-    "passing": 1.5,
     "defending": 1.0,
     "shooting": 1.0,
     "aerial": 0.5,

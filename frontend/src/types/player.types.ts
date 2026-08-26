@@ -1,11 +1,22 @@
 export type PlayerPosition = "GK" | "DEF" | "MID" | "ATT";
 
+export type PlayerAttribute =
+  | "fast"
+  | "playmaker"
+  | "physical"
+  | "leader"
+  | "goalkeeper"
+  | "creative"
+  | "defensive"
+  | "clinical";
+
 export interface Player {
   id: string;
   name: string;
   photo_url: string | null;
   skill_rating: number;
   primary_position: PlayerPosition;
+  attributes: PlayerAttribute[];
   age?: number | null;
   height_cm?: number | null;
   build?: string | null;
@@ -15,7 +26,6 @@ export interface Player {
   defending?: number | null;
   shooting?: number | null;
   aerial?: number | null;
-  passing?: number | null;
   stamina?: number | null;
   work_rate?: number | null;
   notes?: string | null;
@@ -34,6 +44,7 @@ export interface PlayerPayload {
   photo_url?: string | null;
   skill_rating: number;
   primary_position: PlayerPosition;
+  attributes: PlayerAttribute[];
   age?: number | null;
   height_cm?: number | null;
   build?: string | null;
@@ -43,7 +54,6 @@ export interface PlayerPayload {
   defending?: number | null;
   shooting?: number | null;
   aerial?: number | null;
-  passing?: number | null;
   stamina?: number | null;
   work_rate?: number | null;
 }

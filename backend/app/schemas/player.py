@@ -24,6 +24,7 @@ class PlayerBase(BaseModel):
     photo_url: str | None = None
     skill_rating: int = Field(default=5, ge=1, le=10)
     primary_position: PlayerPosition = PlayerPosition.MID
+    attributes: list[str] = Field(default_factory=list, max_length=4)
 
     # Physical profile
     age: int | None = Field(default=None, ge=10, le=80)
@@ -34,7 +35,6 @@ class PlayerBase(BaseModel):
     # Attribute ratings 1–10
     speed: int | None = Field(default=None, ge=1, le=10)
     technique: int | None = Field(default=None, ge=1, le=10)
-    passing: int | None = Field(default=None, ge=1, le=10)
     defending: int | None = Field(default=None, ge=1, le=10)
     shooting: int | None = Field(default=None, ge=1, le=10)
     aerial: int | None = Field(default=None, ge=1, le=10)
