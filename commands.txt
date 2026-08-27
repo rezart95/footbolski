@@ -1,1 +1,7 @@
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+From the repo root in PowerShell:
+
+
+.\scripts\refresh-local-db.ps1
+It'll prompt Type 'yes' to continue before wiping local data. Add -Force to skip that prompt.

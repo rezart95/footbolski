@@ -4,7 +4,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "0017_backfill_passing_default"
-down_revision = "0016_replace_attributes_with_passing"
+down_revision = "0016_replace_attrs_passing"
 branch_labels = None
 depends_on = None
 

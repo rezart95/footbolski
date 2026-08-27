@@ -9,7 +9,7 @@ speed/technique/defending/shooting/aerial/stamina/work_rate columns,
 and gives the AI splitter a real signal for playmaking ability instead
 of a "playmaker" tag it could not weigh.
 
-Revision ID: 0016_replace_attributes_with_passing
+Revision ID: 0016_replace_attrs_passing
 Revises: 0015_motm_result_kind
 Create Date: 2026-08-26
 """
@@ -20,7 +20,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy.dialects import postgresql
 
-revision = "0016_replace_attributes_with_passing"
+revision = "0016_replace_attrs_passing"
 down_revision = "0015_motm_result_kind"
 branch_labels = None
 depends_on = None
