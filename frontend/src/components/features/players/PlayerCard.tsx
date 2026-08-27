@@ -1,6 +1,5 @@
 import { colorFromName, initials } from "../../../lib/utils";
 import type { Player } from "../../../types/player.types";
-import { AttributeTag } from "./AttributeTag";
 
 interface PlayerCardProps {
   player: Player;
@@ -10,8 +9,10 @@ interface PlayerCardProps {
 const STATS: { key: keyof Player; label: string }[] = [
   { key: "speed", label: "SPD" },
   { key: "technique", label: "TEC" },
+  { key: "passing", label: "PAS" },
   { key: "defending", label: "DEF" },
   { key: "shooting", label: "SHT" },
+  { key: "aerial", label: "AER" },
   { key: "stamina", label: "STA" },
   { key: "work_rate", label: "WRK" },
 ];
@@ -52,15 +53,6 @@ export function PlayerCard({ player, onClick }: PlayerCardProps) {
           </div>
           <span className="font-mono text-[10px] font-bold text-white/55">{player.skill_rating}</span>
         </div>
-
-        {/* Attribute tags */}
-        {player.attributes.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {player.attributes.slice(0, 3).map((attribute) => (
-              <AttributeTag attribute={attribute} key={attribute} />
-            ))}
-          </div>
-        )}
 
         {/* Physical meta: age, height */}
         {meta && <p className="font-mono text-[10px] text-white/55">{meta}</p>}
