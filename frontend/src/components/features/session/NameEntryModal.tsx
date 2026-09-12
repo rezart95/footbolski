@@ -3,6 +3,7 @@ import { Save } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSession } from "../../../hooks/useSession";
 import { useTermsAcceptance } from "../../../hooks/useTermsAcceptance";
+import { usePlayers } from "../../../hooks/usePlayers";
 import { TERMS_SUMMARY } from "../../../content/terms";
 import { WHATSAPP_GROUP_LINK } from "../../../content/whatsapp";
 import { Button } from "../../ui/Button";
@@ -23,18 +24,37 @@ export function NameEntryModal({ forceOpen = false, onClose }: NameEntryModalPro
   const [groupLinkOpened, setGroupLinkOpened] = useState(false);
   const [joinConfirmed, setJoinConfirmed] = useState(false);
   const { needsAcceptance, accept, isSaving, error } = useTermsAcceptance();
+  // Full roster, used only to tell a genuinely new registrant apart from an
+  // existing member on a fresh browser/device (e.g. incognito) — see below.
+  const { data: players } = usePlayers();
 
   // Terms are captured here because this is the one moment the app already stops
   // someone for their identity, and that name is what the consent record attaches
   // to. Existing users are re-prompted only when the terms version changes.
   const open = forceOpen || !isSessionSet || needsAcceptance;
 
-  // The WhatsApp step only applies to a brand-new registration (no name saved
-  // yet), never to an existing member re-prompted for updated terms, and never
-  // to "edit my name" (forceOpen from Settings) — those aren't first-time
-  // registrations. Once joined, the flag persists on the device so this never
-  // resurfaces for that person again.
-  const needsWhatsappJoin = !isSessionSet && !forceOpen && !hasJoinedWhatsapp;
+  const nameComplete = Boolean(firstName.trim() && lastName.trim());
+
+  // `!isSessionSet` only tells us this browser/device has never saved a name —
+  // it says nothing about whether the person is actually new. An existing
+  // member on a fresh device (incognito, a new phone, cleared storage) looks
+  // identical to a first-time registrant unless we also check whether their
+  // typed name already matches a real Player. Mirrors the backend's exact
+  // (case-insensitive, full-name) match in registration_service._matching_player
+  // — deliberately not its looser first-name-only fallback, which is fine for
+  // linking a registration afterwards but too loose here: it could wrongly
+  // excuse a stranger who merely shares a first name with an existing member.
+  const typedFullName = nameComplete ? `${firstName.trim()} ${lastName.trim()}`.toLowerCase() : null;
+  const isExistingPlayer = Boolean(
+    typedFullName && players?.some((p) => p.name.trim().toLowerCase() === typedFullName)
+  );
+
+  // The WhatsApp step only applies to a brand-new registration: no name saved
+  // on this device yet, the typed name doesn't match an existing player, never
+  // for an existing member re-prompted for updated terms, and never for "edit
+  // my name" (forceOpen from Settings). Once joined, the flag persists on the
+  // device so this never resurfaces for that person again.
+  const needsWhatsappJoin = !isSessionSet && !forceOpen && !hasJoinedWhatsapp && !isExistingPlayer;
 
   useEffect(() => {
     if (open) {
@@ -44,7 +64,6 @@ export function NameEntryModal({ forceOpen = false, onClose }: NameEntryModalPro
     }
   }, [open, sessionName]);
 
-  const nameComplete = Boolean(firstName.trim() && lastName.trim());
   const canSubmit =
     nameComplete && (!needsAcceptance || accepted) && (!needsWhatsappJoin || joinConfirmed) && !isSaving;
 
