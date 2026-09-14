@@ -110,6 +110,13 @@ async def generate_teams(session: AsyncSession, event_id: uuid.UUID, creator_nam
 
     if "team_a" in split and "team_b" in split:
         side_a, side_b = team_balance.split_by_name(registrations, split["team_a"], split["team_b"])
+        side_a, side_b, adjusted = team_balance.enforce_top_players_split(side_a, side_b)
+        if adjusted and event.ai_reasoning:
+            event.ai_reasoning += (
+                "\n\n(Note: the two highest-rated players were automatically moved to "
+                "opposite teams — the AI's proposed split had placed them together, "
+                "which didn't match its own stated reasoning above.)"
+            )
     else:
         side_a, side_b = team_balance.snake_draft(registrations)
 
