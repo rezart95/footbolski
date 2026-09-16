@@ -16,7 +16,6 @@ from app.models import ListStatus, Registration
 from app.models.player import Player
 from app.services.team_balance import composite_score
 
-
 # ---------------------------------------------------------------------------
 # Payload builder
 # ---------------------------------------------------------------------------
@@ -138,24 +137,84 @@ async def run_split(event_id: str, regs: list | None = None) -> dict:
             detail="No confirmed registrations found for this event.",
         )
 
-    entries = [
-        {
-            "reg": r,
-            "payload": _player_payload(r.player, r.display_name, r.guest_profile),
-            "score": composite_score(r.player, r.guest_profile),
-        }
-        for r in regs
-    ]
-    payloads = [e["payload"] for e in entries]
+    payloads = [_player_payload(r.player, r.display_name, r.guest_profile) for r in regs]
+    composites = {p["name"]: float(p.get("_composite_score", 5.0)) for p in payloads}
+    positions = {
+        p["name"]: (r.player.primary_position.value if r.player else "MID")
+        for p, r in zip(payloads, regs)
+    }
 
     try:
-        return await _ai_split(payloads, settings.claude_api_key, settings.claude_model)
+        return await _graph_split(payloads, composites, positions, settings)
     except HTTPException:
         raise
     except Exception as exc:
         import logging
-        logging.getLogger(__name__).error("Claude split failed: %s", exc)
+        logging.getLogger(__name__).exception("Team split failed")
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail="AI team split failed. Please try again in a moment.",
         ) from exc
+
+
+async def _graph_split(
+    payloads: list[dict],
+    composites: dict[str, float],
+    positions: dict[str, str],
+    settings,
+) -> dict:
+    """Run the LangGraph pipeline and shape its state into the split dict.
+
+    Returns team names rather than the solver's objects, because callers map
+    names back onto registrations (`team_balance.split_by_name`) and that keeps
+    this boundary unchanged from the previous implementation.
+    """
+    import logging
+    import time
+
+    from app.agent.graph import get_graph
+
+    started = time.perf_counter()
+    final = await get_graph().ainvoke(
+        {
+            "payloads": payloads,
+            "composites": composites,
+            "positions": positions,
+            "attempts": 0,
+            "api_key": settings.claude_api_key,
+            "model": settings.claude_model,
+            "timings": {},
+        }
+    )
+    elapsed = time.perf_counter() - started
+
+    split = final["split"]
+    timings = final.get("timings", {})
+    logging.getLogger(__name__).info(
+        "Split done in %.2fs (extract %.2fs, solve %.4fs, explain %.2fs); "
+        "gap %.2f, degraded=%s, attempts=%s",
+        elapsed,
+        timings.get("extract", 0.0),
+        timings.get("solve", 0.0),
+        timings.get("explain", 0.0),
+        split.strength_gap,
+        final.get("degraded", False),
+        final.get("attempts", 0),
+    )
+
+    return {
+        "team_a": [p.name for p in split.team_a],
+        "team_b": [p.name for p in split.team_b],
+        "reasoning": final.get("reasoning", ""),
+        "swap_options": [],
+        "_source": "solver+claude" if not final.get("degraded") else "solver",
+        "_meta": {
+            "strength_gap": round(split.strength_gap, 2),
+            "cost": round(split.cost, 3),
+            "components": {k: round(v, 3) for k, v in split.components.items()},
+            "degraded": bool(final.get("degraded", False)),
+            "attempts": final.get("attempts", 0),
+            "elapsed_seconds": round(elapsed, 2),
+            "timings": {k: round(v, 3) for k, v in timings.items()},
+        },
+    }

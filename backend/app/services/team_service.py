@@ -108,15 +108,12 @@ async def generate_teams(session: AsyncSession, event_id: uuid.UUID, creator_nam
         event.ai_swap_options = split["swap_options"]
     session.add(event)
 
+    # No post-hoc correction of the split: the solver balances star distribution
+    # as part of its cost function, so stacking the strongest players is already
+    # priced in rather than fixed afterwards. The reasoning describes the split
+    # below because it was written from it (see `agent/graph.py`).
     if "team_a" in split and "team_b" in split:
         side_a, side_b = team_balance.split_by_name(registrations, split["team_a"], split["team_b"])
-        side_a, side_b, adjusted = team_balance.enforce_top_players_split(side_a, side_b)
-        if adjusted and event.ai_reasoning:
-            event.ai_reasoning += (
-                "\n\n(Note: the two highest-rated players were automatically moved to "
-                "opposite teams — the AI's proposed split had placed them together, "
-                "which didn't match its own stated reasoning above.)"
-            )
     else:
         side_a, side_b = team_balance.snake_draft(registrations)
 

@@ -92,59 +92,6 @@ def split_by_name(
     return team_a, team_b
 
 
-def enforce_top_players_split(
-    side_a: list[Registration],
-    side_b: list[Registration],
-) -> tuple[list[Registration], list[Registration], bool]:
-    """Guarantee the two highest composite-score players never end up on the
-    same side, regardless of what the AI returned.
-
-    The AI is instructed to keep the two strongest players apart (see
-    TEAM_SPLIT_SYSTEM_PROMPT, balancing priority #1), and to describe that
-    split accurately in its "reasoning" text. Neither is enforced anywhere —
-    a model can violate its own stated priority and then describe a split
-    that doesn't match what it actually returned (see #30, where the
-    reasoning claimed the two highest-rated players were separated while
-    team_a/team_b put them on the same side). This is the deterministic
-    backstop: if the top two landed together, swap the weaker of the two
-    with the strongest player on the other side, keeping team sizes intact.
-    Returns whether an adjustment was made, so the caller can flag the
-    AI's reasoning as no longer fully accurate.
-    """
-    ranked = sorted(
-        side_a + side_b,
-        key=lambda r: composite_score(r.player, r.guest_profile),
-        reverse=True,
-    )
-    if len(ranked) < 2:
-        return side_a, side_b, False
-
-    top_two = ranked[:2]
-    ids_a = {id(r) for r in side_a}
-    top_two_on_a = [r for r in top_two if id(r) in ids_a]
-
-    if len(top_two_on_a) not in (0, 2):
-        # Already on opposite sides — nothing to do.
-        return side_a, side_b, False
-
-    stacked_side, other_side = (side_b, side_a) if not top_two_on_a else (side_a, side_b)
-
-    if not other_side:
-        # Nothing to swap with (e.g. a lopsided roster) — leave as-is rather
-        # than risk emptying a side.
-        return side_a, side_b, False
-
-    weaker_of_two = min(top_two, key=lambda r: composite_score(r.player, r.guest_profile))
-    counterpart = max(other_side, key=lambda r: composite_score(r.player, r.guest_profile))
-
-    stacked_side.remove(weaker_of_two)
-    other_side.remove(counterpart)
-    stacked_side.append(counterpart)
-    other_side.append(weaker_of_two)
-
-    return side_a, side_b, True
-
-
 def snake_draft(
     registrations: list[Registration],
 ) -> tuple[list[Registration], list[Registration]]:

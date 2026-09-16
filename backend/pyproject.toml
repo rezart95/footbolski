@@ -19,6 +19,7 @@ dependencies = [
   "tzdata>=2026.3",
   "httpx>=0.28.1",
   "twilio>=9.3.0",
+  "langgraph>=0.2.0",
 ]
 
 [tool.uv]
