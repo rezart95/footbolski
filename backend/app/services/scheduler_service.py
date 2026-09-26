@@ -57,7 +57,7 @@ async def last_tick_at(session: AsyncSession) -> str | None:
 async def _persist_completed_statuses(session: AsyncSession) -> int:
     """Write the completed status that was previously only computed on read.
 
-    `_effective_status` reports a finished match as completed without saving it,
+    `effective_status` reports a finished match as completed without saving it,
     so every query filtering on the stored column disagreed with what the UI
     showed. This reconciles them.
     """

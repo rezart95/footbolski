@@ -3,6 +3,7 @@ import uuid
 from fastapi import APIRouter, Query, Response, status
 
 from app.dependencies import SessionDep
+from app.schemas.history import HistoryItem
 from app.schemas.player import (
     PlayerContactDetail,
     PlayerCreate,
@@ -12,7 +13,7 @@ from app.schemas.player import (
     PlayerRead,
     PlayerUpdate,
 )
-from app.services import player_service
+from app.services import history_service, player_service
 
 router = APIRouter(prefix="/players", tags=["players"])
 
@@ -34,6 +35,13 @@ async def list_contact_detail(session: SessionDep, requested_by: str = Query(min
 @router.post("", response_model=PlayerRead, status_code=201)
 async def create_player(payload: PlayerCreate, session: SessionDep):
     return await player_service.create_player(session, payload)
+
+
+@router.get("/history", response_model=list[HistoryItem])
+async def player_history(session: SessionDep, name: str = Query(min_length=1, max_length=255)):
+    """Every match `name` signed up for, newest first, with their place and
+    payment. Declared before `/{player_id}` so "history" isn't parsed as an id."""
+    return await history_service.history_for(session, name)
 
 
 @router.get("/{player_id}", response_model=PlayerRead)

@@ -19,7 +19,7 @@ async def _count(session: AsyncSession, event_id: uuid.UUID, list_status: ListSt
     return int(await session.scalar(stmt) or 0)
 
 
-def _effective_status(event: Event) -> EventStatus:
+def effective_status(event: Event) -> EventStatus:
     """Return completed if the match has already finished, even if the DB still says upcoming.
 
     Compared in Warsaw local time — see `app.core.clock`. Using the server clock
@@ -41,7 +41,7 @@ async def as_read(session: AsyncSession, event: Event) -> dict:
         "event_time": event.event_time,
         "max_players": event.max_players,
         "created_by_name": event.created_by_name,
-        "status": _effective_status(event),
+        "status": effective_status(event),
         "teams_generated": event.teams_generated,
         "confirmed_count": await _count(session, event.id, ListStatus.CONFIRMED),
         "waitlist_count": await _count(session, event.id, ListStatus.WAITLIST),
