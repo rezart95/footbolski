@@ -10,7 +10,8 @@ const ICON: Record<PaymentMethod, typeof Smartphone> = {
 
 /** A tappable chip showing where to send payment (BLIK phone / Revolut tag /
  * account) that copies the value to the clipboard on click. Safe to use inside
- * a Link — it stops the click from navigating. */
+ * a Link — it stops the click from navigating. Takes its ink from the text
+ * colour around it, so it works on the ochre money field and on the ground. */
 export function PaymentHandle({ method, value }: { method: PaymentMethod; value: string }) {
   const [copied, setCopied] = useState(false);
   const Icon = ICON[method];
@@ -31,14 +32,15 @@ export function PaymentHandle({ method, value }: { method: PaymentMethod; value:
     <button
       type="button"
       onClick={copy}
-      className="flex w-full items-center justify-between gap-2 rounded-md border border-pitch-400/20 bg-pitch-400/10 px-2.5 py-1.5 text-left transition hover:bg-pitch-400/20"
+      aria-label={`Copy ${value}`}
+      className="tap-target flex w-full items-center justify-between gap-3 border-2 border-current px-3 text-left transition-colors duration-150 hover:bg-ink/[0.06]"
     >
-      <span className="flex min-w-0 items-center gap-1.5 text-sm font-bold text-pitch-400">
-        <Icon size={15} className="shrink-0" />
-        <span className="truncate">{value}</span>
+      <span className="flex min-w-0 items-center gap-2 text-[16px] font-bold tabular-nums">
+        <Icon size={17} className="shrink-0" />
+        <span className="break-all">{value}</span>
       </span>
-      <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-pitch-400/70">
-        {copied ? <Check size={14} /> : <Copy size={14} />}
+      <span aria-live="polite" className="flex shrink-0 items-center gap-1 text-[14px] font-semibold">
+        {copied ? <Check size={16} /> : <Copy size={16} />}
         {copied ? "Copied" : "Copy"}
       </span>
     </button>

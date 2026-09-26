@@ -1,7 +1,7 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "../../lib/utils";
 
-type Variant = "primary" | "secondary" | "ghost" | "danger";
+type Variant = "primary" | "secondary" | "ghost" | "danger" | "inverse" | "inverse-outline";
 
 interface CommonProps {
   variant?: Variant;
@@ -13,22 +13,32 @@ type ButtonAsAnchor = CommonProps & AnchorHTMLAttributes<HTMLAnchorElement> & { 
 
 type ButtonProps = ButtonAsButton | ButtonAsAnchor;
 
+// Square ink controls. Red and blue are team colours, so destructive actions
+// are not red: `danger` is an outlined button that always sits behind a confirm.
 const variants: Record<Variant, string> = {
-  primary: "bg-pitch-400 text-pitch-950 shadow-[0_12px_28px_rgba(61,219,106,0.18)] hover:bg-emerald-300",
-  secondary: "border border-white/10 bg-white/10 text-white hover:bg-white/15",
-  ghost: "bg-transparent text-white hover:bg-white/10",
-  danger: "border border-red-300/15 bg-red-500/15 text-red-100 hover:bg-red-500/25"
+  primary: "bg-fg text-ground hover:bg-fg/85",
+  secondary: "border-2 border-fg text-fg hover:bg-fg/[0.07]",
+  ghost: "text-fg hover:bg-fg/[0.07]",
+  danger: "border-2 border-fg text-fg underline decoration-2 underline-offset-[0.2em] hover:bg-fg/[0.07]",
+  // For use on an inverted ink field (`field-inverse`).
+  inverse: "bg-ground text-fg hover:bg-ground/85",
+  "inverse-outline": "border-2 border-ground text-ground hover:bg-ground/10"
 };
+
+const base =
+  "tap-target inline-flex items-center justify-center gap-2 px-4 py-3 text-[15px] font-bold transition-[background-color,transform] duration-150 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-40 disabled:active:translate-y-0";
+
+/** The button look for elements that aren't this component, e.g. a router
+ * `<Link>` that should read as a primary action. */
+export function buttonClass(variant: Variant = "primary", className?: string) {
+  return cn(base, variants[variant], className);
+}
 
 /** Renders as `<a>` when `href` is given, `<button>` otherwise — same look
  * either way, so a link-triggered action (like opening a file the browser
  * should navigate to rather than fetch via JS) doesn't need its own styling. */
 export function Button({ className, children, variant = "primary", icon, href, ...props }: ButtonProps) {
-  const classes = cn(
-    "tap-target inline-flex items-center justify-center gap-2 rounded-lg px-4 py-3 text-sm font-extrabold transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100",
-    variants[variant],
-    className
-  );
+  const classes = buttonClass(variant, className);
 
   if (href !== undefined) {
     return (

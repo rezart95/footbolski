@@ -1,30 +1,60 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap");
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
+  /* Paper by day, ink at night: the app follows the phone's colour scheme.
+   * Values are RGB triplets so Tailwind opacity modifiers (fg/70) work. */
+  :root {
+    color-scheme: light dark;
+    --c-ground: 242 241 236;
+    --c-fg: 22 22 26;
+    --c-team-red: 210 35 26;
+    --c-team-blue: 28 46 145;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --c-ground: 22 22 26;
+      --c-fg: 242 241 236;
+      --c-team-red: 255 122 108;
+      --c-team-blue: 156 174 255;
+    }
+  }
+
   html {
     min-height: 100%;
-    background: #0a1a0f;
+    background: rgb(var(--c-ground));
   }
 
   body {
     min-height: 100%;
     margin: 0;
-    background:
-      radial-gradient(circle at 20% 0%, rgba(61, 219, 106, 0.11), transparent 30rem),
-      linear-gradient(135deg, rgba(255, 255, 255, 0.035) 25%, transparent 25%) 0 0 / 26px 26px,
-      linear-gradient(180deg, #08140c 0%, #0f1d13 52%, #09120c 100%);
-    color: white;
-    font-family: theme("fontFamily.body");
+    background: rgb(var(--c-ground));
+    color: rgb(var(--c-fg));
+    font-family: theme("fontFamily.grotesk");
+    -webkit-tap-highlight-color: transparent;
   }
 
   button,
   input,
-  select {
+  select,
+  textarea {
     font: inherit;
+  }
+
+  ::selection {
+    background: #e8a317;
+    color: #16161a;
+  }
+
+  :focus-visible {
+    outline: 3px solid rgb(var(--c-fg));
+    outline-offset: 2px;
+  }
+
+  a {
+    text-underline-offset: 0.2em;
   }
 }
 
@@ -32,6 +62,50 @@
   .tap-target {
     min-height: 48px;
     min-width: 48px;
+  }
+
+  /* Poster type roles (Anybody). Size is set per use; these fix the voice. */
+  .t-headline {
+    font-family: theme("fontFamily.poster");
+    font-weight: 850;
+    font-stretch: 75%;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+  }
+
+  .t-title {
+    font-family: theme("fontFamily.poster");
+    font-weight: 800;
+    font-stretch: 80%;
+    line-height: 1.15;
+  }
+
+  .t-numeral {
+    font-family: theme("fontFamily.poster");
+    font-weight: 900;
+    font-stretch: 70%;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* An ink field that inverts the ground: "you", errors, the tab bar. */
+  .field-inverse {
+    background: rgb(var(--c-fg));
+    color: rgb(var(--c-ground));
+  }
+
+  .field-inverse :focus-visible {
+    outline-color: rgb(var(--c-ground));
+  }
+
+  /* The money field: ochre with ink, the same in both colour schemes. */
+  .field-money {
+    background: #e8a317;
+    color: #16161a;
+  }
+
+  .field-money :focus-visible {
+    outline-color: #16161a;
   }
 
   .surface {

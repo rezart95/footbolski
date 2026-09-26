@@ -1,5 +1,3 @@
-import "@fontsource-variable/anybody/standard.css";
-import "@fontsource-variable/schibsted-grotesk";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Bib } from "../components/features/landing/Bib";
@@ -32,20 +30,20 @@ const PAID_SAMPLE = 12;
 const SPOTS = 14;
 
 /** Paints the browser chrome around the page (overscroll, iOS status bar,
- * scrollbar) in paper while the landing is mounted; the app still uses the
- * old dark ground until its own redesign lands. */
+ * scrollbar) in paper while the landing is mounted: the landing is a printed
+ * poster and stays paper even when the phone (and so the app) is in dark mode. */
 function usePaperChrome() {
   useEffect(() => {
     const root = document.documentElement;
-    const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    const previous = { background: root.style.background, theme: meta?.content };
+    const metas = Array.from(document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]'));
+    const previous = { background: root.style.background, themes: metas.map((meta) => meta.content) };
     root.style.background = "#F2F1EC";
     root.classList.add("landing-chrome");
-    meta?.setAttribute("content", "#F2F1EC");
+    metas.forEach((meta) => meta.setAttribute("content", "#F2F1EC"));
     return () => {
       root.style.background = previous.background;
       root.classList.remove("landing-chrome");
-      if (meta && previous.theme) meta.setAttribute("content", previous.theme);
+      metas.forEach((meta, i) => meta.setAttribute("content", previous.themes[i]));
     };
   }, []);
 }

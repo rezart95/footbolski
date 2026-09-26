@@ -1,25 +1,30 @@
-import { CheckCircle2, Circle } from "lucide-react";
+import { Check } from "lucide-react";
+import { cn } from "../../../lib/utils";
 
 interface PaymentToggleProps {
   paid: boolean;
   onToggle: () => void;
   disabled?: boolean;
+  /** Whose payment this is, for the accessible label. */
+  name?: string;
 }
 
-export function PaymentToggle({ paid, onToggle, disabled }: PaymentToggleProps) {
+/** Paid is money, so a paid chip is ochre; unpaid is an ink-ruled question. */
+export function PaymentToggle({ paid, onToggle, disabled, name }: PaymentToggleProps) {
+  const who = name ? ` for ${name}` : "";
   return (
     <button
-      aria-label={paid ? "Undo payment" : "I paid"}
-      className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold transition ${
-        paid
-          ? "bg-pitch-400/20 text-pitch-400"
-          : "bg-white/8 text-white/30 hover:bg-white/12 hover:text-white/60"
-      }`}
+      aria-label={paid ? `Paid${who}. Tap to undo` : `Mark paid${who}`}
+      aria-pressed={paid}
+      className={cn(
+        "tap-target flex shrink-0 items-center justify-center gap-1.5 px-3 text-[14px] font-bold transition-colors duration-150 disabled:opacity-40",
+        paid ? "bg-poster-ochre text-ink" : "border-2 border-fg/60 text-fg hover:border-fg"
+      )}
       disabled={disabled}
       onClick={onToggle}
       type="button"
     >
-      {paid ? <CheckCircle2 size={13} /> : <Circle size={13} />}
+      {paid ? <Check size={16} strokeWidth={3} /> : null}
       {paid ? "Paid" : "Paid?"}
     </button>
   );

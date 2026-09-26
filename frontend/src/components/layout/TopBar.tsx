@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
-import { Settings, Shield } from "lucide-react";
-import { Button } from "../ui/Button";
+import { Shield, UserRound } from "lucide-react";
 import { useSession } from "../../hooks/useSession";
 import { isAdminSession } from "../../lib/roles";
 
@@ -8,24 +7,38 @@ interface TopBarProps {
   onEditName: () => void;
 }
 
+/** A slim masthead: the wordmark on the left, who you are on the right.
+ * Flat ground with an ink rule under it; it owns the notch. */
 export function TopBar({ onEditName }: TopBarProps) {
   const { sessionName } = useSession();
   const isAdmin = isAdminSession(sessionName);
+  const firstName = sessionName.trim().split(/\s+/)[0] || "Set your name";
 
   return (
-    <header className="sticky top-0 z-30 border-b border-white/10 bg-pitch-950/80 px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-xl">
-      <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
-        <div>
-          <p className="font-display text-2xl font-bold leading-none">Footbolski</p>
-          <p className="mt-1 max-w-48 truncate text-xs font-semibold text-white/50">{sessionName || "No name set"}</p>
-        </div>
-        <div className="flex items-center gap-2">
+    <header className="sticky top-0 z-30 border-b-2 border-fg bg-ground pt-[env(safe-area-inset-top)]">
+      <div className="mx-auto flex h-14 max-w-lg items-center justify-between gap-3 pl-4 pr-1">
+        <Link
+          aria-label="Footbolski, next match"
+          className="font-poster text-[1.4rem] font-black leading-none tracking-tight [font-stretch:85%]"
+          to="/"
+        >
+          FOOTBOLSKI
+        </Link>
+        <div className="flex min-w-0 items-center">
           {isAdmin ? (
-            <Link aria-label="Admin" className="tap-target inline-flex items-center justify-center rounded-lg border border-pitch-400/25 bg-pitch-400/10 px-4 py-3 text-pitch-400 transition hover:bg-pitch-400/20" to="/admin">
-              <Shield size={18} />
+            <Link aria-label="Admin" className="tap-target grid place-items-center hover:bg-fg/[0.07]" to="/admin">
+              <Shield size={20} />
             </Link>
           ) : null}
-          <Button aria-label="Edit name" icon={<Settings size={18} />} onClick={onEditName} variant="secondary" />
+          <button
+            aria-label={`Signed in as ${sessionName || "nobody"}. Change name`}
+            className="tap-target flex min-w-0 items-center gap-2 px-3 text-[15px] font-semibold hover:bg-fg/[0.07]"
+            onClick={onEditName}
+            type="button"
+          >
+            <span className="truncate">{firstName}</span>
+            <UserRound className="shrink-0" size={20} />
+          </button>
         </div>
       </div>
     </header>

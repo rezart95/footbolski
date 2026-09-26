@@ -20,10 +20,10 @@ export function OfflineIndicator() {
   }
 
   return (
-    <div className="fixed inset-x-0 bottom-[calc(6rem+env(safe-area-inset-bottom))] z-50 flex justify-center px-4">
-      <div className="flex items-center gap-2 rounded-full border border-amber-300/25 bg-amber-500/20 px-4 py-2 text-xs font-extrabold text-amber-100 backdrop-blur-xl">
-        <WifiOff size={15} />
-        You're offline — showing last-saved data.
+    <div className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-50" role="status">
+      <div className="field-inverse mx-auto flex max-w-lg items-center gap-2 border-b-2 border-ground/30 px-4 py-2 text-[13px] font-semibold">
+        <WifiOff size={16} />
+        You&rsquo;re offline. Showing the last saved list.
       </div>
     </div>
   );

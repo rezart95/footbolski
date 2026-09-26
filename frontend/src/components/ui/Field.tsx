@@ -9,7 +9,7 @@ interface FieldProps {
 
 export function Field({ label, children }: FieldProps) {
   return (
-    <label className="grid gap-2 text-sm font-bold text-white/70">
+    <label className="grid gap-1.5 text-sm font-semibold text-fg">
       {label}
       {children}
     </label>
@@ -19,7 +19,7 @@ export function Field({ label, children }: FieldProps) {
 export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
-      className={cn("tap-target rounded-lg border border-white/10 bg-white/[0.07] px-3 text-base text-white outline-none focus:border-pitch-400", props.className)}
+      className={cn("tap-target w-full border-2 border-fg bg-ground px-3 text-base text-fg placeholder:text-fg/55 disabled:opacity-40", props.className)}
       {...props}
     />
   );
@@ -28,7 +28,7 @@ export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
-      className={cn("tap-target rounded-lg border border-white/10 bg-pitch-800 px-3 text-base font-semibold text-white outline-none focus:border-pitch-400", props.className)}
+      className={cn("tap-target w-full border-2 border-fg bg-ground px-3 text-base font-semibold text-fg disabled:opacity-40", props.className)}
       {...props}
     />
   );
@@ -37,7 +37,7 @@ export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
 export function Textarea(props: TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
-      className={cn("min-h-[4.5rem] rounded-lg border border-white/10 bg-white/[0.07] px-3 py-2 text-sm text-white outline-none focus:border-pitch-400 disabled:opacity-50", props.className)}
+      className={cn("min-h-[4.5rem] w-full border-2 border-fg bg-ground px-3 py-2 text-base text-fg placeholder:text-fg/55 disabled:opacity-40", props.className)}
       {...props}
     />
   );
@@ -56,11 +56,11 @@ export function Checkbox({ children, className, ...props }: CheckboxProps) {
       <input className="peer sr-only" type="checkbox" {...props} />
       <span
         aria-hidden
-        className="mt-0.5 grid h-6 w-6 flex-none place-items-center rounded-md border border-white/25 bg-white/[0.07] text-pitch-950 transition [&>svg]:opacity-0 peer-checked:border-pitch-400 peer-checked:bg-pitch-400 peer-checked:[&>svg]:opacity-100 peer-focus-visible:ring-2 peer-focus-visible:ring-pitch-400 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-offset-pitch-950"
+        className="mt-0.5 grid h-6 w-6 flex-none place-items-center border-2 border-fg bg-ground text-ground transition-colors duration-150 [&>svg]:opacity-0 peer-checked:bg-fg peer-checked:[&>svg]:opacity-100 peer-focus-visible:outline peer-focus-visible:outline-[3px] peer-focus-visible:outline-offset-2 peer-focus-visible:outline-fg peer-disabled:opacity-40"
       >
         <Check className="transition" size={16} strokeWidth={3} />
       </span>
-      <span className="text-sm font-semibold leading-snug text-white/75">{children}</span>
+      <span className="text-[15px] font-medium leading-snug text-fg">{children}</span>
     </label>
   );
 }

@@ -50,7 +50,7 @@ export function AdminPage() {
 
   return (
     <div className="grid gap-5">
-      <PageHeader eyebrow="Admin" title="Manage squad" />
+      <PageHeader title="Manage squad" />
       <Notice>Edit scouting notes or remove a player card. Removing a card keeps past events and line-ups intact — it just unlinks the card.</Notice>
 
       <Input

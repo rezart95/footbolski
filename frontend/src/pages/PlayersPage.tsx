@@ -47,7 +47,6 @@ export function PlayersPage() {
   return (
     <div className="grid gap-5">
       <PageHeader
-        eyebrow="Squad"
         title="Players"
         action={
           isEditor ? (
@@ -61,7 +60,7 @@ export function PlayersPage() {
         </Notice>
       ) : null}
       {canSelfCreate ? (
-        <Button variant="secondary" onClick={openMyCard}>Create My Card</Button>
+        <Button variant="secondary" onClick={openMyCard}>Create my card</Button>
       ) : null}
       {!isEditor && myCard ? (
         <Notice>Player cards are read-only for the moment.</Notice>

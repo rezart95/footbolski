@@ -3,26 +3,31 @@ import { NavLink } from "react-router-dom";
 import { cn } from "../../lib/utils";
 
 const items = [
-  { to: "/", label: "Home", icon: Home },
+  { to: "/", label: "Match", icon: Home },
   { to: "/events", label: "Events", icon: CalendarDays },
   { to: "/pitch", label: "Pitch", icon: LayoutGrid },
   { to: "/players", label: "Players", icon: UsersRound },
 ];
 
+/** An ink bar across the foot of the screen. The current tab is cut out of
+ * it in the page's own ground, so it reads as the page you are on. */
 export function BottomNav() {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 px-3 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
-      <div className="surface mx-auto grid max-w-lg grid-cols-4 gap-1 rounded-lg bg-pitch-950/90 p-1 backdrop-blur-xl">
+    <nav aria-label="Main" className="field-inverse fixed inset-x-0 bottom-0 z-40 pb-[env(safe-area-inset-bottom)]">
+      <div className="mx-auto grid max-w-lg grid-cols-4">
         {items.map(({ to, label, icon: Icon }) => (
           <NavLink
             className={({ isActive }) =>
-              cn("tap-target grid place-items-center rounded-md text-xs font-bold text-white/55 transition active:scale-95", isActive && "bg-pitch-400 text-pitch-950")
+              cn(
+                "tap-target flex h-16 flex-col items-center justify-center gap-1 text-[13px] font-semibold transition-colors duration-150",
+                isActive ? "bg-ground text-fg" : "text-ground/80 hover:text-ground"
+              )
             }
             end={to === "/"}
             key={to}
             to={to}
           >
-            <Icon size={20} />
+            <Icon size={22} strokeWidth={2} />
             {label}
           </NavLink>
         ))}

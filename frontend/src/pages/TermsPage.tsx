@@ -7,7 +7,7 @@ export function TermsPage() {
   return (
     <div className="grid gap-5">
       <div className="grid gap-1">
-        <PageHeader eyebrow="Footbolski" title="Terms and Conditions" />
+        <PageHeader title="Terms and Conditions" />
         <p className="text-sm font-semibold text-white/45">
           In effect from {TERMS_EFFECTIVE_DATE}
         </p>

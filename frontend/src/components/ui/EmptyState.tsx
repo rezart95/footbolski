@@ -4,14 +4,18 @@ interface EmptyStateProps {
   title: string;
   detail?: string;
   action?: ReactNode;
+  /** Optional drawing set above the title, e.g. the still split ball. */
+  art?: ReactNode;
 }
 
-export function EmptyState({ title, detail, action }: EmptyStateProps) {
+/** An empty screen that says what goes here and how to put it there. */
+export function EmptyState({ title, detail, action, art }: EmptyStateProps) {
   return (
-    <div className="surface grid gap-4 rounded-lg p-6 text-center">
+    <div className="grid gap-5 py-6">
+      {art}
       <div>
-        <h2 className="font-display text-2xl font-bold">{title}</h2>
-        {detail ? <p className="mt-2 text-sm text-white/60">{detail}</p> : null}
+        <h2 className="t-headline text-[2.4rem]">{title}</h2>
+        {detail ? <p className="mt-3 max-w-[38ch] text-[17px] leading-relaxed text-fg/80">{detail}</p> : null}
       </div>
       {action ? <div>{action}</div> : null}
     </div>

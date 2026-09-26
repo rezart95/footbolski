@@ -15,6 +15,8 @@ import { AdminPage } from "./pages/AdminPage";
 import { TermsPage } from "./pages/TermsPage";
 import { LandingPage } from "./pages/LandingPage";
 import { useSession } from "./hooks/useSession";
+import "@fontsource-variable/anybody/standard.css";
+import "@fontsource-variable/schibsted-grotesk";
 import "./index.css";
 
 // Reload the page whenever a new service worker takes control so users

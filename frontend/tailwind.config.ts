@@ -21,11 +21,22 @@ export default {
           red: "#D2231A",
           blue: "#1C2E91",
           ochre: "#E8A317"
+        },
+        // App semantics. `ground` and `fg` swap between paper and ink with the
+        // phone's colour scheme (see the :root vars in index.css); `team`
+        // colours are the two team inks tuned for text on either ground.
+        ground: "rgb(var(--c-ground) / <alpha-value>)",
+        fg: "rgb(var(--c-fg) / <alpha-value>)",
+        team: {
+          red: "rgb(var(--c-team-red) / <alpha-value>)",
+          blue: "rgb(var(--c-team-blue) / <alpha-value>)"
         }
       },
       fontFamily: {
-        body: ["Inter", "system-ui", "sans-serif"],
-        display: ["Space Grotesk", "Inter", "system-ui", "sans-serif"],
+        // `body`/`display` are the pre-redesign names still used by screens
+        // awaiting migration; both now resolve to the system's text face.
+        body: ["Schibsted Grotesk Variable", "system-ui", "sans-serif"],
+        display: ["Schibsted Grotesk Variable", "system-ui", "sans-serif"],
         poster: ["Anybody Variable", "system-ui", "sans-serif"],
         grotesk: ["Schibsted Grotesk Variable", "system-ui", "sans-serif"]
       },
