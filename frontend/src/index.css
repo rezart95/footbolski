@@ -40,3 +40,102 @@
     box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
   }
 }
+
+/* ---- Landing page (poster world). Scoped to .landing until the app redesign. ---- */
+@layer components {
+  .landing ::selection {
+    background: #e8a317;
+    color: #16161a;
+  }
+
+  .landing :focus-visible {
+    outline: 3px solid #16161a;
+    outline-offset: 3px;
+  }
+
+  .landing .on-dark :focus-visible,
+  .landing .bg-ink :focus-visible,
+  .landing .bg-poster-red :focus-visible,
+  .landing .bg-poster-blue :focus-visible {
+    outline-color: #f2f1ec;
+  }
+
+  /* Ticket notches: two half-circle bites out of the sides. */
+  .poster-ticket {
+    -webkit-mask:
+      radial-gradient(circle 11px at 0 50%, transparent 97%, #000) left / 51% 100% no-repeat,
+      radial-gradient(circle 11px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat;
+    mask:
+      radial-gradient(circle 11px at 0 50%, transparent 97%, #000) left / 51% 100% no-repeat,
+      radial-gradient(circle 11px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat;
+  }
+
+  .google-button {
+    font-family: "Roboto", system-ui, sans-serif;
+    letter-spacing: 0.25px;
+  }
+
+  /* The signature moment: the ball's halves slide apart along the cut. The
+   * resting state is the split, so with no animation the ball is still split. */
+  .split-ball-a,
+  .split-ball-b {
+    transform-box: view-box;
+    transform-origin: 200px 204px;
+  }
+
+  .split-ball-a {
+    transform: translate(-13px, 5px) rotate(-4deg);
+    animation: split-ball-apart 1300ms cubic-bezier(0.16, 1, 0.3, 1) 250ms backwards;
+  }
+
+  .split-ball-b {
+    transform: translate(13px, -5px) rotate(3deg);
+    animation: split-ball-apart 1300ms cubic-bezier(0.16, 1, 0.3, 1) 250ms backwards;
+  }
+
+  .split-ball-still .split-ball-a,
+  .split-ball-still .split-ball-b {
+    animation: none;
+  }
+
+  @keyframes split-ball-apart {
+    from {
+      transform: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .split-ball-a,
+    .split-ball-b {
+      animation: none;
+    }
+  }
+}
+
+html.landing-chrome {
+  scrollbar-color: #16161a #f2f1ec;
+}
+
+/* Desktop hero: the ball leaves the text column, sits just under the wordmark
+ * and is cropped by the right edge of the viewport at every desktop width. */
+@media (min-width: 1024px) {
+  .landing {
+    --hero-ball-top: calc(5.5rem + (min(80rem, 100vw) - 4rem) * 0.14);
+    --hero-ball-size: min(52vw, 60rem);
+  }
+
+  .landing-hero {
+    min-height: calc(var(--hero-ball-top) + var(--hero-ball-size) - 3rem);
+  }
+
+  .landing-hero-ball.landing-hero-ball {
+    position: absolute;
+    top: var(--hero-ball-top);
+    right: -6vw;
+    width: var(--hero-ball-size);
+    height: auto;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+  }
+}

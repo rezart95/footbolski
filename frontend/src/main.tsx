@@ -13,6 +13,8 @@ import { PitchPage } from "./pages/PitchPage";
 import { PlayersPage } from "./pages/PlayersPage";
 import { AdminPage } from "./pages/AdminPage";
 import { TermsPage } from "./pages/TermsPage";
+import { LandingPage } from "./pages/LandingPage";
+import { useSession } from "./hooks/useSession";
 import "./index.css";
 
 // Reload the page whenever a new service worker takes control so users
@@ -33,10 +35,16 @@ if ("serviceWorker" in navigator) {
  * banner would sit above the answer the player tapped for, in a browser that
  * often cannot install a PWA at all. They use the bare LinkLayout instead. */
 function App() {
+  const { isSessionSet } = useSession();
+
   return (
     <Routes>
       <Route path="/invite/:token" element={<InviteConfirmPage />} />
       <Route path="/motm/:token" element={<MotmBallotPage />} />
+      {/* The root is the public landing page for anyone this browser doesn't
+          know yet; members (and the installed PWA, which always has a name)
+          go straight to the app's home. */}
+      {!isSessionSet && <Route path="/" element={<LandingPage />} />}
       <Route
         path="*"
         element={
