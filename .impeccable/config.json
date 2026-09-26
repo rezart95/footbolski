@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "roboto",
+        "createdAt": "2026-09-26T15:23:13.528Z",
+        "reason": "Claude: Google Sign-In branding guidelines specify Roboto Medium for the Continue with Google button (.google-button only)"
+      }
+    ]
+  }
+}
