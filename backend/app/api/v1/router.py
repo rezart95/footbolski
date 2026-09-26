@@ -9,6 +9,7 @@ from app.api.v1 import (
     links,
     players,
     registrations,
+    stats,
     teams,
     uploads,
     venues,
@@ -24,6 +25,7 @@ api_router.include_router(venues.router)
 api_router.include_router(players.router)
 api_router.include_router(events.router)
 api_router.include_router(registrations.router)
+api_router.include_router(stats.router)
 api_router.include_router(teams.router)
 api_router.include_router(uploads.router)
 api_router.include_router(webhooks.router)
