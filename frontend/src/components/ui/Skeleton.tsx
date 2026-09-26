@@ -2,7 +2,7 @@ import { cn } from "../../lib/utils";
 
 /** A single placeholder block: flat ink at low opacity, square like the rest. */
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse bg-fg/10", className)} />;
+  return <div className={cn("animate-pulse bg-fg/10 motion-reduce:animate-none", className)} />;
 }
 
 /** Placeholder shaped like an EventCard, shown while events load. */

@@ -1,12 +1,12 @@
-import { CalendarDays, Home, LayoutGrid, UsersRound } from "lucide-react";
+import { CalendarDays, Home, UserRound, UsersRound } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { cn } from "../../lib/utils";
 
 const items = [
   { to: "/", label: "Match", icon: Home },
-  { to: "/events", label: "Events", icon: CalendarDays },
-  { to: "/pitch", label: "Pitch", icon: LayoutGrid },
+  { to: "/events", label: "Matches", icon: CalendarDays },
   { to: "/players", label: "Players", icon: UsersRound },
+  { to: "/you", label: "You", icon: UserRound },
 ];
 
 /** An ink bar across the foot of the screen. The current tab is cut out of

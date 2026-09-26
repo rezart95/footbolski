@@ -108,6 +108,9 @@
     outline-color: #16161a;
   }
 
+  /* Old-world glass panel. Kept ONLY for the frozen MOTM ballot page
+   * (MotmBallotPage.tsx), which is deliberately not being redesigned. Do not
+   * use it anywhere else; delete it when MOTM is revived in the new system. */
   .surface {
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.035));
@@ -115,7 +118,7 @@
   }
 }
 
-/* ---- Landing page (poster world). Scoped to .landing until the app redesign. ---- */
+/* ---- Landing page only: its own selection, focus and ticket details (it stays paper in both schemes). ---- */
 @layer components {
   .landing ::selection {
     background: #e8a317;

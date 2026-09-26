@@ -33,8 +33,8 @@ export default {
         }
       },
       fontFamily: {
-        // `body`/`display` are the pre-redesign names still used by screens
-        // awaiting migration; both now resolve to the system's text face.
+        // `body`/`display` are legacy aliases kept for the frozen MOTM page;
+        // both resolve to the system's text face. New code uses `grotesk`.
         body: ["Schibsted Grotesk Variable", "system-ui", "sans-serif"],
         display: ["Schibsted Grotesk Variable", "system-ui", "sans-serif"],
         poster: ["Anybody Variable", "system-ui", "sans-serif"],

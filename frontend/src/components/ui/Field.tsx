@@ -25,6 +25,17 @@ export function Input(props: InputHTMLAttributes<HTMLInputElement>) {
   );
 }
 
+/** A 1-10 style slider: native range input, drawn in ink via accent-color. */
+export function Range(props: Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
+  return (
+    <input
+      {...props}
+      className={cn("tap-target w-full cursor-pointer accent-fg disabled:cursor-default disabled:opacity-60", props.className)}
+      type="range"
+    />
+  );
+}
+
 export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select

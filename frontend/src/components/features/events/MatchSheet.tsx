@@ -7,6 +7,7 @@ import { PaymentHandle } from "./PaymentHandle";
 import { AIInsightsPanel } from "../teams/AIInsightsPanel";
 import { TeamDisplay } from "../teams/TeamDisplay";
 import { TeamSplitButton } from "../teams/TeamSplitButton";
+import { SplitBall } from "../landing/SplitBall";
 import { PaymentToggle } from "../payment/PaymentToggle";
 import { RemindButton } from "../registration/RemindButton";
 import { RemindModal } from "../registration/RemindModal";
@@ -151,8 +152,10 @@ export function MatchSheet({ event }: { event: EventSummary }) {
         <h1 className="t-headline break-words text-[3.4rem] uppercase leading-[0.88]">{format(date, "EEEE")}</h1>
         <div className="mt-3 flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-[18px] font-semibold tabular-nums">
-              {format(date, "dd-MMMM-yyyy")} · {event.event_time.slice(0, 5)}
+            {/* Date and time wrap as two whole pieces, never leaving a stray separator. */}
+            <p className="flex flex-wrap gap-x-3 text-[18px] font-semibold tabular-nums">
+              <span className="whitespace-nowrap">{format(date, "dd-MMMM-yyyy")}</span>
+              <span className="whitespace-nowrap">{event.event_time.slice(0, 5)}</span>
             </p>
             {event.venue.address ? (
               <a
@@ -163,7 +166,14 @@ export function MatchSheet({ event }: { event: EventSummary }) {
               >
                 <MapPin className="mt-0.5 shrink-0" size={18} />
                 <span>
-                  <span className="font-semibold">{event.venue.name}</span>, {streetAddress(event.venue.address)}
+                  <span className="font-semibold">{event.venue.name}</span>
+                  {streetAddress(event.venue.address)
+                    .split(",")
+                    .map((part) => (
+                      <span key={part}>
+                        , <span className="whitespace-nowrap">{part.trim()}</span>
+                      </span>
+                    ))}
                 </span>
               </a>
             ) : (
@@ -180,11 +190,6 @@ export function MatchSheet({ event }: { event: EventSummary }) {
             <AddToCalendar event={event} />
           </div>
         </div>
-        {isCancelled || isCompleted ? (
-          <p className="t-title mt-4 inline-block -rotate-2 border-[3px] border-fg px-3 py-1 text-[1.2rem] uppercase tracking-wide">
-            {isCancelled ? "Cancelled" : "Full time"}
-          </p>
-        ) : null}
       </header>
 
       {/* You: the answer before anything else. */}
@@ -223,7 +228,7 @@ export function MatchSheet({ event }: { event: EventSummary }) {
               <li
                 className={cn(
                   "flex min-h-[3.75rem] items-center gap-3 border-b border-fg/20 py-1.5",
-                  isMe && "-mx-2 bg-fg/[0.07] px-2"
+                  isMe && "field-inverse -mx-2 px-2"
                 )}
                 key={registration.id}
               >
@@ -234,12 +239,14 @@ export function MatchSheet({ event }: { event: EventSummary }) {
                 </span>
                 {isCreator && !registration.has_paid ? (
                   <RemindButton
+                    inverse={isMe}
                     disabled={actions.payment.isPending}
                     name={registration.display_name}
                     onClick={() => setRemindTarget(registration)}
                   />
                 ) : null}
                 <PaymentToggle
+                  inverse={isMe}
                   disabled={actions.payment.isPending}
                   name={registration.display_name}
                   paid={registration.has_paid}
@@ -276,7 +283,7 @@ export function MatchSheet({ event }: { event: EventSummary }) {
 
       {/* The money: ochre, because it is money. */}
       {hasMoney ? (
-        <section aria-labelledby={`money-${event.id}`} className="field-money -mx-4 px-4 py-6">
+        <section aria-labelledby={`money-${event.id}`} className="field-money poster-ticket -mx-4 px-5 py-6">
           <h2 className="sr-only" id={`money-${event.id}`}>
             Payment
           </h2>
@@ -305,11 +312,6 @@ export function MatchSheet({ event }: { event: EventSummary }) {
               <p className="text-[16px] font-bold tabular-nums">
                 {paidCount} of {confirmedCount} paid
               </p>
-              <div aria-hidden="true" className="flex flex-wrap gap-1">
-                {confirmed.map((r) => (
-                  <span className={cn("h-3 w-3 rounded-full border-2 border-ink", r.has_paid && "bg-ink")} key={r.id} />
-                ))}
-              </div>
             </div>
           ) : null}
         </section>
@@ -321,9 +323,22 @@ export function MatchSheet({ event }: { event: EventSummary }) {
           <h2 className="t-headline border-b-2 border-fg pb-2 text-[2.1rem]" id={`teams-${event.id}`}>
             Teams
           </h2>
-          {teams?.length ? (
+          {teamActions.generate.isPending ? (
+            <div aria-live="polite" className="mt-5 flex items-center gap-4">
+              <SplitBall className="w-20 shrink-0" />
+              <div>
+                <p className="t-title text-[1.35rem]">Splitting the teams…</p>
+                <p className="mt-1 text-[15px] text-fg/75">Claude is weighing everyone&rsquo;s card. It takes a few seconds.</p>
+              </div>
+            </div>
+          ) : teams?.length ? (
             <div className="mt-5 grid gap-5">
-              <TeamDisplay editable={isCreator} playersPerSide={event.venue.players_per_side} teams={teams} />
+              <TeamDisplay
+                editable={isCreator}
+                onUpdateFormation={(payload) => teamActions.formation.mutate(payload)}
+                playersPerSide={event.venue.players_per_side}
+                teams={teams}
+              />
               {event.ai_reasoning ? (
                 <AIInsightsPanel reasoning={event.ai_reasoning} swapOptions={event.ai_swap_options} />
               ) : null}

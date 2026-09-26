@@ -1,36 +1,394 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-26T12:00:00Z",
+  "generatedAt": "2026-09-26T18:00:00Z",
   "title": "Design System: Footbolski",
   "extensions": {
     "colorMeta": {
-      "paper": { "role": "neutral", "displayName": "Poster Paper", "canonical": "oklch(95.8% 0.007 97)", "tonalRamp": ["#0C0B08", "#252420", "#41403C", "#5E5E59", "#7E7D79", "#9F9E9A", "#C5C4BF", "#EFEEEC"] },
-      "ink": { "role": "neutral", "displayName": "Print Ink", "canonical": "oklch(20.2% 0.008 285)", "tonalRamp": ["#0B0B0E", "#232428", "#3F3F44", "#5D5D62", "#7D7D82", "#9E9EA3", "#C3C3C9", "#EEEEF0"] },
-      "poster-red": { "role": "primary", "displayName": "Team Red", "canonical": "oklch(55.6% 0.209 29)", "tonalRamp": ["#410000", "#680000", "#8F0000", "#B70000", "#DE3327", "#FF5C4B", "#FF8570", "#FFDACE"] },
-      "poster-blue": { "role": "primary", "displayName": "Ultramarine", "canonical": "oklch(36.1% 0.163 268)", "tonalRamp": ["#0A004F", "#0C0771", "#1E3194", "#3853B8", "#5575DD", "#7497FF", "#98BEFF", "#DCEEFF"] },
-      "poster-ochre": { "role": "secondary", "displayName": "Money Ochre", "canonical": "oklch(76.3% 0.155 77)", "tonalRamp": ["#290000", "#490900", "#6A2C00", "#8C4C00", "#AF6D00", "#D38F00", "#FBB537", "#FFEAC0"] }
+      "paper": {
+        "role": "neutral",
+        "displayName": "Poster Paper",
+        "canonical": "oklch(95.8% 0.007 97)",
+        "tonalRamp": [
+          "#0C0B08",
+          "#252420",
+          "#41403C",
+          "#5E5E59",
+          "#7E7D79",
+          "#9F9E9A",
+          "#C5C4BF",
+          "#EFEEEC"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Print Ink",
+        "canonical": "oklch(20.2% 0.008 285)",
+        "tonalRamp": [
+          "#0B0B0E",
+          "#232428",
+          "#3F3F44",
+          "#5D5D62",
+          "#7D7D82",
+          "#9E9EA3",
+          "#C3C3C9",
+          "#EEEEF0"
+        ]
+      },
+      "poster-red": {
+        "role": "primary",
+        "displayName": "Team Red",
+        "canonical": "oklch(55.6% 0.209 29)",
+        "tonalRamp": [
+          "#410000",
+          "#680000",
+          "#8F0000",
+          "#B70000",
+          "#DE3327",
+          "#FF5C4B",
+          "#FF8570",
+          "#FFDACE"
+        ]
+      },
+      "poster-blue": {
+        "role": "primary",
+        "displayName": "Ultramarine",
+        "canonical": "oklch(36.1% 0.163 268)",
+        "tonalRamp": [
+          "#0A004F",
+          "#0C0771",
+          "#1E3194",
+          "#3853B8",
+          "#5575DD",
+          "#7497FF",
+          "#98BEFF",
+          "#DCEEFF"
+        ]
+      },
+      "poster-ochre": {
+        "role": "secondary",
+        "displayName": "Money Ochre",
+        "canonical": "oklch(76.3% 0.155 77)",
+        "tonalRamp": [
+          "#290000",
+          "#490900",
+          "#6A2C00",
+          "#8C4C00",
+          "#AF6D00",
+          "#D38F00",
+          "#FBB537",
+          "#FFEAC0"
+        ]
+      },
+      "team-red-night": {
+        "role": "primary",
+        "displayName": "Night Red",
+        "canonical": "rgb(255 122 108)",
+        "tonalRamp": [
+          "#410000",
+          "#680000",
+          "#8F0000",
+          "#B70000",
+          "#DE3327",
+          "#FF5C4B",
+          "#FF8570",
+          "#FFDACE"
+        ]
+      },
+      "team-blue-night": {
+        "role": "primary",
+        "displayName": "Night Blue",
+        "canonical": "rgb(156 174 255)",
+        "tonalRamp": [
+          "#0A004F",
+          "#0C0771",
+          "#1E3194",
+          "#3853B8",
+          "#5575DD",
+          "#7497FF",
+          "#98BEFF",
+          "#DCEEFF"
+        ]
+      }
     },
     "typographyMeta": {
-      "display": { "displayName": "Display", "purpose": "Hero headline, one short sentence per line; Anybody condensed to 72% width." },
-      "numeral": { "displayName": "Numeral", "purpose": "A single poster-sized figure such as the match price." },
-      "headline": { "displayName": "Headline", "purpose": "The one statement heading each poster section." },
-      "statement": { "displayName": "Statement", "purpose": "Proof set as a display sentence instead of stat tiles." },
-      "title": { "displayName": "Title", "purpose": "Ticket labels and team names." },
-      "lead": { "displayName": "Lead", "purpose": "Hero explanation, max 38ch." },
-      "body": { "displayName": "Body", "purpose": "Section copy in ink at 80-85% opacity, max 46-56ch." },
-      "label": { "displayName": "Label", "purpose": "Sample-data captions in reduced ink." }
+      "display": {
+        "displayName": "Display",
+        "purpose": "Hero headline, one short sentence per line; Anybody condensed to 72% width."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Any figure that is the answer (.t-numeral): landing price, owed total, match price, skill, counts, fixture days."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "The poster voice for every heading (.t-headline): landing sections, page headers, empty states, modal titles; size set per use."
+      },
+      "statement": {
+        "displayName": "Statement",
+        "purpose": "Proof set as a display sentence instead of stat tiles."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Sub-sections, team names, the you strip, ticket labels (.t-title)."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "Hero explanation, max 38ch."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Explanatory copy at fg 75-85%, max 38-65ch."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Captions, stat abbreviations, the 'You' tag, month under a fixture day. Labels data; never an eyebrow."
+      },
+      "sheet-heading": {
+        "displayName": "Sheet Heading",
+        "purpose": "The match's weekday at the top of the match sheet, uppercase; also 'Called off' on an invite."
+      },
+      "section-headline": {
+        "displayName": "Section Headline",
+        "purpose": "'The list', 'Teams', 'Your matches', position groups, over a 2px fg rule."
+      },
+      "app-numeral": {
+        "displayName": "Count Numeral",
+        "purpose": "Counts set beside section headlines (13/14, squad sizes)."
+      },
+      "datum": {
+        "displayName": "Datum",
+        "purpose": "Names in lists and panels, dates, times, venue; tabular digits."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Button and chip labels."
+      }
     },
     "shadows": [],
     "motion": [
-      { "name": "split-ball-apart", "value": "1300ms cubic-bezier(0.16, 1, 0.3, 1) 250ms backwards", "purpose": "The signature entrance: the split ball's halves start joined and slide apart along the cut (to translate(+/-13px, +/-5px), rotate -4deg/3deg). Resting state is the split; disabled under prefers-reduced-motion and on still repeats." }
+      {
+        "name": "split-ball-apart",
+        "value": "1300ms cubic-bezier(0.16, 1, 0.3, 1) 250ms backwards",
+        "purpose": "The signature entrance: the split ball's halves start joined and slide apart along the cut (to translate(+/-13px, +/-5px), rotate -4deg/3deg). Resting state is the split; disabled under prefers-reduced-motion and on still repeats."
+      },
+      {
+        "name": "control-colour",
+        "value": "150ms ease (background-color, color, border)",
+        "purpose": "Every control's hover and state change: buttons, paid chip, tabs, checkboxes, choice chips."
+      },
+      {
+        "name": "press-nudge",
+        "value": "translateY(1px) on :active",
+        "purpose": "Buttons settle 1px when pressed."
+      },
+      {
+        "name": "token-drag",
+        "value": "transform 150ms ease; scale(1.1) while dragging",
+        "purpose": "Pitch tokens follow the finger and snap into place."
+      },
+      {
+        "name": "disclosure",
+        "value": "rotate(180deg) 200ms",
+        "purpose": "The chevron on 'Why these teams' and admin player rows."
+      },
+      {
+        "name": "skeleton-pulse",
+        "value": "Tailwind animate-pulse (2s cubic-bezier(0.4, 0, 0.6, 1) infinite)",
+        "purpose": "Loading placeholders: flat fg at 10%. Stops under prefers-reduced-motion (motion-reduce:animate-none), resting as a flat block."
+      }
     ],
     "breakpoints": [
-      { "name": "sm", "value": "640px" },
-      { "name": "md", "value": "768px" },
-      { "name": "lg", "value": "1024px" }
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "app-column",
+        "value": "512px (max width of the app column)"
+      }
+    ],
+    "schemes": {
+      "note": "App tokens are RGB triplets on :root in frontend/src/index.css, swapped by prefers-color-scheme and exposed in Tailwind as ground, fg, team.red, team.blue. The landing stays on fixed paper/ink.",
+      "light": {
+        "--c-ground": "242 241 236",
+        "--c-fg": "22 22 26",
+        "--c-team-red": "210 35 26",
+        "--c-team-blue": "28 46 145"
+      },
+      "dark": {
+        "--c-ground": "22 22 26",
+        "--c-fg": "242 241 236",
+        "--c-team-red": "255 122 108",
+        "--c-team-blue": "156 174 255"
+      },
+      "themeColor": {
+        "light": "#F2F1EC",
+        "dark": "#16161A"
+      }
+    },
+    "fields": [
+      {
+        "name": "field-inverse",
+        "value": "background: rgb(var(--c-fg)); color: rgb(var(--c-ground))",
+        "purpose": "You strip, your row, errors, tab bar, install/update/offline bars; focus outline flips to ground."
+      },
+      {
+        "name": "field-money",
+        "value": "background: #E8A317; color: #16161A",
+        "purpose": "Money only, same in both schemes; focus outline ink."
+      },
+      {
+        "name": "poster-ticket",
+        "value": "two 11px radial-gradient notches via mask",
+        "purpose": "Landing CTA ticket and the match sheet money block."
+      },
+      {
+        "name": "scrim",
+        "value": "rgba(22, 22, 26, 0.6)",
+        "purpose": "The only translucent layer: behind an open modal sheet."
+      }
+    ],
+    "focus": [
+      {
+        "name": "app",
+        "value": "outline: 3px solid rgb(var(--c-fg)); outline-offset: 2px",
+        "purpose": "Every control in the app."
+      },
+      {
+        "name": "landing",
+        "value": "outline: 3px solid #16161A; outline-offset: 3px (paper on ink/red/blue)",
+        "purpose": "Landing controls."
+      }
+    ],
+    "legacy": [
+      {
+        "name": "pitch-950..pitch-400",
+        "value": "#0A1A0F, #111D14, #17291C, #213625, #2C8B49, #3DDB6A",
+        "purpose": "Do not use. Frozen MOTM ballot only."
+      },
+      {
+        "name": "shadow-glow",
+        "value": "0 0 0 1px rgba(61, 219, 106, 0.16), 0 20px 60px rgba(0, 0, 0, 0.24)",
+        "purpose": "Do not use. Legacy."
+      },
+      {
+        "name": ".surface",
+        "value": "glass gradient panel with 0 18px 60px shadow",
+        "purpose": "Do not use. Frozen MOTM ballot only."
+      },
+      {
+        "name": "font-body / font-display",
+        "value": "aliases of Schibsted Grotesk",
+        "purpose": "Do not use; use font-grotesk / font-poster."
+      }
+    ],
+    "rasters": [
+      {
+        "name": "app icons",
+        "value": "frontend/public/icons/icon-*.png, apple-touch-icon.png",
+        "purpose": "Rendered from the SplitBall SVG; provenance embedded (tEXt impeccable:prompt)."
+      },
+      {
+        "name": "whatsapp-profile-640.png",
+        "value": "frontend/public/icons",
+        "purpose": "Pre-existing old-world asset; provenance embedded."
+      },
+      {
+        "name": "player photos",
+        "value": "MinIO uploads",
+        "purpose": "The one raster content type: full colour, untreated, in square 2px frames."
+      }
     ]
   },
   "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Square fg field with a ground label; the main action on any screen.",
+      "html": "<button type=\"button\" class=\"ds-btn ds-btn-primary\">Split the teams</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; min-width: 48px; padding: 12px 16px; font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; font-size: 15px; font-weight: 700; border: 0; border-radius: 0; cursor: pointer; transition: background-color 150ms, transform 150ms; } .ds-btn:active { transform: translateY(1px); } .ds-btn:focus-visible { outline: 3px solid rgb(var(--c-fg, 22 22 26)); outline-offset: 2px; } .ds-btn-primary { background: rgb(var(--c-fg, 22 22 26)); color: rgb(var(--c-ground, 242 241 236)); } .ds-btn-primary:hover { background: rgb(var(--c-fg, 22 22 26) / 0.85); }"
+    },
+    {
+      "name": "Secondary and Danger Buttons",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "2px fg outline; danger adds an underline and always sits behind a confirm. Never red.",
+      "html": "<div class=\"ds-row\"><button type=\"button\" class=\"ds-btn ds-btn-secondary\">Keep the match</button><button type=\"button\" class=\"ds-btn ds-btn-secondary ds-btn-danger\">Cancel match</button></div>",
+      "css": ".ds-row { display: flex; flex-wrap: wrap; gap: 12px; background: rgb(var(--c-ground, 242 241 236)); padding: 16px; } .ds-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; min-width: 48px; padding: 12px 16px; font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; font-size: 15px; font-weight: 700; border: 0; border-radius: 0; cursor: pointer; transition: background-color 150ms, transform 150ms; } .ds-btn:active { transform: translateY(1px); } .ds-btn:focus-visible { outline: 3px solid rgb(var(--c-fg, 22 22 26)); outline-offset: 2px; } .ds-btn-secondary { background: transparent; color: rgb(var(--c-fg, 22 22 26)); border: 2px solid rgb(var(--c-fg, 22 22 26)); } .ds-btn-secondary:hover { background: rgb(var(--c-fg, 22 22 26) / 0.07); } .ds-btn-danger { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 0.2em; }"
+    },
+    {
+      "name": "You Strip",
+      "kind": "card",
+      "refersTo": "you-strip",
+      "description": "The match sheet's answer: an inverted field with your status and one inverse action.",
+      "html": "<section class=\"ds-strip\"><div><p class=\"ds-strip-title\">You’re not in yet</p><p class=\"ds-strip-detail\">3 spots left.</p></div><button type=\"button\" class=\"ds-btn-inverse\">Join</button></section>",
+      "css": ".ds-strip { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 16px; padding: 16px; background: rgb(var(--c-fg, 22 22 26)); color: rgb(var(--c-ground, 242 241 236)); font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; } .ds-strip-title { margin: 0; font-family: 'Anybody Variable', system-ui, sans-serif; font-size: 1.6rem; font-weight: 800; font-stretch: 80%; line-height: 1.15; } .ds-strip-detail { margin: 4px 0 0; font-size: 16px; font-weight: 500; color: rgb(var(--c-ground, 242 241 236) / 0.85); } .ds-btn-inverse { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; min-width: 48px; padding: 12px 16px; font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; font-size: 15px; font-weight: 700; border: 0; border-radius: 0; cursor: pointer; transition: background-color 150ms, transform 150ms; background: rgb(var(--c-ground, 242 241 236)); color: rgb(var(--c-fg, 22 22 26)); } .ds-btn-inverse:hover { background: rgb(var(--c-ground, 242 241 236) / 0.85); } .ds-btn-inverse:active { transform: translateY(1px); } .ds-btn-inverse:focus-visible { outline: 3px solid rgb(var(--c-ground, 242 241 236)); outline-offset: 2px; }"
+    },
+    {
+      "name": "The List",
+      "kind": "custom",
+      "refersTo": "paid-chip",
+      "description": "Section headline with a count numeral, numbered ruled rows, your row inverted, ochre paid chips.",
+      "html": "<section class=\"ds-list\"><div class=\"ds-list-head\"><h2>The list</h2><p class=\"ds-count\">13<span>/14</span></p></div><ol><li><span class=\"ds-pos\">6</span><span class=\"ds-name\">Kuba</span><button type=\"button\" class=\"ds-paid is-paid\" aria-pressed=\"true\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"3\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 6 9 17l-5-5\"/></svg>Paid</button></li><li class=\"is-me\"><span class=\"ds-pos\">7</span><span class=\"ds-name\">Tomás <span class=\"ds-you\">You</span></span><button type=\"button\" class=\"ds-paid\" aria-pressed=\"false\">Paid?</button></li><li><span class=\"ds-pos\">8</span><span class=\"ds-name\">Paweł</span><button type=\"button\" class=\"ds-paid\" aria-pressed=\"false\">Paid?</button></li></ol></section>",
+      "css": ".ds-list { background: rgb(var(--c-ground, 242 241 236)); color: rgb(var(--c-fg, 22 22 26)); padding: 16px; font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; } .ds-list-head { display: flex; align-items: flex-end; justify-content: space-between; border-bottom: 2px solid rgb(var(--c-fg, 22 22 26)); padding-bottom: 8px; } .ds-list-head h2, .ds-count { margin: 0; font-family: 'Anybody Variable', system-ui, sans-serif; font-size: 2.1rem; line-height: 0.95; } .ds-list-head h2 { font-weight: 850; font-stretch: 75%; letter-spacing: -0.01em; } .ds-count { font-weight: 900; font-stretch: 70%; font-variant-numeric: tabular-nums; } .ds-count span { color: rgb(var(--c-fg, 22 22 26) / 0.55); } .ds-list ol { list-style: none; margin: 0; padding: 0; } .ds-list li { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 6px 0; border-bottom: 1px solid rgb(var(--c-fg, 22 22 26) / 0.2); } .ds-list li.is-me { background: rgb(var(--c-fg, 22 22 26)); color: rgb(var(--c-ground, 242 241 236)); margin: 0 -8px; padding: 6px 8px; } .ds-pos { width: 28px; text-align: center; font-family: 'Anybody Variable', system-ui, sans-serif; font-size: 1.4rem; font-weight: 900; font-stretch: 70%; font-variant-numeric: tabular-nums; } .ds-name { flex: 1; font-size: 17px; font-weight: 600; } .ds-you { margin-left: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; } .ds-paid { display: inline-flex; align-items: center; gap: 6px; min-height: 48px; padding: 0 12px; font: 700 14px 'Schibsted Grotesk Variable', system-ui, sans-serif; background: transparent; color: inherit; border: 2px solid rgb(var(--c-fg, 22 22 26) / 0.6); border-radius: 0; cursor: pointer; transition: background-color 150ms, border-color 150ms; } .ds-paid:hover { border-color: rgb(var(--c-fg, 22 22 26)); } .is-me .ds-paid { border-color: rgb(var(--c-ground, 242 241 236) / 0.7); } .ds-paid.is-paid { background: #E8A317; color: #16161A; border-color: transparent; } .ds-paid:focus-visible { outline: 3px solid currentColor; outline-offset: 2px; }"
+    },
+    {
+      "name": "Money Ticket",
+      "kind": "card",
+      "refersTo": "money-field",
+      "description": "The ochre money block with the notch mask, price numeral and copyable payment handle.",
+      "html": "<section class=\"ds-money\"><p class=\"ds-price\">25 zł</p><p class=\"ds-meta\">per person · BLIK</p><p class=\"ds-to\">Pay to <b>Kuba</b></p><button type=\"button\" class=\"ds-handle\"><span>600 123 200</span><span class=\"ds-copy\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"8\" y=\"8\" width=\"14\" height=\"14\"/><path d=\"M4 16V4h12\"/></svg>Copy</span></button></section>",
+      "css": ".ds-money { background: #E8A317; color: #16161A; padding: 24px 20px; font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; -webkit-mask: radial-gradient(circle 11px at 0 50%, transparent 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat; mask: radial-gradient(circle 11px at 0 50%, transparent 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat; } .ds-price { margin: 0; font-family: 'Anybody Variable', system-ui, sans-serif; font-size: 3.75rem; font-weight: 900; font-stretch: 70%; line-height: 1; font-variant-numeric: tabular-nums; } .ds-meta { margin: 4px 0 0; font-size: 17px; font-weight: 600; } .ds-to { margin: 12px 0; font-size: 17px; } .ds-handle { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; min-height: 48px; padding: 0 12px; background: transparent; color: inherit; border: 2px solid currentColor; border-radius: 0; font: 700 16px 'Schibsted Grotesk Variable', system-ui, sans-serif; font-variant-numeric: tabular-nums; cursor: pointer; transition: background-color 150ms; } .ds-handle:hover { background: rgba(22, 22, 26, 0.06); } .ds-handle:focus-visible { outline: 3px solid #16161A; outline-offset: 2px; } .ds-copy { display: inline-flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 600; }"
+    },
+    {
+      "name": "Error Notice",
+      "kind": "custom",
+      "refersTo": "notice-error",
+      "description": "Errors are the ground inverted with an alert icon, never red.",
+      "html": "<div class=\"ds-notice\" role=\"alert\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.25\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3\"/><path d=\"M12 9v4\"/><path d=\"M12 17h.01\"/></svg><div>Could not join this match. Check your connection and try again.</div></div>",
+      "css": ".ds-notice { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: rgb(var(--c-fg, 22 22 26)); color: rgb(var(--c-ground, 242 241 236)); font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; font-size: 15px; font-weight: 600; line-height: 1.375; } .ds-notice svg { flex: none; margin-top: 2px; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Square 2px fg outline on the ground, label above.",
+      "html": "<label class=\"ds-field\">Venue name<input class=\"ds-input\" placeholder=\"Hala Sportowa\" /></label>",
+      "css": ".ds-field { display: grid; gap: 6px; padding: 16px; background: rgb(var(--c-ground, 242 241 236)); color: rgb(var(--c-fg, 22 22 26)); font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; font-size: 14px; font-weight: 600; } .ds-input { min-height: 48px; padding: 0 12px; background: rgb(var(--c-ground, 242 241 236)); color: rgb(var(--c-fg, 22 22 26)); border: 2px solid rgb(var(--c-fg, 22 22 26)); border-radius: 0; font: 400 16px 'Schibsted Grotesk Variable', system-ui, sans-serif; } .ds-input::placeholder { color: rgb(var(--c-fg, 22 22 26) / 0.55); } .ds-input:focus-visible { outline: 3px solid rgb(var(--c-fg, 22 22 26)); outline-offset: 2px; }"
+    },
+    {
+      "name": "Tab Bar",
+      "kind": "nav",
+      "refersTo": "tab-bar",
+      "description": "An inverted bar; the current tab is cut out in the page's own ground.",
+      "html": "<nav class=\"ds-tabs\" aria-label=\"Main\"><a href=\"#\" class=\"ds-tab is-active\" aria-current=\"page\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M3 10.5 12 3l9 7.5V21H3z\"/></svg>Match</a><a href=\"#\" class=\"ds-tab\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><rect x=\"3\" y=\"4\" width=\"18\" height=\"18\"/><path d=\"M16 2v4M8 2v4M3 10h18\"/></svg>Matches</a><a href=\"#\" class=\"ds-tab\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"9\" cy=\"8\" r=\"4\"/><path d=\"M2 21a7 7 0 0 1 14 0M16 3.1a4 4 0 0 1 0 7.8M22 21a7 7 0 0 0-5-6.7\"/></svg>Players</a><a href=\"#\" class=\"ds-tab\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><circle cx=\"12\" cy=\"8\" r=\"5\"/><path d=\"M20 21a8 8 0 0 0-16 0\"/></svg>You</a></nav>",
+      "css": ".ds-tabs { display: grid; grid-template-columns: repeat(4, 1fr); background: rgb(var(--c-fg, 22 22 26)); font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; } .ds-tab { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; height: 64px; color: rgb(var(--c-ground, 242 241 236) / 0.8); font-size: 13px; font-weight: 600; text-decoration: none; transition: color 150ms, background-color 150ms; } .ds-tab:hover { color: rgb(var(--c-ground, 242 241 236)); } .ds-tab.is-active { background: rgb(var(--c-ground, 242 241 236)); color: rgb(var(--c-fg, 22 22 26)); } .ds-tab:focus-visible { outline: 3px solid rgb(var(--c-ground, 242 241 236)); outline-offset: -3px; }"
+    },
+    {
+      "name": "Team Panels and Pitch Tokens",
+      "kind": "card",
+      "refersTo": "team-panel-red",
+      "description": "Team Red then Ultramarine fields with paper text; on the pitch, 40px circles in the same inks.",
+      "html": "<div class=\"ds-teams\"><div class=\"ds-team ds-red\"><h3>Reds</h3><ul><li><span>Kuba</span><span>GK</span></li><li><span>Tomás</span><span>DEF</span></li></ul></div><div class=\"ds-team ds-blue\"><h3>Blues</h3><ul><li><span>Paweł</span><span>GK</span></li><li><span>Rui</span><span>DEF</span></li></ul></div></div><div class=\"ds-pitch\"><span class=\"ds-token ds-red\">KB</span><span class=\"ds-token ds-blue\">PW</span></div>",
+      "css": ".ds-teams { display: grid; grid-template-columns: 1fr 1fr; font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; } .ds-team { padding: 20px; color: #F2F1EC; } .ds-red { background: #D2231A; } .ds-blue { background: #1C2E91; } .ds-team h3 { margin: 0; font-family: 'Anybody Variable', system-ui, sans-serif; font-size: 1.6rem; font-weight: 800; font-stretch: 80%; line-height: 1.15; } .ds-team ul { list-style: none; margin: 12px 0 0; padding: 0; } .ds-team li { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 8px 0; font-size: 17px; font-weight: 600; } .ds-team li + li { border-top: 1px solid rgba(242, 241, 236, 0.3); } .ds-team li span + span { font-size: 14px; font-weight: 700; letter-spacing: 0.025em; } .ds-pitch { display: flex; gap: 24px; justify-content: center; margin-top: 16px; padding: 24px; background: rgb(var(--c-ground, 242 241 236)); border: 2px solid rgb(var(--c-fg, 22 22 26)); } .ds-token { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 9999px; border: 2px solid rgb(var(--c-ground, 242 241 236)); color: #F2F1EC; font: 700 12px 'Schibsted Grotesk Variable', system-ui, sans-serif; transition: transform 150ms; cursor: grab; } .ds-token:hover { transform: scale(1.1); }"
+    },
+    {
+      "name": "Player Card",
+      "kind": "card",
+      "refersTo": "player-photo",
+      "description": "Square 2px-framed photo over an initials monogram, name with skill numeral, role line.",
+      "html": "<button type=\"button\" class=\"ds-card\"><div class=\"ds-photo\"><span>TR</span></div><div class=\"ds-card-row\"><p class=\"ds-card-name\">Tomás Rui</p><p class=\"ds-skill\">7</p></div><p class=\"ds-card-meta\">Box-to-box · 29 y · 178 cm</p></button>",
+      "css": ".ds-card { display: flex; flex-direction: column; width: 180px; padding: 0; text-align: left; background: rgb(var(--c-ground, 242 241 236)); color: rgb(var(--c-fg, 22 22 26)); border: 0; font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; cursor: pointer; } .ds-photo { display: grid; place-items: center; aspect-ratio: 1; background: rgb(var(--c-fg, 22 22 26)); color: rgb(var(--c-ground, 242 241 236)); border: 2px solid rgb(var(--c-fg, 22 22 26)); transition: border-width 150ms; } .ds-card:hover .ds-photo { border-width: 3px; } .ds-card:focus-visible { outline: 3px solid rgb(var(--c-fg, 22 22 26)); outline-offset: 2px; } .ds-photo span { font-family: 'Anybody Variable', system-ui, sans-serif; font-size: 3.25rem; font-weight: 850; font-stretch: 75%; } .ds-card-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-top: 8px; } .ds-card-name { margin: 0; font-size: 16px; font-weight: 700; line-height: 1.25; } .ds-skill { margin: 0; font-family: 'Anybody Variable', system-ui, sans-serif; font-size: 1.6rem; font-weight: 900; font-stretch: 70%; line-height: 1; } .ds-card-meta { margin: 2px 0 0; font-size: 13px; font-weight: 500; color: rgb(var(--c-fg, 22 22 26) / 0.75); }"
+    },
     {
       "name": "Ticket CTA",
       "kind": "button",
@@ -38,46 +396,6 @@
       "description": "The primary action: a notched ink ticket stub holding Google's standard sign-in button.",
       "html": "<div class=\"ds-ticket\"><p class=\"ds-ticket-label\">Run your own game</p><button type=\"button\" class=\"ds-google-btn\"><svg viewBox=\"0 0 48 48\" width=\"20\" height=\"20\" aria-hidden=\"true\"><path fill=\"#EA4335\" d=\"M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z\"/><path fill=\"#4285F4\" d=\"M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z\"/><path fill=\"#FBBC05\" d=\"M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z\"/><path fill=\"#34A853\" d=\"M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z\"/></svg><span>Continue with Google</span></button></div>",
       "css": ".ds-ticket { display: inline-block; background: #16161A; color: #F2F1EC; padding: 20px 28px; -webkit-mask: radial-gradient(circle 11px at 0 50%, transparent 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat; mask: radial-gradient(circle 11px at 0 50%, transparent 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat; } .ds-ticket-label { margin: 0; font-family: 'Anybody Variable', system-ui, sans-serif; font-size: 1.25rem; font-weight: 800; font-stretch: 80%; line-height: 1.25; } .ds-google-btn { margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 12px; height: 48px; padding: 0 16px; background: #fff; color: #1F1F1F; border: 1px solid #747775; border-radius: 4px; font-family: 'Roboto', system-ui, sans-serif; font-size: 16px; font-weight: 500; letter-spacing: 0.25px; cursor: pointer; transition: background-color 150ms; } .ds-google-btn:hover { background: #F3F3F3; } .ds-google-btn:active { background: #E8E8E8; } .ds-google-btn:focus-visible { outline: 3px solid #F2F1EC; outline-offset: 3px; }"
-    },
-    {
-      "name": "Text Link",
-      "kind": "nav",
-      "refersTo": "text-link",
-      "description": "Secondary action such as 'I already play here'; underline turns Team Red on hover.",
-      "html": "<a href=\"#\" class=\"ds-link\">I already play here</a>",
-      "css": ".ds-link { display: inline-flex; align-items: center; min-height: 48px; color: #16161A; font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; font-size: 15px; font-weight: 600; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 0.25em; transition: text-decoration-color 150ms; } .ds-link:hover { text-decoration-color: #D2231A; } .ds-link:focus-visible { outline: 3px solid #16161A; outline-offset: 3px; }"
-    },
-    {
-      "name": "Payment Handle",
-      "kind": "chip",
-      "refersTo": "payment-handle",
-      "description": "Method and masked handle in a square 2px ink chip, set on the ochre money field.",
-      "html": "<div class=\"ds-money\"><p class=\"ds-handle\"><span>BLIK</span><span class=\"ds-handle-rule\"></span><span>600 ••• 200</span></p></div>",
-      "css": ".ds-money { background: #E8A317; padding: 24px; } .ds-handle { margin: 0; display: inline-flex; align-items: center; gap: 12px; border: 2px solid #16161A; padding: 8px 12px; color: #16161A; font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; font-weight: 600; font-variant-numeric: tabular-nums; } .ds-handle-rule { width: 1px; height: 16px; background: #16161A; }"
-    },
-    {
-      "name": "Team Panels",
-      "kind": "card",
-      "refersTo": "team-panel-red",
-      "description": "The split: two edge-to-edge square fields, Team Red then Ultramarine, paper text.",
-      "html": "<div class=\"ds-teams\"><div class=\"ds-team ds-team-red\"><h3>Reds</h3><ul><li><span>Kuba</span><span>GK</span></li><li><span>Tomás</span><span>DEF</span></li></ul></div><div class=\"ds-team ds-team-blue\"><h3>Blues</h3><ul><li><span>Paweł</span><span>GK</span></li><li><span>Rui</span><span>DEF</span></li></ul></div></div>",
-      "css": ".ds-teams { display: grid; grid-template-columns: 1fr 1fr; } .ds-team { padding: 28px 24px; color: #F2F1EC; font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; } .ds-team-red { background: #D2231A; } .ds-team-blue { background: #1C2E91; } .ds-team h3 { margin: 0; font-family: 'Anybody Variable', system-ui, sans-serif; font-size: 1.875rem; font-weight: 900; font-stretch: 80%; } .ds-team ul { list-style: none; margin: 16px 0 0; padding: 0; } .ds-team li { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; font-size: 17px; font-weight: 600; } .ds-team li + li { border-top: 1px solid rgba(242, 241, 236, 0.3); } .ds-team li span + span { font-size: 14px; font-weight: 700; letter-spacing: 0.025em; }"
-    },
-    {
-      "name": "Bibs",
-      "kind": "custom",
-      "refersTo": "bib-taken",
-      "description": "List spots as training bibs: taken in solid ink, waiting in outlined paper hung at a tilt.",
-      "html": "<div class=\"ds-bibs\"><svg viewBox=\"0 0 40 46\" class=\"ds-bib\"><path class=\"ds-bib-taken\" d=\"M8 1 H15 C16.5 6 23.5 6 25 1 H32 C32.5 8 35 12 39 13 V43 C39 44.1 38.1 45 37 45 H3 C1.9 45 1 44.1 1 43 V13 C5 12 7.5 8 8 1 Z\"/><text x=\"20\" y=\"33\" text-anchor=\"middle\" class=\"ds-bib-num ds-num-paper\">7</text></svg><svg viewBox=\"0 0 40 46\" class=\"ds-bib ds-bib-tilt\"><path class=\"ds-bib-waiting\" d=\"M8 1 H15 C16.5 6 23.5 6 25 1 H32 C32.5 8 35 12 39 13 V43 C39 44.1 38.1 45 37 45 H3 C1.9 45 1 44.1 1 43 V13 C5 12 7.5 8 8 1 Z\"/><text x=\"20\" y=\"33\" text-anchor=\"middle\" class=\"ds-bib-num ds-num-ink\">15</text></svg></div>",
-      "css": ".ds-bibs { display: flex; gap: 16px; align-items: flex-end; background: #F2F1EC; padding: 16px; } .ds-bib { width: 48px; overflow: visible; } .ds-bib-tilt { transform: rotate(-6deg); } .ds-bib-taken { fill: #16161A; } .ds-bib-waiting { fill: #F2F1EC; stroke: #16161A; stroke-width: 1.6; } .ds-bib-num { font-family: 'Anybody Variable', system-ui, sans-serif; font-size: 15px; font-weight: 800; font-stretch: 80%; font-variant-numeric: tabular-nums; } .ds-num-paper { fill: #F2F1EC; } .ds-num-ink { fill: #16161A; }"
-    },
-    {
-      "name": "Payment Dots",
-      "kind": "custom",
-      "refersTo": "money-field",
-      "description": "Paid state per spot on the ochre field: filled ink circles for paid, open for unpaid.",
-      "html": "<div class=\"ds-dots\" role=\"img\" aria-label=\"4 of 6 paid\"><span class=\"ds-dot ds-paid\"></span><span class=\"ds-dot ds-paid\"></span><span class=\"ds-dot ds-paid\"></span><span class=\"ds-dot ds-paid\"></span><span class=\"ds-dot\"></span><span class=\"ds-dot\"></span></div>",
-      "css": ".ds-dots { display: flex; gap: 6px; background: #E8A317; padding: 20px; } .ds-dot { width: 24px; height: 24px; border-radius: 9999px; border: 2px solid #16161A; } .ds-paid { background: #16161A; }"
     },
     {
       "name": "Poster Headline",
@@ -90,43 +408,95 @@
   ],
   "narrative": {
     "northStar": "The Match Poster",
-    "overview": "Footbolski is printed, not rendered. Every surface is a poster from the Polish Poster School, set with discipline: flat screenprint fields of paper, ink and three pure inks, never blended, never glowing. One idea per poster, stated by one cut-paper image and one stretched headline, with the facts set in a sturdy grotesque underneath. The fair split is the brand's core picture: a football cut into a red half and a blue half.\n\nDensity is low and scale is loud. Headlines are set condensed and heavy so they fill the column like hand-lettered poster type; body copy stays calm and readable at 17px. Colour is semantic before it is decorative: red and blue are always the two teams, ochre is always money. Imagery is drawn in code as SVG cut paper (straight scissor snips, pieces cut away with masks rather than painted over), so there are no rasters, no photos, no gradients and no shadows anywhere in the world.\n\nThe previous look (dark pitch green, neon accent, glass surfaces, Space Grotesk and Inter) is an anti-reference for this system. The app surfaces outside the landing page still carry that old look and await migration to this system.",
+    "overview": "Footbolski is printed, not rendered. Every surface is a poster from the Polish Poster School, set with discipline: flat screenprint fields of paper, ink and three pure inks, never blended, never glowing. One idea per poster, stated by one cut-paper image and one stretched headline, with the facts set in a sturdy grotesque underneath. The fair split is the brand's core picture: a football cut into a red half and a blue half.\n\nThe world has two registers. The landing page is the Poster register: low density, loud scale, a run of full-width posters on paper. The app (match sheet, Matches, Players, You, Admin, Terms, the invite link) is the Operate register of the same world: one narrow column where every screen answers its question at poster scale first (your spot, what you owe, what's next) and then gives the facts, separated by ink rules rather than boxed into cards. The app follows the phone: paper ground with ink by day, ink ground with paper at night. Colour is semantic before it is decorative: red and blue are always the two teams, ochre is always money, and \"you\" is an inverted field.\n\nBrand imagery is drawn in code as SVG cut paper (straight scissor snips, pieces cut away with masks rather than painted over); the only rasters in the app are members' own photos, shown in full colour inside square ink frames, and the app icons rendered from the split ball. There are no gradients and no shadows anywhere. The previous look (dark pitch green, neon accent, glass surfaces, Space Grotesk and Inter) is an anti-reference; its last traces survive only on the frozen Man of the Match ballot, recorded under Legacy.",
     "keyCharacteristics": [
-      "Flat screenprint fields on paper; ink for everything structural.",
+      "Flat screenprint fields; ink for everything structural; paper by day, ink by night in the app.",
       "Red and blue mean the two teams; ochre means money; nothing else takes them.",
-      "Condensed, heavy display type (Anybody, width 70-88%) over a sturdy grotesque (Schibsted Grotesk).",
-      "Cut-paper SVG imagery with slightly irregular, straight-snipped edges.",
+      "\"You\" and errors are the ground inverted, never a hue.",
+      "Condensed, heavy display type (Anybody, width 70-88%) for headings and numerals only; Schibsted Grotesk for every control and datum.",
+      "Ink rules separate; cards and boxes do not.",
       "Square corners, solid ink rules, zero shadows.",
       "One signature motion: the split ball's halves slide apart along the cut."
     ],
     "rules": [
-      { "name": "The Two Teams Rule", "body": "Red is Team A and blue is Team B, always as a pair, always in that order (red left or first). Never use either for errors, warnings, brand accent or decoration unrelated to the teams.", "section": "colors" },
-      { "name": "The Money Is Ochre Rule", "body": "Ochre marks money only: prices, paid state, payment handles. The primary CTA is ink precisely because it is not a payment.", "section": "colors" },
-      { "name": "The Flat Ink Rule", "body": "Every colour is a solid field. No gradients, no glass, no glow, no tinted overlays; lower emphasis comes from ink opacity on paper, not from new colours.", "section": "colors" },
-      { "name": "The Stretch To Fill Rule", "body": "Display type is condensed and heavy so it fills the width like lettering; never set Anybody at its normal width or a light weight.", "section": "typography" },
-      { "name": "The Tabular Facts Rule", "body": "Every count, price and score uses tabular figures so numbers hold still.", "section": "typography" },
-      { "name": "The Borrowed Face Rule", "body": "Roboto appears only inside Google's standard sign-in button, as Google's branding guidelines require. It is not part of this type system.", "section": "typography" },
-      { "name": "The Nothing Floats Rule", "body": "If an element needs separation, give it a different ink field or an ink rule. Never a shadow.", "section": "elevation" }
+      {
+        "name": "The Two Teams Rule",
+        "body": "Red is Team A and blue is Team B, always as a pair, always in that order (red first, left or top). Never use either for errors, warnings, destructive actions, brand accent or decoration unrelated to the teams.",
+        "section": "colors"
+      },
+      {
+        "name": "The Money Is Ochre Rule",
+        "body": "Ochre marks money only: prices, the owed total, paid state, payment handles. The primary action is ink precisely because it is not a payment.",
+        "section": "colors"
+      },
+      {
+        "name": "The You Are Inverted Rule",
+        "body": "The member's own place (the status strip, their row in the list, their card tag, the next-match link on You) is the ground inverted: an ink field by day, a paper field at night. Errors borrow the same inversion because it is the loudest thing ink can do without a hue.",
+        "section": "colors"
+      },
+      {
+        "name": "The Flat Ink Rule",
+        "body": "Every colour is a solid field. No gradients, no glass, no glow; lower emphasis comes from `fg` opacity, not from new colours. The one translucent layer is the flat ink scrim (ink at 60%) behind an open sheet.",
+        "section": "colors"
+      },
+      {
+        "name": "The Stretch To Fill Rule",
+        "body": "Display type is condensed and heavy so it fills the width like lettering; never set Anybody at its normal width or a light weight.",
+        "section": "typography"
+      },
+      {
+        "name": "The Two Voices Rule",
+        "body": "Anybody speaks only in headings and numerals. Every control, input, label and datum is Schibsted Grotesk.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Facts Rule",
+        "body": "Every count, price, score and date uses tabular figures so numbers hold still.",
+        "section": "typography"
+      },
+      {
+        "name": "The Borrowed Face Rule",
+        "body": "Roboto appears only inside Google's standard sign-in button, as Google's branding guidelines require. It is not part of this type system (the detector ignore lives in `.impeccable/config.json`).",
+        "section": "typography"
+      },
+      {
+        "name": "The Nothing Floats Rule",
+        "body": "If an element needs separation, give it a different field, an inversion or an ink rule. Never a shadow.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Rules Not Cards Rule",
+        "body": "App content is separated by ink rules, not enclosed in bordered or filled cards. A 2px `fg` rule under a section headline, 1px rules at 20% between rows.",
+        "section": "elevation"
+      }
     ],
     "dos": [
-      "Do set every surface on Poster Paper with ink text, and switch to paper text only on ink, Team Red or Ultramarine fields.",
+      "Do paint the app with the semantic ground and foreground (paper and ink by day, swapped at night), and keep the landing on paper in both schemes.",
       "Do keep red and blue as the two teams and ochre as money, so a colour always tells the viewer which team or that money is involved.",
-      "Do draw imagery as code SVG cut paper: straight snips, pieces cut out with masks, slight irregularity, no rasters.",
-      "Do set display type in Anybody at 800-900 weight and 70-88% width, and facts in Schibsted Grotesk with tabular figures.",
+      "Do mark the member's own place, and every error, with an inverted field.",
+      "Do put destructive actions in an outlined danger button behind a confirming sheet.",
+      "Do separate app content with ink rules (2px under section headlines, 1px at 20% between rows) instead of cards.",
+      "Do answer each screen's question at poster scale first (a headline or numeral), then give the facts.",
+      "Do draw brand imagery as code SVG cut paper: straight snips, pieces cut out with masks, slight irregularity.",
+      "Do show player photos in full colour inside a square 2px frame with the initials monogram beneath.",
+      "Do set headings and numerals in Anybody at 800-900 weight and 70-88% width, and every control and datum in Schibsted Grotesk with tabular figures.",
       "Do self-host every font through @fontsource with Latin Extended coverage.",
       "Do label every invented name or lineup on a public surface as sample data.",
-      "Do keep tap targets at 48px or more and the 3px ink (or paper) focus outline on every control.",
+      "Do keep tap targets at 48px or more and the 3px focus outline on every control, flipped to the field's text colour on inverted and ochre fields.",
       "Do make any motion safe under `prefers-reduced-motion` by designing the resting state as the finished state."
     ],
     "donts": [
       "Don't use gradients, glass, glow or blur; every field is flat ink.",
-      "Don't add box or text shadows, including hard offset shadows; separation comes from fields and ink rules.",
+      "Don't add box or text shadows, including hard offset shadows; separation comes from fields, inversion and ink rules.",
       "Don't use ochre for a CTA, highlight or decoration that is not about money.",
-      "Don't use red or blue for errors, warnings or generic accent.",
-      "Don't round corners on posters, tickets, chips or panels.",
+      "Don't use red or blue for errors, warnings, destructive actions or generic accent.",
+      "Don't round corners on fields, tickets, buttons, chips, inputs, sheets, frames or panels; circles are for payment dots and pitch tokens only.",
+      "Don't put a small label or eyebrow above a headline; the headline carries itself.",
+      "Don't use a spinner for the team split; the split ball is the waiting state.",
       "Don't load fonts from the Google Fonts CDN, and don't add Roboto anywhere except inside Google's sign-in button.",
+      "Don't use the legacy pitch-green colours, the glow shadow, the glass surface or the old font aliases; they exist only for the frozen MOTM ballot.",
       "Don't bring back the dark pitch ground, neon green accent, Space Grotesk or Inter.",
-      "Don't replace a proof sentence with a row of stat tiles, or the hero with a phone mockup and feature tiles."
+      "Don't replace a proof sentence with a row of stat tiles, or a screen's answer with a grid of equal cards."
     ]
   }
 }

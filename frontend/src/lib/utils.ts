@@ -11,8 +11,3 @@ export function initials(name: string) {
     .join("");
 }
 
-export function colorFromName(name: string) {
-  const colors = ["bg-emerald-500", "bg-lime-500", "bg-cyan-500", "bg-sky-500", "bg-amber-500"];
-  const sum = [...name].reduce((total, char) => total + char.charCodeAt(0), 0);
-  return colors[sum % colors.length];
-}

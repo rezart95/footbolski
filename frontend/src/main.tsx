@@ -9,10 +9,10 @@ import { EventDetailPage } from "./pages/EventDetailPage";
 import { EventsListPage } from "./pages/EventsListPage";
 import { InviteConfirmPage } from "./pages/InviteConfirmPage";
 import { MotmBallotPage } from "./pages/MotmBallotPage";
-import { PitchPage } from "./pages/PitchPage";
 import { PlayersPage } from "./pages/PlayersPage";
 import { AdminPage } from "./pages/AdminPage";
 import { TermsPage } from "./pages/TermsPage";
+import { YouPage } from "./pages/YouPage";
 import { LandingPage } from "./pages/LandingPage";
 import { useSession } from "./hooks/useSession";
 import "@fontsource-variable/anybody/standard.css";
@@ -56,7 +56,9 @@ function App() {
               <Route path="/events" element={<EventsListPage />} />
               <Route path="/events/:id" element={<EventDetailPage />} />
               <Route path="/events/new" element={<Navigate to="/?create=1" replace />} />
-              <Route path="/pitch" element={<PitchPage />} />
+              {/* The Pitch tab was retired: the formation editor lives in the match sheet. */}
+              <Route path="/pitch" element={<Navigate to="/" replace />} />
+              <Route path="/you" element={<YouPage />} />
               <Route path="/players" element={<PlayersPage />} />
               <Route path="/admin" element={<AdminPage />} />
               <Route path="/terms" element={<TermsPage />} />
