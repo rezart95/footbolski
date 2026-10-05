@@ -32,27 +32,27 @@ export function AddToCalendar({ event, label, className }: AddToCalendarProps) {
         className={className}
         icon={<CalendarPlus size={20} />}
         onClick={() => setOpen(true)}
-        variant="secondary"
+        variant={label ? "secondary" : "ghost"}
       >
         {label}
       </Button>
 
       <Modal open={open} title="Add to calendar" onClose={() => setOpen(false)}>
         <div className="grid gap-3">
-          <p className="text-sm text-white/65">Pick your calendar — the match opens ready to save.</p>
+          <p className="text-[17px] text-fg/80">Pick your calendar. The match opens ready to save.</p>
           {options.map((o) => (
             <a
               key={o.key}
-              className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-4 text-left transition hover:bg-white/[0.08]"
+              className="flex items-center gap-3 border-2 border-fg p-4 text-left transition-colors duration-150 hover:bg-fg/[0.07]"
               href={o.href}
               onClick={() => setOpen(false)}
               rel={o.external ? "noopener noreferrer" : undefined}
               target={o.external ? "_blank" : undefined}
             >
-              <o.Icon className="shrink-0 text-pitch-400" size={20} />
+              <o.Icon className="shrink-0" size={22} />
               <div>
                 <p className="font-bold">{o.name}</p>
-                <p className="text-xs text-white/55">{o.note}</p>
+                <p className="text-[14px] text-fg/75">{o.note}</p>
               </div>
             </a>
           ))}

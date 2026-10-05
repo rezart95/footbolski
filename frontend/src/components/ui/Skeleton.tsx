@@ -1,34 +1,47 @@
 import { cn } from "../../lib/utils";
 
-/** A single shimmering placeholder block. */
+/** A single placeholder block: flat ink at low opacity, square like the rest. */
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-white/[0.06]", className)} />;
+  return <div className={cn("animate-pulse bg-fg/10 motion-reduce:animate-none", className)} />;
 }
 
 /** Placeholder shaped like an EventCard, shown while events load. */
 export function EventCardSkeleton({ large = false }: { large?: boolean }) {
   return (
-    <div className="rounded-lg border border-white/10 bg-pitch-900/60 p-4">
-      <div className="flex items-start justify-between gap-4">
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-28" />
-          <Skeleton className={large ? "h-9 w-44" : "h-6 w-32"} />
-          <Skeleton className="h-4 w-36" />
-        </div>
-        <Skeleton className="h-6 w-16 rounded-md" />
-      </div>
-      <Skeleton className="mt-6 h-14 w-full rounded-lg" />
-      <Skeleton className="mt-3 h-9 w-full rounded-lg" />
+    <div className="border-b-2 border-fg/15 py-4">
+      <Skeleton className="h-4 w-28" />
+      <Skeleton className={cn("mt-2", large ? "h-10 w-48" : "h-7 w-36")} />
+      <Skeleton className="mt-2 h-4 w-40" />
+      <Skeleton className="mt-4 h-10 w-full" />
     </div>
   );
 }
 
 export function EventCardSkeletonList({ count = 3 }: { count?: number }) {
   return (
-    <div className="grid gap-3">
+    <div className="grid">
       {Array.from({ length: count }).map((_, i) => (
         <EventCardSkeleton key={i} />
       ))}
+    </div>
+  );
+}
+
+/** Placeholder shaped like the match sheet: day heading, strip, list rows. */
+export function MatchSheetSkeleton() {
+  return (
+    <div className="grid gap-6" aria-busy="true" aria-label="Loading the match">
+      <div>
+        <Skeleton className="h-14 w-56" />
+        <Skeleton className="mt-3 h-5 w-44" />
+        <Skeleton className="mt-2 h-5 w-52" />
+      </div>
+      <Skeleton className="h-20 w-full" />
+      <div className="grid gap-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton className="h-10 w-full" key={i} />
+        ))}
+      </div>
     </div>
   );
 }
@@ -38,8 +51,8 @@ export function PlayerGridSkeleton({ count = 6 }: { count?: number }) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {Array.from({ length: count }).map((_, i) => (
-        <div className="surface overflow-hidden rounded-xl" key={i}>
-          <Skeleton className="h-36 w-full rounded-none" />
+        <div className="border-2 border-fg/15" key={i}>
+          <Skeleton className="h-36 w-full" />
           <div className="space-y-2 p-3">
             <Skeleton className="h-4 w-3/4" />
             <Skeleton className="h-1.5 w-full" />

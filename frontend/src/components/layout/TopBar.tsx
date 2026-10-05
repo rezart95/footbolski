@@ -1,33 +1,52 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Settings, Shield } from "lucide-react";
-import { Button } from "../ui/Button";
+import { NameEntryModal } from "../features/session/NameEntryModal";
 import { useSession } from "../../hooks/useSession";
 import { isAdminSession } from "../../lib/roles";
 
-interface TopBarProps {
-  onEditName: () => void;
-}
-
-export function TopBar({ onEditName }: TopBarProps) {
+/** A slim masthead: the wordmark on the left, the admin door and the account
+ * switch on the right for admins. Flat ground with an ink rule under it; it
+ * owns the notch. Everyone else changes their name from the You tab. */
+export function TopBar() {
   const { sessionName } = useSession();
   const isAdmin = isAdminSession(sessionName);
+  const [editingName, setEditingName] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-white/10 bg-pitch-950/80 px-4 pb-3 pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-xl">
-      <div className="mx-auto flex max-w-lg items-center justify-between gap-3">
-        <div>
-          <p className="font-display text-2xl font-bold leading-none">Footbolski</p>
-          <p className="mt-1 max-w-48 truncate text-xs font-semibold text-white/50">{sessionName || "No name set"}</p>
-        </div>
-        <div className="flex items-center gap-2">
+    <>
+      <header className="sticky top-0 z-30 border-b-2 border-fg bg-ground pt-[env(safe-area-inset-top)]">
+        <div className="mx-auto flex h-14 max-w-lg items-center justify-between gap-3 pl-4 pr-1">
+          <Link
+            aria-label="Footbolski, next match"
+            className="font-poster text-[1.4rem] font-black leading-none tracking-tight [font-stretch:85%]"
+            to="/"
+          >
+            FOOTBOLSKI
+          </Link>
           {isAdmin ? (
-            <Link aria-label="Admin" className="tap-target inline-flex items-center justify-center rounded-lg border border-pitch-400/25 bg-pitch-400/10 px-4 py-3 text-pitch-400 transition hover:bg-pitch-400/20" to="/admin">
-              <Shield size={18} />
-            </Link>
+            <div className="flex items-center">
+              <Link
+                className="tap-target flex items-center gap-2 px-3 text-[15px] font-semibold hover:bg-fg/[0.07]"
+                to="/admin"
+              >
+                <Shield size={19} />
+                Admin
+              </Link>
+              <button
+                aria-label="Change account"
+                className="tap-target flex items-center justify-center px-3 hover:bg-fg/[0.07]"
+                onClick={() => setEditingName(true)}
+                type="button"
+              >
+                <Settings size={19} />
+              </button>
+            </div>
           ) : null}
-          <Button aria-label="Edit name" icon={<Settings size={18} />} onClick={onEditName} variant="secondary" />
         </div>
-      </div>
-    </header>
+      </header>
+      {/* Outside the header: its z-30 stacking context would put the sheet under the z-40 tab bar. */}
+      {editingName ? <NameEntryModal forceOpen onClose={() => setEditingName(false)} /> : null}
+    </>
   );
 }

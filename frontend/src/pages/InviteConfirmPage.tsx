@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Check, MapPin, Users } from "lucide-react";
+import { MapPin } from "lucide-react";
 import { LinkLayout } from "../components/layout/LinkLayout";
 import { PaymentHandle } from "../components/features/events/PaymentHandle";
-import { Button } from "../components/ui/Button";
+import { buttonClass } from "../components/ui/Button";
 import { Skeleton } from "../components/ui/Skeleton";
 import { confirmInvite, getInvite } from "../services/links.service";
 import type { InviteResult } from "../services/links.service";
@@ -13,9 +13,9 @@ import type { EventSummary } from "../types/event.types";
 
 /** The screen a player lands on after tapping an invite in WhatsApp.
  *
- * Composition is ranked rather than a stack of cards: the answer is large type
- * with no box, details sit under it, a hairline separates the one thing you
- * actually tap (the payment handle), and the lineup is a quiet closing line.
+ * Composition is ranked rather than a stack of cards: the answer is a poster
+ * headline with no box, details sit under it, the money is the one ochre field
+ * (holding the handle you actually tap), and the lineup is a quiet closing line.
  * Four equal boxes would make the player read all of them to find the answer. */
 export function InviteConfirmPage() {
   const { token = "" } = useParams();
@@ -54,10 +54,10 @@ export function InviteConfirmPage() {
   if (error) {
     return (
       <LinkLayout>
-        <h1 className="font-display text-2xl font-bold leading-tight">Link not valid</h1>
-        <p className="mt-2 text-sm leading-relaxed text-white/60">{error}</p>
-        <Link className="mt-6 inline-block" to="/events">
-          <Button>See upcoming games</Button>
+        <h1 className="t-headline text-[3rem] leading-[0.92]">Link not valid</h1>
+        <p className="mt-3 text-[17px] leading-relaxed text-fg/80">{error}</p>
+        <Link className={buttonClass("primary", "mt-6")} to="/events">
+          See upcoming matches
         </Link>
       </LinkLayout>
     );
@@ -66,11 +66,11 @@ export function InviteConfirmPage() {
   if (!result || !event) {
     return (
       <LinkLayout>
-        <div className="grid gap-3">
-          <Skeleton className="h-9 w-9 rounded-full" />
-          <Skeleton className="h-9 w-44" />
+        <div aria-busy="true" aria-label="Confirming your place" className="grid gap-3">
+          <Skeleton className="h-14 w-56" />
           <Skeleton className="h-5 w-52" />
-          <Skeleton className="mt-4 h-24 w-full rounded-lg" />
+          <Skeleton className="h-5 w-40" />
+          <Skeleton className="mt-4 h-32 w-full" />
         </div>
       </LinkLayout>
     );
@@ -100,16 +100,17 @@ function InviteAnswer({
   });
   const timeLabel = event.event_time.slice(0, 5);
   const seatsLeft = Math.max(0, event.max_players - event.confirmed_count);
+  const price = event.price_per_person != null ? Number(event.price_per_person) : null;
 
   if (result.outcome === "event_cancelled") {
     return (
       <>
-        <h1 className="font-display text-3xl font-bold leading-tight">This game was called off</h1>
-        <p className="mt-2 text-sm leading-relaxed text-white/60">
+        <h1 className="t-headline text-[3.4rem] uppercase leading-[0.9]">Called off</h1>
+        <p className="mt-3 text-[17px] leading-relaxed text-fg/80">
           {dayLabel} at {event.venue.name} is no longer happening.
         </p>
-        <Link className="mt-6 inline-block" to="/events">
-          <Button>See other games</Button>
+        <Link className={buttonClass("primary", "mt-6")} to="/events">
+          See other matches
         </Link>
       </>
     );
@@ -124,76 +125,60 @@ function InviteAnswer({
 
   return (
     <>
-      {/* The anchor. No card: type carries the hierarchy. */}
-      {!waitlisted ? (
-        <div className="mb-3 grid h-10 w-10 place-items-center rounded-full bg-pitch-400/15 text-pitch-400">
-          <Check size={22} strokeWidth={3} />
-        </div>
-      ) : (
-        <div className="mb-3 grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white/70">
-          <Users size={20} />
-        </div>
-      )}
+      {/* The answer, set as the poster headline; no card around it. */}
+      <h1 className="t-headline text-[3.4rem] uppercase leading-[0.9]">{headline}</h1>
 
-      <h1 className="font-display text-3xl font-bold leading-tight">{headline}</h1>
-
-      <p className="mt-2 text-base font-semibold text-white/85">
+      <p className="mt-4 text-[18px] font-semibold">
         {dayLabel} · {timeLabel}
       </p>
 
       {event.venue.address ? (
         <a
-          className="mt-1 inline-flex items-start gap-1.5 text-sm font-semibold leading-snug text-pitch-400"
+          className="mt-1 inline-flex items-start gap-1.5 py-1 text-[17px] underline decoration-fg/40 decoration-2 hover:decoration-fg"
           href={mapsUrl(event.venue.address)}
           rel="noreferrer"
           target="_blank"
         >
-          <MapPin className="mt-0.5 flex-none" size={15} />
-          <span>{event.venue.name}</span>
+          <MapPin className="mt-0.5 flex-none" size={18} />
+          <span className="font-semibold">{event.venue.name}</span>
         </a>
       ) : (
-        <p className="mt-1 text-sm font-semibold text-white/70">{event.venue.name}</p>
+        <p className="mt-1 text-[17px] font-semibold">{event.venue.name}</p>
       )}
 
       {waitlisted ? (
-        <p className="mt-4 text-sm leading-relaxed text-white/60">
-          The game is full right now. If someone drops out you move up automatically and we'll
-          message you straight away.
+        <p className="mt-4 text-[17px] leading-relaxed text-fg/80">
+          The match is full right now. If someone drops out you move up automatically and we&rsquo;ll message you
+          straight away.
         </p>
       ) : null}
 
-      {/* Hairline, not another card. */}
-      {event.price_per_person || event.payment_details ? (
-        <>
-          <div className="my-5 h-px bg-white/10" />
-          <div className="surface grid gap-3 rounded-lg p-4">
-            <div className="flex items-baseline justify-between gap-3">
-              <span className="text-xs font-bold uppercase tracking-wide text-white/50">
-                {event.payment_method ? PAYMENT_METHOD_LABELS[event.payment_method] : "Payment"}
-              </span>
-              {event.price_per_person ? (
-                <span className="font-display text-xl font-bold">{event.price_per_person} zł</span>
-              ) : null}
-            </div>
-            {event.payment_method && event.payment_details ? (
-              <PaymentHandle method={event.payment_method} value={event.payment_details} />
-            ) : null}
+      {/* The one thing to tap: the money, in ochre. */}
+      {price || event.payment_details ? (
+        <section aria-label="Payment" className="field-money -mx-5 mt-6 grid gap-3 px-5 py-5">
+          {price ? <p className="t-numeral text-[3.25rem]">{price % 1 === 0 ? price.toFixed(0) : price.toFixed(2)} zł</p> : null}
+          <p className="text-[16px] font-semibold">
+            {event.payment_method ? PAYMENT_METHOD_LABELS[event.payment_method] : "Payment"}
             {event.pay_to_name ? (
-              <p className="text-xs font-semibold text-white/50">to {event.pay_to_name}</p>
+              <>
+                {" "}
+                to <span className="font-bold">{event.pay_to_name}</span>
+              </>
             ) : null}
-          </div>
-        </>
+          </p>
+          {event.payment_method && event.payment_details ? (
+            <PaymentHandle method={event.payment_method} value={event.payment_details} />
+          ) : null}
+        </section>
       ) : null}
 
-      {/* Lineup: names first, because "Flori, Jorge and 6 others" reads as
-          momentum where a bare count reads as a warning. */}
-      <p className="mt-5 text-sm font-semibold leading-relaxed text-white/55">
+      <p className="mt-6 text-[17px] font-semibold tabular-nums">
         {event.confirmed_count} confirmed
         {seatsLeft > 0 ? ` · ${seatsLeft} ${seatsLeft === 1 ? "spot" : "spots"} left` : " · full"}
       </p>
 
-      <Link className="mt-6 inline-block" to={`/events/${event.id}`}>
-        <Button variant="secondary">See who's coming</Button>
+      <Link className={buttonClass("secondary", "mt-4")} to={`/events/${event.id}`}>
+        See who&rsquo;s coming
       </Link>
     </>
   );

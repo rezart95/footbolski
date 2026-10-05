@@ -1,6 +1,5 @@
-import { Wand2 } from "lucide-react";
+import { Shuffle } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "../../ui/Button";
 import { TeamSplitWarningModal } from "./TeamSplitWarningModal";
 
@@ -11,15 +10,14 @@ interface TeamSplitButtonProps {
 }
 
 export function TeamSplitButton({ visible, busy, onGenerate }: TeamSplitButtonProps) {
-  const navigate = useNavigate();
   const [confirming, setConfirming] = useState(false);
 
   if (!visible) return null;
 
   return (
     <>
-      <Button className="w-full" icon={<Wand2 size={18} />} onClick={() => setConfirming(true)}>
-        Split Teams
+      <Button className="w-full" icon={<Shuffle size={18} />} onClick={() => setConfirming(true)}>
+        Split the teams
       </Button>
       <TeamSplitWarningModal
         busy={busy}
@@ -27,7 +25,6 @@ export function TeamSplitButton({ visible, busy, onGenerate }: TeamSplitButtonPr
         onCancel={() => setConfirming(false)}
         onConfirm={() => {
           setConfirming(false);
-          navigate("/pitch");
           onGenerate();
         }}
       />

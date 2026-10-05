@@ -1,10 +1,11 @@
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { Camera, Save } from "lucide-react";
 import { Button } from "../../ui/Button";
-import { Field, Input, Select } from "../../ui/Field";
+import { Field, Input, Range, Select } from "../../ui/Field";
+import { Notice } from "../../ui/Notice";
 import { Modal } from "../../ui/Modal";
 import { uploadPlayerPhoto } from "../../../services/players.service";
-import { colorFromName, initials } from "../../../lib/utils";
+import { initials } from "../../../lib/utils";
 import type { Player, PlayerPosition } from "../../../types/player.types";
 
 const BUILD_OPTIONS = ["Slim", "Athletic", "Strong", "Stocky"] as const;
@@ -99,17 +100,16 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
   }
 
   return (
-    <Modal title={player ? "Edit Player" : "Add Player"} open={open} onClose={onClose}>
+    <Modal title={player ? player.name : "New player card"} open={open} onClose={onClose}>
       <form className="grid gap-4" onSubmit={submit}>
         {readOnly ? (
-          <p className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-xs text-white/55">
-            Player cards are read-only for the moment.
-          </p>
+          <p className="text-[15px] text-fg/75">Only the squad&rsquo;s rating keeper can change cards.</p>
         ) : null}
         {/* Photo upload */}
-        <div className="flex justify-center">
+        <div className="flex flex-col items-start">
           <button
-            className="group relative h-24 w-24 overflow-hidden rounded-full focus:outline-none"
+            aria-label={readOnly ? undefined : form.photo_url ? "Change photo" : "Add a photo"}
+            className="group relative h-32 w-32 overflow-hidden border-2 border-fg bg-fg/10"
             disabled={uploading || readOnly}
             onClick={() => fileRef.current?.click()}
             type="button"
@@ -117,31 +117,27 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
             {form.photo_url ? (
               <img alt="" className="h-full w-full object-cover" src={form.photo_url} />
             ) : (
-              <div className={`flex h-full w-full items-center justify-center font-display text-3xl font-bold text-pitch-950 ${colorFromName(form.name || "?")}`}>
+              <div className="t-numeral grid h-full w-full place-items-center text-[2.5rem]">
                 {initials(form.name || "?")}
               </div>
             )}
             {readOnly ? null : (
-              <div className="absolute inset-0 flex items-center justify-center bg-pitch-950/60 opacity-0 transition group-hover:opacity-100">
-                {uploading ? (
-                  <span className="text-xs font-bold text-white">Uploading…</span>
-                ) : (
-                  <Camera size={22} className="text-white" />
-                )}
+              <div className="field-inverse absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 py-1 text-[13px] font-bold">
+                {uploading ? "Uploading…" : <><Camera size={15} /> {form.photo_url ? "Change" : "Add photo"}</>}
               </div>
             )}
           </button>
           <input accept="image/*" className="hidden" ref={fileRef} type="file" onChange={handlePhoto} />
-          {!form.photo_url && !readOnly && <p className="mt-1 text-center text-xs text-amber-400">Photo required</p>}
+          {!form.photo_url && !readOnly && <p className="mt-1.5 text-[14px] font-semibold">A photo is required.</p>}
         </div>
         <Field label="Name">
           <Input disabled={readOnly || lockName} value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} />
         </Field>
         <Field label={`Skill ${form.skill_rating}/10`}>
-          <Input disabled={readOnly} min={1} max={10} type="range" value={form.skill_rating} onChange={(event) => setForm({ ...form, skill_rating: Number(event.target.value) })} />
+          <Range disabled={readOnly} min={1} max={10} value={form.skill_rating} onChange={(event) => setForm({ ...form, skill_rating: Number(event.target.value) })} />
         </Field>
         {/* Physical info */}
-        <p className="text-xs font-bold uppercase text-white/55">Physical</p>
+        <h3 className="t-title mt-2 border-t-2 border-fg pt-4 text-[1.35rem]">Build</h3>
         <div className="grid grid-cols-2 gap-3">
           <Field label="Age *">
             <Input
@@ -166,7 +162,7 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
             value={form.build ?? ""}
             onChange={(e) => setForm({ ...form, build: e.target.value || null })}
           >
-            <option value="">— select —</option>
+            <option value="">Choose…</option>
             {BUILD_OPTIONS.map((b) => <option key={b} value={b}>{b}</option>)}
           </Select>
         </Field>
@@ -176,43 +172,43 @@ export function PlayerEditModal({ player, initialName = "", open, onClose, onSav
             value={form.preferred_role ?? ""}
             onChange={(e) => setForm({ ...form, preferred_role: e.target.value || null, primary_position: roleToPrimaryPosition(e.target.value || null) })}
           >
-            <option value="">— select —</option>
+            <option value="">Choose…</option>
             {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}
           </Select>
         </Field>
 
         {/* Attribute ratings */}
-        <p className="text-xs font-bold uppercase text-white/55">Ratings</p>
+        <h3 className="t-title mt-2 border-t-2 border-fg pt-4 text-[1.35rem]">Ratings</h3>
         <Field label={`Speed ${form.speed ?? "–"}/10`}>
-          <Input disabled={readOnly} min={1} max={10} type="range" value={form.speed ?? 5} onChange={(e) => setForm({ ...form, speed: Number(e.target.value) })} />
+          <Range disabled={readOnly} min={1} max={10} value={form.speed ?? 5} onChange={(e) => setForm({ ...form, speed: Number(e.target.value) })} />
         </Field>
         <Field label={`Technique ${form.technique ?? "–"}/10`}>
-          <Input disabled={readOnly} min={1} max={10} type="range" value={form.technique ?? 5} onChange={(e) => setForm({ ...form, technique: Number(e.target.value) })} />
+          <Range disabled={readOnly} min={1} max={10} value={form.technique ?? 5} onChange={(e) => setForm({ ...form, technique: Number(e.target.value) })} />
         </Field>
         <Field label={`Defending ${form.defending ?? "–"}/10`}>
-          <Input disabled={readOnly} min={1} max={10} type="range" value={form.defending ?? 5} onChange={(e) => setForm({ ...form, defending: Number(e.target.value) })} />
+          <Range disabled={readOnly} min={1} max={10} value={form.defending ?? 5} onChange={(e) => setForm({ ...form, defending: Number(e.target.value) })} />
         </Field>
         <Field label={`Passing ${form.passing ?? "–"}/10`}>
-          <Input disabled={readOnly} min={1} max={10} type="range" value={form.passing ?? 5} onChange={(e) => setForm({ ...form, passing: Number(e.target.value) })} />
+          <Range disabled={readOnly} min={1} max={10} value={form.passing ?? 5} onChange={(e) => setForm({ ...form, passing: Number(e.target.value) })} />
         </Field>
         <Field label={`Shooting ${form.shooting ?? "–"}/10`}>
-          <Input disabled={readOnly} min={1} max={10} type="range" value={form.shooting ?? 5} onChange={(e) => setForm({ ...form, shooting: Number(e.target.value) })} />
+          <Range disabled={readOnly} min={1} max={10} value={form.shooting ?? 5} onChange={(e) => setForm({ ...form, shooting: Number(e.target.value) })} />
         </Field>
         <Field label={`Aerial ${form.aerial ?? "–"}/10`}>
-          <Input disabled={readOnly} min={1} max={10} type="range" value={form.aerial ?? 5} onChange={(e) => setForm({ ...form, aerial: Number(e.target.value) })} />
+          <Range disabled={readOnly} min={1} max={10} value={form.aerial ?? 5} onChange={(e) => setForm({ ...form, aerial: Number(e.target.value) })} />
         </Field>
         <Field label={`Stamina ${form.stamina ?? "–"}/10`}>
-          <Input disabled={readOnly} min={1} max={10} type="range" value={form.stamina ?? 5} onChange={(e) => setForm({ ...form, stamina: Number(e.target.value) })} />
+          <Range disabled={readOnly} min={1} max={10} value={form.stamina ?? 5} onChange={(e) => setForm({ ...form, stamina: Number(e.target.value) })} />
         </Field>
         <Field label={`Work rate ${form.work_rate ?? "–"}/10`}>
-          <Input disabled={readOnly} min={1} max={10} type="range" value={form.work_rate ?? 5} onChange={(e) => setForm({ ...form, work_rate: Number(e.target.value) })} />
+          <Range disabled={readOnly} min={1} max={10} value={form.work_rate ?? 5} onChange={(e) => setForm({ ...form, work_rate: Number(e.target.value) })} />
         </Field>
 
         {validationError ? (
-          <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-300">{validationError}</p>
+          <Notice tone="error">{validationError}</Notice>
         ) : null}
         {readOnly ? null : (
-          <Button disabled={busy || uploading} icon={<Save size={18} />} type="submit">Save</Button>
+          <Button disabled={busy || uploading} icon={<Save size={18} />} type="submit">{busy ? "Saving…" : "Save card"}</Button>
         )}
       </form>
     </Modal>

@@ -10,13 +10,14 @@ export function UpdatePrompt() {
   if (!needRefresh) return null;
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between gap-3 bg-emerald-700 px-4 py-3 text-white shadow-lg">
-      <span className="text-sm font-medium">A new version of the app is ready.</span>
+    <div className="field-inverse fixed left-0 right-0 top-0 z-50 flex items-center justify-between gap-3 px-4 pb-2 pt-[calc(env(safe-area-inset-top)+0.5rem)]">
+      <span className="text-[15px] font-semibold">A new version of Footbolski is ready.</span>
       <button
         onClick={() => updateServiceWorker(true)}
-        className="flex shrink-0 items-center gap-1.5 rounded-md bg-white/20 px-3 py-1.5 text-sm font-semibold hover:bg-white/30 active:bg-white/40"
+        className="tap-target flex shrink-0 items-center gap-2 bg-ground px-4 text-[15px] font-bold text-fg"
+        type="button"
       >
-        <RefreshCw size={14} />
+        <RefreshCw size={16} />
         Update
       </button>
     </div>

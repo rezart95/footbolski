@@ -9,10 +9,12 @@ interface FormationPickerProps {
 
 export function FormationPicker({ playersPerSide, value, readOnly, onChange }: FormationPickerProps) {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1">
+    <div className="flex flex-wrap" role="radiogroup" aria-label="Formation">
       {formationsFor(playersPerSide).map((formation) => (
         <button
-          className={`tap-target min-w-20 rounded-lg px-3 font-mono text-sm font-black ${value === formation ? "bg-pitch-400 text-pitch-950" : "bg-white/10 text-white/70"}`}
+          aria-checked={value === formation}
+          role="radio"
+          className={`tap-target -ml-[2px] border-2 border-fg px-3 text-[14px] font-bold tabular-nums first:ml-0 disabled:cursor-default ${value === formation ? "bg-fg text-ground" : "text-fg hover:bg-fg/[0.07]"}`}
           disabled={readOnly}
           key={formation}
           onClick={() => onChange(formation)}

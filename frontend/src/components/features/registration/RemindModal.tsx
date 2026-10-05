@@ -41,22 +41,22 @@ export function RemindModal({ open, eventId, registrationId, displayName, onClos
   return (
     <Modal open={open} title={`Remind ${displayName}`} onClose={handleClose}>
       <div className="grid gap-3">
-        <p className="text-sm text-white/65">Send a payment reminder over WhatsApp.</p>
+        <p className="text-[17px] text-fg/80">Send a payment reminder over WhatsApp.</p>
 
         <button
-          className="flex items-center gap-3 rounded-lg border border-white/10 bg-white/[0.04] p-4 text-left transition hover:bg-white/[0.08] disabled:opacity-50"
+          className="flex items-center gap-3 border-2 border-fg p-4 text-left transition-colors duration-150 hover:bg-fg/[0.07] disabled:opacity-40"
           disabled={mutation.isPending}
           onClick={trigger}
           type="button"
         >
-          <MessageSquare className="shrink-0 text-green-400" size={20} />
+          <MessageSquare className="shrink-0" size={22} />
           <div>
             <p className="font-bold">WhatsApp</p>
-            <p className="text-xs text-white/55">Sends the payment reminder now.</p>
+            <p className="text-[14px] text-fg/75">Sends the payment reminder now.</p>
           </div>
         </button>
 
-        {mutation.isPending ? <p className="text-sm text-white/55">Sending…</p> : null}
+        {mutation.isPending ? <p className="text-[15px] text-fg/75" role="status">Sending…</p> : null}
         {mutation.isError ? (
           <Notice tone="error">{errorMessage(mutation.error, "Failed to send reminder.")}</Notice>
         ) : null}

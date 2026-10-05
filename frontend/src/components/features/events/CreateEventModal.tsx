@@ -83,7 +83,7 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
   }
 
   return (
-    <Modal title="Create Event" open={open} onClose={onClose}>
+    <Modal title="Set up a match" open={open} onClose={onClose}>
       <form className="grid gap-4" onSubmit={submit}>
 
         {/* Venue */}
@@ -94,8 +94,8 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
             ))}
           </Select>
         </Field>
-        {venuesError ? <Notice tone="error">Backend is offline. Start the backend before creating matches.</Notice> : null}
-        {createEvent.isError ? <Notice tone="error">{errorMessage(createEvent.error, "Could not create event.")}</Notice> : null}
+        {venuesError ? <Notice tone="error">Can&rsquo;t load the venues. Check your connection and try again.</Notice> : null}
+        {createEvent.isError ? <Notice tone="error">{errorMessage(createEvent.error, "Could not set up the match.")}</Notice> : null}
 
         {/* Date + Time */}
         <div className="grid grid-cols-2 gap-3">
@@ -117,22 +117,25 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
         </Field>
 
         {/* Payment */}
-        <p className="text-xs font-bold uppercase text-white/55">Payment</p>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => setPaymentMode("after")}
-            className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition ${paymentMode === "after" ? "border-pitch-400 bg-pitch-400/15 text-pitch-400" : "border-white/10 bg-white/[0.04] text-white/55 hover:border-white/20"}`}
-          >
-            Set after match
-          </button>
-          <button
-            type="button"
-            onClick={() => setPaymentMode("now")}
-            className={`rounded-lg border px-3 py-2.5 text-sm font-semibold transition ${paymentMode === "now" ? "border-pitch-400 bg-pitch-400/15 text-pitch-400" : "border-white/10 bg-white/[0.04] text-white/55 hover:border-white/20"}`}
-          >
-            Set amount now
-          </button>
+        <div className="grid gap-1.5">
+          <p className="text-sm font-semibold" id="payment-mode-label">Price</p>
+          <div aria-labelledby="payment-mode-label" className="grid grid-cols-2" role="radiogroup">
+            {([
+              ["after", "Set after the match"],
+              ["now", "Set it now"]
+            ] as const).map(([mode, label]) => (
+              <button
+                aria-checked={paymentMode === mode}
+                className={`tap-target border-2 border-fg px-3 text-[15px] font-semibold transition-colors duration-150 first:border-r-0 ${paymentMode === mode ? "bg-fg text-ground" : "text-fg hover:bg-fg/[0.07]"}`}
+                key={mode}
+                onClick={() => setPaymentMode(mode)}
+                role="radio"
+                type="button"
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
         {paymentMode === "now" && (
           <Field label="Amount per person (zł)">
@@ -147,7 +150,7 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
         {/* Payment method */}
         <Field label="Payment method">
           <Select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod | "")}>
-            <option value="">— not specified —</option>
+            <option value="">Not specified</option>
             {(Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[]).map((method) => (
               <option key={method} value={method}>{PAYMENT_METHOD_LABELS[method]}</option>
             ))}
@@ -170,7 +173,7 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
         {/* Pay to */}
         <Field label="Pay to (optional)">
           <Select value={payToName} onChange={(e) => setPayToName(e.target.value)}>
-            <option value="">— not specified —</option>
+            <option value="">Not specified</option>
             {players.map((p) => (
               <option key={p.id} value={p.name}>{p.name}</option>
             ))}
@@ -178,7 +181,7 @@ export function CreateEventModal({ open, onClose }: CreateEventModalProps) {
         </Field>
 
         <Button disabled={createEvent.isPending || !venue || isLoading} icon={<CalendarPlus size={18} />} type="submit">
-          Create Event
+          Set up the match
         </Button>
       </form>
     </Modal>

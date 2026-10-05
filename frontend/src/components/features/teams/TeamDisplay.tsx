@@ -1,43 +1,54 @@
-import { useState } from "react";
-import { FormationPicker } from "../formation/FormationPicker";
-import { PitchCanvas } from "../formation/PitchCanvas";
-import { formationsFor, slotsForFormation } from "../formation/formations";
-import type { Team } from "../../../types/team.types";
+import { DraggablePitch } from "../formation/DraggablePitch";
+import { cn } from "../../../lib/utils";
+import type { FormationPayload, Team } from "../../../types/team.types";
 
 interface TeamDisplayProps {
   teams: Team[];
   playersPerSide: number;
+  /** The organiser may drag players and change formations. */
   editable: boolean;
+  onUpdateFormation: (payload: FormationPayload) => void;
 }
 
-export function TeamDisplay({ teams, playersPerSide, editable }: TeamDisplayProps) {
-  const initial = teams[0]?.formation || formationsFor(playersPerSide)[0];
-  const [formation, setFormation] = useState(initial);
+// The first side is always the red team, the second the blue: the two team
+// inks of the design system, whatever colour label the API stores.
+const TEAM_FIELDS = ["bg-poster-red", "bg-poster-blue"];
 
-  function snap() {
-    slotsForFormation(formation, true);
-  }
+/** The split: two team panels, then the pitch with both line-ups on it. */
+export function TeamDisplay({ teams, playersPerSide, editable, onUpdateFormation }: TeamDisplayProps) {
+  // Same order the pitch uses: Team A ("green" in the API) first.
+  const ordered = [
+    teams.find((t) => t.color === "green") ?? teams[0],
+    teams.find((t) => t.color === "white") ?? teams[1]
+  ].filter(Boolean) as Team[];
 
   return (
-    <section className="grid gap-4">
-      <h2 className="font-display text-xl font-bold">Teams</h2>
-      <div className="grid gap-3 sm:grid-cols-2">
-        {teams.map((team) => (
-          <div className="rounded-lg border border-white/10 bg-white/[0.04] p-3" key={team.id}>
-            <h3 className="font-display text-lg font-bold">{team.label}</h3>
-            <div className="mt-3 grid gap-2">
+    <div className="grid gap-6">
+      <div className="-mx-4 grid sm:mx-0 sm:grid-cols-2">
+        {ordered.map((team, index) => (
+          <div className={cn("px-5 py-5 text-paper", TEAM_FIELDS[index % 2])} key={team.id}>
+            <h3 className="t-title text-[1.6rem]">{team.label}</h3>
+            <ul className="mt-3 divide-y divide-paper/30">
               {team.players.map((player) => (
-                <div className="flex items-center justify-between rounded-md bg-white/[0.04] p-2" key={player.id}>
-                  <span className="truncate font-semibold">{player.display_name}</span>
-                  <span className="rounded bg-white/10 px-2 py-1 font-mono text-xs font-black">{player.position_role}</span>
-                </div>
+                <li className="flex items-baseline justify-between gap-3 py-2" key={player.id}>
+                  <span className="min-w-0 break-words text-[17px] font-semibold">{player.display_name}</span>
+                  <span className="shrink-0 text-[14px] font-bold tracking-wide">{player.position_role}</span>
+                </li>
               ))}
-            </div>
+            </ul>
           </div>
         ))}
       </div>
-      <FormationPicker playersPerSide={playersPerSide} readOnly={!editable} value={formation} onChange={setFormation} />
-      <PitchCanvas editable={editable} formation={formation} teams={teams} onSnap={snap} />
-    </section>
+
+      <div>
+        <h3 className="t-title text-[1.35rem]">On the pitch</h3>
+        {editable ? (
+          <p className="mt-1 text-[15px] text-fg/75">Pick a formation, or hold and drag a player to move them.</p>
+        ) : null}
+        <div className="mt-3">
+          <DraggablePitch editable={editable} onUpdate={onUpdateFormation} playersPerSide={playersPerSide} teams={ordered} />
+        </div>
+      </div>
+    </div>
   );
 }

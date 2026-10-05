@@ -2,21 +2,15 @@ import type { ReactNode } from "react";
 
 interface PageHeaderProps {
   title: string;
-  eyebrow?: string;
   action?: ReactNode;
 }
 
-/** Consistent page title row: optional accent eyebrow, an h1, and an optional
- * action (e.g. a create button) on the right. Used across all top-level pages. */
-export function PageHeader({ title, eyebrow, action }: PageHeaderProps) {
+/** Page title row: a condensed poster headline and an optional action on the
+ * right. The heading carries itself; there is deliberately no eyebrow label. */
+export function PageHeader({ title, action }: PageHeaderProps) {
   return (
-    <div className="flex items-start justify-between gap-3">
-      <div className="min-w-0">
-        {eyebrow ? (
-          <p className="text-xs font-bold uppercase tracking-wide text-pitch-400">{eyebrow}</p>
-        ) : null}
-        <h1 className="font-display text-3xl font-bold leading-tight">{title}</h1>
-      </div>
+    <div className="flex items-end justify-between gap-3 border-b-2 border-fg pb-3">
+      <h1 className="t-headline min-w-0 text-[2.6rem]">{title}</h1>
       {action ? <div className="flex-none">{action}</div> : null}
     </div>
   );

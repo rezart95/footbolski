@@ -94,8 +94,8 @@ export function NameEntryModal({ forceOpen = false, onClose }: NameEntryModalPro
   return (
     <Modal title="What's your name?" open={open} onClose={forceOpen ? onClose : undefined}>
       <form className="grid gap-4" onSubmit={submit}>
-        <p className="text-sm text-white/55">
-          Use your real first and last name — this is how you'll appear in events and team splits.
+        <p className="text-[17px] leading-relaxed text-fg/80">
+          Use your real first and last name. It&rsquo;s how you appear on the list and in the teams.
         </p>
         <Field label="First name">
           <Input
@@ -114,16 +114,14 @@ export function NameEntryModal({ forceOpen = false, onClose }: NameEntryModalPro
         </Field>
 
         {needsWhatsappJoin ? (
-          <div className="grid gap-2 border-t border-white/10 pt-4">
-            <p className="text-xs font-bold uppercase tracking-wide text-white/50">
-              Join the WhatsApp Group
-            </p>
-            <p className="text-sm leading-relaxed text-white/60">
-              Matches are organised in the group chat — that's where you'll hear about new games,
-              changes, and reminders. Join before you finish registering.
+          <div className="grid gap-2 border-t-2 border-fg pt-4">
+            <h3 className="t-title text-[1.35rem]">Join the WhatsApp group</h3>
+            <p className="text-[15px] leading-relaxed text-fg/80">
+              Matches are organised in the group chat: new games, changes and reminders land there.
+              Join before you finish registering.
             </p>
             <Button type="button" variant="secondary" onClick={openGroupLink}>
-              Open WhatsApp Group
+              Open the WhatsApp group
             </Button>
             <Checkbox
               checked={joinConfirmed}
@@ -136,14 +134,12 @@ export function NameEntryModal({ forceOpen = false, onClose }: NameEntryModalPro
         ) : null}
 
         {needsAcceptance ? (
-          <div className="grid gap-2 border-t border-white/10 pt-4">
-            <p className="text-xs font-bold uppercase tracking-wide text-white/50">
-              Terms and Conditions
-            </p>
-            <p className="text-sm leading-relaxed text-white/60">{TERMS_SUMMARY}</p>
+          <div className="grid gap-2 border-t-2 border-fg pt-4">
+            <h3 className="t-title text-[1.35rem]">Terms and conditions</h3>
+            <p className="text-[15px] leading-relaxed text-fg/80">{TERMS_SUMMARY}</p>
             <Checkbox checked={accepted} onChange={(e) => setAccepted(e.target.checked)}>
               I have read and accept the{" "}
-              <Link className="border-b border-pitch-400/60 text-pitch-400" target="_blank" to="/terms">
+              <Link className="font-semibold underline decoration-2" target="_blank" to="/terms">
                 Terms and Conditions
               </Link>
               .
@@ -154,7 +150,7 @@ export function NameEntryModal({ forceOpen = false, onClose }: NameEntryModalPro
         {error ? <Notice tone="error">{error}</Notice> : null}
 
         <Button disabled={!canSubmit} icon={<Save size={18} />} type="submit">
-          {isSaving ? "Saving…" : "Save Name"}
+          {isSaving ? "Saving…" : "Save name"}
         </Button>
       </form>
     </Modal>

@@ -10,12 +10,14 @@ interface TeamSplitWarningModalProps {
 
 export function TeamSplitWarningModal({ open, busy, onCancel, onConfirm }: TeamSplitWarningModalProps) {
   return (
-    <Modal title="Generate Teams?" open={open} onClose={onCancel}>
+    <Modal title="Split the teams?" open={open} onClose={onCancel}>
       <div className="grid gap-5">
-        <p className="text-white/70">Teams are generated once and cannot be changed or re-run. Are you sure?</p>
+        <p className="text-[17px] leading-relaxed text-fg/80">
+          Teams are split once and can&rsquo;t be re-run. You can still move players on the pitch afterwards.
+        </p>
         <div className="grid grid-cols-2 gap-2">
-          <Button onClick={onCancel} variant="secondary">Cancel</Button>
-          <Button disabled={busy} onClick={onConfirm}>Generate</Button>
+          <Button onClick={onCancel} variant="secondary">Not yet</Button>
+          <Button disabled={busy} onClick={onConfirm}>Split teams</Button>
         </div>
       </div>
     </Modal>

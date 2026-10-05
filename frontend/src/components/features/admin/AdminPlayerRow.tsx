@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { Check, Phone, Trash2 } from "lucide-react";
+import { Check, ChevronDown, Trash2 } from "lucide-react";
 import { Button } from "../../ui/Button";
-import { Input, Textarea } from "../../ui/Field";
-import { colorFromName, initials } from "../../../lib/utils";
+import { Field, Input, Textarea } from "../../ui/Field";
+import { PlayerPhoto } from "../players/PlayerCard";
 import type { Player } from "../../../types/player.types";
 
 interface AdminPlayerRowProps {
@@ -16,11 +16,12 @@ interface AdminPlayerRowProps {
   onDelete: () => void;
 }
 
-/** One squad member in the admin portal: identity, editable scouting notes,
- * a phone-number field, and delete. Phone behaves exactly like notes — the
- * admin portal is the one place in the app trusted with the actual digits
- * (see `PlayerContactDetail`), so the field is pre-filled when a number is
- * on file and genuinely empty only when one isn't. */
+/** One squad member in the admin portal. Closed, it is a scannable line:
+ * photo, name, phone, whether notes exist. Opened, it holds the phone and
+ * scouting-notes fields and the remove action. Phone behaves exactly like
+ * notes — the admin portal is the one place in the app trusted with the actual
+ * digits (see `PlayerContactDetail`), so the field is pre-filled when a number
+ * is on file and genuinely empty only when one isn't. */
 export function AdminPlayerRow({
   player,
   savingNotes,
@@ -44,72 +45,66 @@ export function AdminPlayerRow({
   const phoneDirty = phone !== storedPhone;
 
   return (
-    <div className="surface flex flex-col gap-3 rounded-xl p-3">
-      <div className="flex items-center gap-3">
-        <div className="h-10 w-10 flex-none overflow-hidden rounded-full">
-          {player.photo_url ? (
-            <img alt="" className="h-full w-full object-cover" src={player.photo_url} />
-          ) : (
-            <div className={`flex h-full w-full items-center justify-center font-display text-sm font-bold text-pitch-950 ${colorFromName(player.name)}`}>
-              {initials(player.name)}
+    <li className="border-b border-fg/25">
+      <details className="group">
+        <summary className="flex min-h-[4.25rem] cursor-pointer list-none items-center gap-3 py-2 hover:bg-fg/[0.04] [&::-webkit-details-marker]:hidden">
+          <PlayerPhoto className="w-12 shrink-0 [&_div]:text-[1.1rem]" player={player} />
+          <span className="min-w-0 flex-1">
+            <span className="block break-words text-[16px] font-bold leading-tight">{player.name}</span>
+            <span className="block text-[14px] tabular-nums text-fg/75">
+              {phoneNumber === undefined ? "…" : storedPhone || "No phone on file"}
+              {stored ? " · has notes" : ""}
+            </span>
+          </span>
+          <ChevronDown className="shrink-0 transition-transform duration-200 group-open:rotate-180" size={20} />
+        </summary>
+
+        <div className="grid gap-3 pb-5 pt-2">
+          <Field label="Phone number">
+            <Input
+              inputMode="tel"
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="+48 501 234 567"
+              type="tel"
+              value={phone}
+            />
+          </Field>
+          {phoneDirty ? (
+            <div className="flex items-center gap-2">
+              <Button
+                disabled={savingPhone}
+                icon={<Check size={16} />}
+                onClick={() => onSavePhone(phone.trim() ? phone.trim() : null)}
+              >
+                {savingPhone ? "Saving…" : "Save phone"}
+              </Button>
+              <Button onClick={() => setPhone(storedPhone)} variant="ghost">
+                Undo
+              </Button>
             </div>
-          )}
-        </div>
-        <p className="min-w-0 flex-1 truncate font-display text-base font-bold">{player.name}</p>
-        <button
-          aria-label={`Delete ${player.name}`}
-          className="tap-target rounded-lg border border-red-300/15 bg-red-500/10 p-2.5 text-red-200 transition hover:bg-red-500/20"
-          onClick={onDelete}
-          type="button"
-        >
-          <Trash2 size={18} />
-        </button>
-      </div>
+          ) : null}
 
-      <div className="grid gap-2">
-        <div className="flex items-center gap-2 text-xs font-semibold text-white/50">
-          <Phone size={14} />
-          Phone number
-        </div>
-        <Input
-          inputMode="tel"
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="+48501234567"
-          type="tel"
-          value={phone}
-        />
-        {phoneDirty ? (
-          <div className="flex items-center gap-2">
-            <Button
-              className="px-3 py-2 text-xs"
-              disabled={savingPhone}
-              icon={<Check size={15} />}
-              onClick={() => onSavePhone(phone.trim() ? phone.trim() : null)}
-            >
-              {savingPhone ? "Saving…" : "Save phone"}
+          <Field label="Scouting notes">
+            <Textarea placeholder="How they play, who they combine well with…" value={notes} onChange={(e) => setNotes(e.target.value)} />
+          </Field>
+          {dirty ? (
+            <div className="flex items-center gap-2">
+              <Button disabled={savingNotes} icon={<Check size={16} />} onClick={() => onSaveNotes(notes.trim() ? notes : null)}>
+                {savingNotes ? "Saving…" : "Save notes"}
+              </Button>
+              <Button onClick={() => setNotes(stored)} variant="ghost">
+                Undo
+              </Button>
+            </div>
+          ) : null}
+
+          <div>
+            <Button icon={<Trash2 size={17} />} onClick={onDelete} variant="danger">
+              Remove card
             </Button>
-            <button className="text-xs font-semibold text-white/50 hover:text-white/80" onClick={() => setPhone(storedPhone)} type="button">
-              Cancel
-            </button>
           </div>
-        ) : null}
-      </div>
-
-      <Textarea
-        placeholder="Add notes about this player…"
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-      />
-      {dirty ? (
-        <div className="flex items-center gap-2">
-          <Button className="px-3 py-2 text-xs" disabled={savingNotes} icon={<Check size={15} />} onClick={() => onSaveNotes(notes.trim() ? notes : null)}>
-            {savingNotes ? "Saving…" : "Save notes"}
-          </Button>
-          <button className="text-xs font-semibold text-white/50 hover:text-white/80" onClick={() => setNotes(stored)} type="button">
-            Cancel
-          </button>
         </div>
-      ) : null}
-    </div>
+      </details>
+    </li>
   );
 }

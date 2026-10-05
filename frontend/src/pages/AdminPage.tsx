@@ -27,18 +27,18 @@ export function AdminPage() {
     return map;
   }, [contactDetail]);
 
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    const sorted = [...players].sort((a, b) => a.name.localeCompare(b.name));
+    return q ? sorted.filter((p) => p.name.toLowerCase().includes(q)) : sorted;
+  }, [players, query]);
+
   // The nav button is already admin-only, but the route must guard itself too —
   // anyone can type /admin. The real enforcement is server-side; this just keeps
   // the page from rendering for non-admins.
   if (sessionName && !isAdminSession(sessionName)) {
     return <Navigate replace to="/" />;
   }
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const sorted = [...players].sort((a, b) => a.name.localeCompare(b.name));
-    return q ? sorted.filter((p) => p.name.toLowerCase().includes(q)) : sorted;
-  }, [players, query]);
 
   const confirmDelete = () => {
     if (!toDelete) return;
@@ -49,9 +49,12 @@ export function AdminPage() {
   };
 
   return (
-    <div className="grid gap-5">
-      <PageHeader eyebrow="Admin" title="Manage squad" />
-      <Notice>Edit scouting notes or remove a player card. Removing a card keeps past events and line-ups intact — it just unlinks the card.</Notice>
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-5">
+      <PageHeader title="Squad admin" />
+      <p className="text-[17px] leading-relaxed text-fg/80">
+        Phone numbers and scouting notes live here. Removing a card keeps past matches and line-ups intact; it only
+        unlinks the card.
+      </p>
 
       <Input
         aria-label="Search players"
@@ -62,7 +65,7 @@ export function AdminPage() {
 
       {isLoading ? <PlayerGridSkeleton /> : null}
       {!isLoading ? (
-        <p className="text-xs font-semibold uppercase tracking-wide text-white/45">
+        <p className="text-[15px] font-semibold tabular-nums text-fg/80">
           {filtered.length} {filtered.length === 1 ? "player" : "players"}
         </p>
       ) : null}
@@ -74,7 +77,7 @@ export function AdminPage() {
         <Notice tone="error">{errorMessage(actions.setPhone.error, "Could not save this phone number.")}</Notice>
       ) : null}
 
-      <div className="grid gap-3">
+      <ul className="border-t-2 border-fg">
         {filtered.map((player) => (
           <AdminPlayerRow
             key={player.id}
@@ -87,22 +90,22 @@ export function AdminPage() {
             onDelete={() => setToDelete(player)}
           />
         ))}
-      </div>
+      </ul>
 
       <Modal open={toDelete !== null} title="Remove player card" onClose={() => setToDelete(null)}>
         <div className="grid gap-4">
-          <p className="text-white/70">
-            Remove <span className="font-bold text-white">{toDelete?.name}</span>'s card? Their name stays on any past
-            events and team line-ups — only the card and its ratings are deleted. This can't be undone.
+          <p className="text-[17px] leading-relaxed text-fg/80">
+            Remove <span className="font-bold text-fg">{toDelete?.name}</span>&rsquo;s card? Their name stays on past
+            matches and line-ups; only the card and its ratings are deleted. This can&rsquo;t be undone.
           </p>
           {actions.remove.isError ? (
             <Notice tone="error">{errorMessage(actions.remove.error, "Could not remove this player.")}</Notice>
           ) : null}
-          <div className="flex gap-3">
-            <Button disabled={actions.remove.isPending} variant="danger" onClick={confirmDelete}>
-              {actions.remove.isPending ? "Removing…" : "Yes, remove"}
+          <div className="flex flex-wrap gap-3">
+            <Button disabled={actions.remove.isPending} onClick={confirmDelete}>
+              {actions.remove.isPending ? "Removing…" : "Yes, remove it"}
             </Button>
-            <Button variant="secondary" onClick={() => setToDelete(null)}>Cancel</Button>
+            <Button variant="secondary" onClick={() => setToDelete(null)}>Keep the card</Button>
           </div>
         </div>
       </Modal>

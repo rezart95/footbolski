@@ -17,7 +17,8 @@ import { formationsFor, slotsForFormation } from "./formations";
 interface TokenProps {
   id: string;
   player: TeamPlayer;
-  teamColor: string;
+  /** 0 = the red side (top half), 1 = the blue side (bottom half). */
+  side: number;
   screenX: number;
   screenY: number;
   disabled: boolean;
@@ -32,7 +33,7 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
-function Token({ id, player, teamColor, screenX, screenY, disabled }: TokenProps) {
+function Token({ id, player, side, screenX, screenY, disabled }: TokenProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id,
     disabled,
@@ -40,7 +41,6 @@ function Token({ id, player, teamColor, screenX, screenY, disabled }: TokenProps
 
   const tx = transform?.x ?? 0;
   const ty = transform?.y ?? 0;
-  const isGreen = teamColor === "green";
   const firstName = player.display_name.split(" ")[0];
 
   return (
@@ -61,17 +61,13 @@ function Token({ id, player, teamColor, screenX, screenY, disabled }: TokenProps
     >
       <div className="flex select-none flex-col items-center gap-0.5">
         <div
-          className={`flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-black ring-2 ${
-            isDragging ? "scale-110 opacity-90" : ""
-          } ${
-            isGreen
-              ? "bg-pitch-400 text-pitch-950 ring-pitch-950/40"
-              : "bg-white text-pitch-950 ring-pitch-700/30"
-          }`}
+          className={`flex h-10 w-10 items-center justify-center rounded-full border-2 border-ground text-[12px] font-bold text-paper transition-transform duration-150 ${
+            isDragging ? "scale-110" : ""
+          } ${side === 0 ? "bg-poster-red" : "bg-poster-blue"}`}
         >
           {initials(player.display_name)}
         </div>
-        <span className="max-w-[48px] truncate text-center text-[9px] font-bold leading-none text-white/80 drop-shadow">
+        <span className="max-w-[64px] truncate bg-ground px-1 text-center text-[11px] font-bold leading-tight text-fg">
           {firstName}
         </span>
       </div>
@@ -90,6 +86,14 @@ export interface DraggablePitchProps {
 
 type PosMap = Record<string, { x: number; y: number }>;
 
+// Tokens are 40px discs with a name label under them; keep the whole of both
+// inside the frame, whatever position was stored (older line-ups sit at the edge).
+const SAFE_TOP = 7;
+const SAFE_BOTTOM = 90;
+const SAFE_SIDE = 7;
+
+const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
+
 function toScreenY(teamIndex: number, localY: number): number {
   return teamIndex === 0 ? (localY / 100) * 50 : 50 + (localY / 100) * 50;
 }
@@ -101,7 +105,8 @@ function toLocalY(teamIndex: number, screenY: number): number {
 export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: DraggablePitchProps) {
   const pitchRef = useRef<HTMLDivElement>(null);
 
-  // Stable order: green (Team A) on top half, white (Team B) on bottom half
+  // Stable order: Team A (stored as "green") on the top half, drawn in team
+  // red; Team B ("white") on the bottom half, drawn in team blue.
   const orderedTeams: Team[] = [
     teams.find((t) => t.color === "green") ?? teams[0],
     teams.find((t) => t.color === "white") ?? teams[1],
@@ -199,9 +204,9 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
     const dxPct = (delta.x / rect.width) * 100;
     const dyPct = (delta.y / rect.height) * 100;
 
-    const newX = Math.max(3, Math.min(97, current.x + dxPct));
+    const newX = clamp(current.x + dxPct, SAFE_SIDE, 100 - SAFE_SIDE);
     const rawScreenY = currentScreenY + dyPct;
-    const [minSY, maxSY] = teamIndex === 0 ? [2, 48] : [52, 98];
+    const [minSY, maxSY] = teamIndex === 0 ? [SAFE_TOP, 48] : [52, SAFE_BOTTOM];
     const clampedScreenY = Math.max(minSY, Math.min(maxSY, rawScreenY));
     const newLocalY = toLocalY(teamIndex, clampedScreenY);
 
@@ -216,26 +221,25 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
       <div className="grid grid-cols-2 gap-4">
         {orderedTeams.map((team, idx) => (
           <div className="grid gap-2" key={team.id}>
-            <span
-              className={`text-xs font-bold uppercase tracking-wider ${
-                team.color === "green" ? "text-pitch-400" : "text-white/60"
-              }`}
-            >
+            <span className={`t-title text-[1.2rem] ${idx === 0 ? "text-team-red" : "text-team-blue"}`}>
               {team.label}
             </span>
-            <FormationPicker
-              onChange={(f) => handleFormationChange(team, idx, f)}
-              playersPerSide={playersPerSide}
-              readOnly={!editable}
-              value={formations[team.id]}
-            />
+            {editable ? (
+              <FormationPicker
+                onChange={(f) => handleFormationChange(team, idx, f)}
+                playersPerSide={playersPerSide}
+                value={formations[team.id]}
+              />
+            ) : (
+              <p className="text-[16px] font-semibold tabular-nums">Formation {formations[team.id]}</p>
+            )}
             {editable && (
               <button
-                className="self-start text-xs text-white/55 underline underline-offset-2 hover:text-white/60"
+                className="tap-target self-start text-[14px] font-semibold underline decoration-2"
                 onClick={() => handleSnap(team, idx)}
                 type="button"
               >
-                Snap to formation
+                Reset to formation
               </button>
             )}
           </div>
@@ -246,7 +250,7 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
       <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
         <div
           ref={pitchRef}
-          className="relative w-full overflow-hidden rounded-xl border border-white/10 bg-pitch-800"
+          className="relative my-6 w-full border-2 border-fg bg-ground text-fg"
           style={{ aspectRatio: "2 / 3" }}
         >
           {/* SVG pitch markings */}
@@ -261,7 +265,7 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
               fill="none"
               height="144"
               rx="2"
-              stroke="rgba(255,255,255,0.18)"
+              stroke="currentColor" strokeOpacity="0.55"
               strokeWidth="0.8"
               width="94"
               x="3"
@@ -269,7 +273,7 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
             />
             {/* Centre line */}
             <line
-              stroke="rgba(255,255,255,0.18)"
+              stroke="currentColor" strokeOpacity="0.55"
               strokeWidth="0.8"
               x1="3"
               x2="97"
@@ -282,15 +286,15 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
               cy="75"
               fill="none"
               r="12"
-              stroke="rgba(255,255,255,0.13)"
+              stroke="currentColor" strokeOpacity="0.4"
               strokeWidth="0.8"
             />
-            <circle cx="50" cy="75" fill="rgba(255,255,255,0.25)" r="1" />
+            <circle cx="50" cy="75" fill="currentColor" r="1" />
             {/* Top penalty box */}
             <rect
               fill="none"
               height="22"
-              stroke="rgba(255,255,255,0.13)"
+              stroke="currentColor" strokeOpacity="0.4"
               strokeWidth="0.7"
               width="50"
               x="25"
@@ -300,7 +304,7 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
             <rect
               fill="none"
               height="10"
-              stroke="rgba(255,255,255,0.10)"
+              stroke="currentColor" strokeOpacity="0.3"
               strokeWidth="0.6"
               width="28"
               x="36"
@@ -310,7 +314,7 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
             <rect
               fill="none"
               height="22"
-              stroke="rgba(255,255,255,0.13)"
+              stroke="currentColor" strokeOpacity="0.4"
               strokeWidth="0.7"
               width="50"
               x="25"
@@ -320,7 +324,7 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
             <rect
               fill="none"
               height="10"
-              stroke="rgba(255,255,255,0.10)"
+              stroke="currentColor" strokeOpacity="0.3"
               strokeWidth="0.6"
               width="28"
               x="36"
@@ -329,10 +333,10 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
           </svg>
 
           {/* Team half labels */}
-          <span className="pointer-events-none absolute left-2 top-2 text-[9px] font-bold uppercase tracking-widest text-pitch-400/50">
+          <span className="pointer-events-none absolute -top-6 left-0 text-[13px] font-bold text-team-red">
             {orderedTeams[0]?.label}
           </span>
-          <span className="pointer-events-none absolute bottom-2 left-2 text-[9px] font-bold uppercase tracking-widest text-white/30">
+          <span className="pointer-events-none absolute -bottom-6 left-0 text-[13px] font-bold text-team-blue">
             {orderedTeams[1]?.label}
           </span>
 
@@ -347,9 +351,9 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
                   id={key}
                   key={key}
                   player={player}
-                  screenX={pos.x}
-                  screenY={toScreenY(teamIndex, pos.y)}
-                  teamColor={team.color}
+                  screenX={clamp(pos.x, SAFE_SIDE, 100 - SAFE_SIDE)}
+                  screenY={clamp(toScreenY(teamIndex, pos.y), SAFE_TOP, SAFE_BOTTOM)}
+                  side={teamIndex}
                 />
               );
             }),
