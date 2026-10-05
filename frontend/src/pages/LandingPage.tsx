@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Bib } from "../components/features/landing/Bib";
-import { GoogleTicket } from "../components/features/landing/GoogleTicket";
+import { JoinTicket } from "../components/features/landing/JoinTicket";
 import { LiveNumbers } from "../components/features/landing/LiveNumbers";
 import { SplitBall } from "../components/features/landing/SplitBall";
 import { Wordmark } from "../components/features/landing/Wordmark";
@@ -97,7 +97,7 @@ export function LandingPage() {
               Footbolski runs your weekly pickup game: sign-ups with a waitlist, payments on the list,
               and teams split fairly by AI.
             </p>
-            <GoogleTicket className="order-2 mt-5 sm:self-start lg:order-3 lg:mt-8" />
+            <JoinTicket className="order-2 mt-5 sm:self-start lg:order-3 lg:mt-8" />
           </div>
         </div>
       </header>
@@ -237,7 +237,7 @@ export function LandingPage() {
               <h2 className="font-poster text-[2.9rem] font-[850] leading-[0.92] [font-stretch:72%] lg:text-[5rem]">
                 Bring your group.
               </h2>
-              <GoogleTicket className="mt-8 sm:inline-block" label="Set up your game" />
+              <JoinTicket className="mt-8 sm:inline-block" label="Get on the list" />
               <div className="mt-4">
                 <MemberLink />
               </div>

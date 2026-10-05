@@ -15,6 +15,8 @@ import { TermsPage } from "./pages/TermsPage";
 import { YouPage } from "./pages/YouPage";
 import { LandingPage } from "./pages/LandingPage";
 import { useSession } from "./hooks/useSession";
+import { useAnalytics } from "./hooks/useAnalytics";
+import { AnalyticsConsent } from "./components/features/analytics/AnalyticsConsent";
 import "@fontsource-variable/anybody/standard.css";
 import "@fontsource-variable/schibsted-grotesk";
 import "./index.css";
@@ -38,6 +40,7 @@ if ("serviceWorker" in navigator) {
  * often cannot install a PWA at all. They use the bare LinkLayout instead. */
 function App() {
   const { isSessionSet } = useSession();
+  useAnalytics();
 
   return (
     <Routes>
@@ -75,6 +78,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <App />
+        <AnalyticsConsent />
       </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>

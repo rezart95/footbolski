@@ -393,9 +393,9 @@
       "name": "Ticket CTA",
       "kind": "button",
       "refersTo": "ticket-cta",
-      "description": "The primary action: a notched ink ticket stub holding Google's standard sign-in button.",
-      "html": "<div class=\"ds-ticket\"><p class=\"ds-ticket-label\">Run your own game</p><button type=\"button\" class=\"ds-google-btn\"><svg viewBox=\"0 0 48 48\" width=\"20\" height=\"20\" aria-hidden=\"true\"><path fill=\"#EA4335\" d=\"M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z\"/><path fill=\"#4285F4\" d=\"M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z\"/><path fill=\"#FBBC05\" d=\"M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z\"/><path fill=\"#34A853\" d=\"M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z\"/></svg><span>Continue with Google</span></button></div>",
-      "css": ".ds-ticket { display: inline-block; background: #16161A; color: #F2F1EC; padding: 20px 28px; -webkit-mask: radial-gradient(circle 11px at 0 50%, transparent 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat; mask: radial-gradient(circle 11px at 0 50%, transparent 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat; } .ds-ticket-label { margin: 0; font-family: 'Anybody Variable', system-ui, sans-serif; font-size: 1.25rem; font-weight: 800; font-stretch: 80%; line-height: 1.25; } .ds-google-btn { margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 12px; height: 48px; padding: 0 16px; background: #fff; color: #1F1F1F; border: 1px solid #747775; border-radius: 4px; font-family: 'Roboto', system-ui, sans-serif; font-size: 16px; font-weight: 500; letter-spacing: 0.25px; cursor: pointer; transition: background-color 150ms; } .ds-google-btn:hover { background: #F3F3F3; } .ds-google-btn:active { background: #E8E8E8; } .ds-google-btn:focus-visible { outline: 3px solid #F2F1EC; outline-offset: 3px; }"
+      "description": "The primary action: a notched ink ticket stub holding a plain paper entry button that leads into the session name flow.",
+      "html": "<div class=\"ds-ticket\"><p class=\"ds-ticket-label\">Join the game</p><a href=\"#\" class=\"ds-enter-btn\">Enter your name</a></div>",
+      "css": ".ds-ticket { display: inline-block; background: #16161A; color: #F2F1EC; padding: 20px 28px; -webkit-mask: radial-gradient(circle 11px at 0 50%, transparent 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat; mask: radial-gradient(circle 11px at 0 50%, transparent 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat; } .ds-ticket-label { margin: 0; font-family: 'Anybody Variable', system-ui, sans-serif; font-size: 1.25rem; font-weight: 800; font-stretch: 80%; line-height: 1.25; } .ds-enter-btn { margin-top: 12px; display: inline-flex; align-items: center; justify-content: center; height: 48px; padding: 0 24px; background: #F2F1EC; color: #16161A; border: 2px solid #F2F1EC; font-family: 'Schibsted Grotesk Variable', system-ui, sans-serif; font-size: 16px; font-weight: 600; text-decoration: none; transition: background-color 150ms; } .ds-enter-btn:hover { background: #fff; } .ds-enter-btn:active { background: rgba(242, 241, 236, 0.8); } .ds-enter-btn:focus-visible { outline: 3px solid #F2F1EC; outline-offset: 3px; }"
     },
     {
       "name": "Poster Headline",
@@ -455,11 +455,6 @@
         "section": "typography"
       },
       {
-        "name": "The Borrowed Face Rule",
-        "body": "Roboto appears only inside Google's standard sign-in button, as Google's branding guidelines require. It is not part of this type system (the detector ignore lives in `.impeccable/config.json`).",
-        "section": "typography"
-      },
-      {
         "name": "The Nothing Floats Rule",
         "body": "If an element needs separation, give it a different field, an inversion or an ink rule. Never a shadow.",
         "section": "elevation"
@@ -493,7 +488,7 @@
       "Don't round corners on fields, tickets, buttons, chips, inputs, sheets, frames or panels; circles are for payment dots and pitch tokens only.",
       "Don't put a small label or eyebrow above a headline; the headline carries itself.",
       "Don't use a spinner for the team split; the split ball is the waiting state.",
-      "Don't load fonts from the Google Fonts CDN, and don't add Roboto anywhere except inside Google's sign-in button.",
+      "Don't load fonts from the Google Fonts CDN.",
       "Don't use the legacy pitch-green colours, the glow shadow, the glass surface or the old font aliases; they exist only for the frozen MOTM ballot.",
       "Don't bring back the dark pitch ground, neon green accent, Space Grotesk or Inter.",
       "Don't replace a proof sentence with a row of stat tiles, or a screen's answer with a grid of equal cards."

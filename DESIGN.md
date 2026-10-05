@@ -297,8 +297,6 @@ The app fixes three poster voices as roles and sets the size per use; the landin
 
 **The Tabular Facts Rule.** Every count, price, score and date uses tabular figures so numbers hold still.
 
-**The Borrowed Face Rule.** Roboto appears only inside Google's standard sign-in button, as Google's branding guidelines require. It is not part of this type system (the detector ignore lives in `.impeccable/config.json`).
-
 ## Layout
 
 **Landing.** A run of full-width posters, each doing one job, stacked vertically, in a centred container (max 1280px) with 16px gutters on mobile and 32px from 640px. Sections breathe at 80px vertical padding, 112px from 1024px; on desktop they split roughly 5/7 or 6/6 on a 12-column grid, on mobile everything stacks and the CTA ticket is ordered above the explanation so it clears the fold. Colour fields run full-bleed; on desktop the hero ball sits under the wordmark, cropped by the right edge of the viewport.
@@ -316,7 +314,7 @@ None. The world is flat screenprint: no box shadows, no text shadows, no blur. D
 
 ## Shapes
 
-Square corners throughout: fields, tickets, buttons, chips, inputs, sheets, photo frames and panels have no radius. The exceptions are functional circles: payment dots on the landing and the player tokens on the pitch; the Google button keeps Google's own 4px. Borders are solid `fg`: 2px for controls, chips, inputs, photo frames and section rules, 1px (at 20-40%) for list rules. Recurring cut-paper silhouettes: the ticket stub with two 11px half-circle notches bitten from its sides (landing CTA and the match sheet's money block), the training bib as a list spot on the landing, and the split ball whose outline is a run of straight scissor snips around a jittered circle.
+Square corners throughout: fields, tickets, buttons, chips, inputs, sheets, photo frames and panels have no radius. The exceptions are functional circles: payment dots on the landing and the player tokens on the pitch. Borders are solid `fg`: 2px for controls, chips, inputs, photo frames and section rules, 1px (at 20-40%) for list rules. Recurring cut-paper silhouettes: the ticket stub with two 11px half-circle notches bitten from its sides (landing CTA and the match sheet's money block), the training bib as a list spot on the landing, and the split ball whose outline is a run of straight scissor snips around a jittered circle.
 
 ## Components
 
@@ -390,8 +388,8 @@ Your name as a 3rem headline; the season as a statement with inline 3.4rem numer
 
 ### Ticket CTA (landing)
 - **Shape:** square rectangle with two 11px half-circle notches masked out of the left and right edges.
-- **Colour:** ink field, paper title-voice label ("Run your own game"), holding the sign-in button beneath it; 16-20px by 28px padding; full width on mobile.
-- **Sign-in button inside:** Google's standard light button, unaltered (white, #747775 1px outline, #1F1F1F Roboto Medium 16px, 4px radius, 48px tall, hover #F3F3F3, active #E8E8E8) with Google's four-colour mark. Its colours are Google's and sit outside this palette.
+- **Colour:** ink field, paper title-voice label ("Join the game" / "Get on the list"), holding the entry button beneath it; 16-20px by 28px padding; full width on mobile.
+- **Entry button inside:** a square paper button, 2px paper border, ink "Enter your name" in Schibsted Grotesk 600 16px, 48px tall. It links into the app, where the name-entry modal opens by itself (identity is a session name, there is no sign-in).
 
 ### Landing Pieces
 - **Bibs:** list spots as training bibs; taken in solid ink with the number in paper (Anybody 800, width 80%), waiting as an outlined paper bib hung at a slight tilt.
@@ -429,7 +427,7 @@ FOOTBOLSKI in Anybody 900: fitted edge to edge with SVG `textLength` on the land
 - **Don't** round corners on fields, tickets, buttons, chips, inputs, sheets, frames or panels; circles are for payment dots and pitch tokens only.
 - **Don't** put a small label or eyebrow above a headline; the headline carries itself.
 - **Don't** use a spinner for the team split; the split ball is the waiting state.
-- **Don't** load fonts from the Google Fonts CDN, and don't add Roboto anywhere except inside Google's sign-in button.
+- **Don't** load fonts from the Google Fonts CDN.
 - **Don't** use the legacy pitch-green colours, the glow shadow, the glass surface or the old font aliases; they exist only for the frozen MOTM ballot.
 - **Don't** bring back the dark pitch ground, neon green accent, Space Grotesk or Inter.
 - **Don't** replace a proof sentence with a row of stat tiles, or a screen's answer with a grid of equal cards.

@@ -147,11 +147,6 @@
       radial-gradient(circle 11px at 100% 50%, transparent 97%, #000) right / 51% 100% no-repeat;
   }
 
-  .google-button {
-    font-family: "Roboto", system-ui, sans-serif;
-    letter-spacing: 0.25px;
-  }
-
   /* The signature moment: the ball's halves slide apart along the cut. The
    * resting state is the split, so with no animation the ball is still split. */
   .split-ball-a,
