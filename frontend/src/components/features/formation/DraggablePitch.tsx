@@ -216,7 +216,7 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-4">
       {/* Formation pickers */}
       <div className="grid grid-cols-2 gap-4">
         {orderedTeams.map((team, idx) => (
@@ -246,118 +246,121 @@ export function DraggablePitch({ teams, playersPerSide, editable, onUpdate }: Dr
         ))}
       </div>
 
-      {/* Pitch */}
+      {/* Pitch. The half labels sit in flow above and below it (not absolutely
+          positioned into its margins), and the block wrapper keeps the
+          aspect-ratio box out of grid row sizing, so nothing after the pitch
+          can end up underneath a label. */}
       <DndContext onDragEnd={handleDragEnd} sensors={sensors}>
-        <div
-          ref={pitchRef}
-          className="relative my-6 w-full border-2 border-fg bg-ground text-fg"
-          style={{ aspectRatio: "2 / 3" }}
-        >
-          {/* SVG pitch markings */}
-          <svg
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 h-full w-full"
-            preserveAspectRatio="none"
-            viewBox="0 0 100 150"
-          >
-            {/* Outer boundary */}
-            <rect
-              fill="none"
-              height="144"
-              rx="2"
-              stroke="currentColor" strokeOpacity="0.55"
-              strokeWidth="0.8"
-              width="94"
-              x="3"
-              y="3"
-            />
-            {/* Centre line */}
-            <line
-              stroke="currentColor" strokeOpacity="0.55"
-              strokeWidth="0.8"
-              x1="3"
-              x2="97"
-              y1="75"
-              y2="75"
-            />
-            {/* Centre circle */}
-            <circle
-              cx="50"
-              cy="75"
-              fill="none"
-              r="12"
-              stroke="currentColor" strokeOpacity="0.4"
-              strokeWidth="0.8"
-            />
-            <circle cx="50" cy="75" fill="currentColor" r="1" />
-            {/* Top penalty box */}
-            <rect
-              fill="none"
-              height="22"
-              stroke="currentColor" strokeOpacity="0.4"
-              strokeWidth="0.7"
-              width="50"
-              x="25"
-              y="3"
-            />
-            {/* Top 6-yard box */}
-            <rect
-              fill="none"
-              height="10"
-              stroke="currentColor" strokeOpacity="0.3"
-              strokeWidth="0.6"
-              width="28"
-              x="36"
-              y="3"
-            />
-            {/* Bottom penalty box */}
-            <rect
-              fill="none"
-              height="22"
-              stroke="currentColor" strokeOpacity="0.4"
-              strokeWidth="0.7"
-              width="50"
-              x="25"
-              y="125"
-            />
-            {/* Bottom 6-yard box */}
-            <rect
-              fill="none"
-              height="10"
-              stroke="currentColor" strokeOpacity="0.3"
-              strokeWidth="0.6"
-              width="28"
-              x="36"
-              y="137"
-            />
-          </svg>
-
-          {/* Team half labels */}
-          <span className="pointer-events-none absolute -top-6 left-0 text-[13px] font-bold text-team-red">
+        <div>
+          <span className="pointer-events-none block text-[13px] font-bold text-team-red">
             {orderedTeams[0]?.label}
           </span>
-          <span className="pointer-events-none absolute -bottom-6 left-0 text-[13px] font-bold text-team-blue">
+          <div
+            ref={pitchRef}
+            className="relative mt-1 w-full border-2 border-fg bg-ground text-fg"
+            style={{ aspectRatio: "2 / 3" }}
+          >
+            {/* SVG pitch markings */}
+            <svg
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 h-full w-full"
+              preserveAspectRatio="none"
+              viewBox="0 0 100 150"
+            >
+              {/* Outer boundary */}
+              <rect
+                fill="none"
+                height="144"
+                rx="2"
+                stroke="currentColor" strokeOpacity="0.55"
+                strokeWidth="0.8"
+                width="94"
+                x="3"
+                y="3"
+              />
+              {/* Centre line */}
+              <line
+                stroke="currentColor" strokeOpacity="0.55"
+                strokeWidth="0.8"
+                x1="3"
+                x2="97"
+                y1="75"
+                y2="75"
+              />
+              {/* Centre circle */}
+              <circle
+                cx="50"
+                cy="75"
+                fill="none"
+                r="12"
+                stroke="currentColor" strokeOpacity="0.4"
+                strokeWidth="0.8"
+              />
+              <circle cx="50" cy="75" fill="currentColor" r="1" />
+              {/* Top penalty box */}
+              <rect
+                fill="none"
+                height="22"
+                stroke="currentColor" strokeOpacity="0.4"
+                strokeWidth="0.7"
+                width="50"
+                x="25"
+                y="3"
+              />
+              {/* Top 6-yard box */}
+              <rect
+                fill="none"
+                height="10"
+                stroke="currentColor" strokeOpacity="0.3"
+                strokeWidth="0.6"
+                width="28"
+                x="36"
+                y="3"
+              />
+              {/* Bottom penalty box */}
+              <rect
+                fill="none"
+                height="22"
+                stroke="currentColor" strokeOpacity="0.4"
+                strokeWidth="0.7"
+                width="50"
+                x="25"
+                y="125"
+              />
+              {/* Bottom 6-yard box */}
+              <rect
+                fill="none"
+                height="10"
+                stroke="currentColor" strokeOpacity="0.3"
+                strokeWidth="0.6"
+                width="28"
+                x="36"
+                y="137"
+              />
+            </svg>
+
+            {/* Player tokens */}
+            {orderedTeams.map((team, teamIndex) =>
+              team.players.map((player) => {
+                const key = `${team.id}::${player.id}`;
+                const pos = positions[key] ?? { x: player.pitch_x ?? 50, y: player.pitch_y ?? 50 };
+                return (
+                  <Token
+                    disabled={!editable}
+                    id={key}
+                    key={key}
+                    player={player}
+                    screenX={clamp(pos.x, SAFE_SIDE, 100 - SAFE_SIDE)}
+                    screenY={clamp(toScreenY(teamIndex, pos.y), SAFE_TOP, SAFE_BOTTOM)}
+                    side={teamIndex}
+                  />
+                );
+              }),
+            )}
+          </div>
+          <span className="pointer-events-none mt-1 block text-[13px] font-bold text-team-blue">
             {orderedTeams[1]?.label}
           </span>
-
-          {/* Player tokens */}
-          {orderedTeams.map((team, teamIndex) =>
-            team.players.map((player) => {
-              const key = `${team.id}::${player.id}`;
-              const pos = positions[key] ?? { x: player.pitch_x ?? 50, y: player.pitch_y ?? 50 };
-              return (
-                <Token
-                  disabled={!editable}
-                  id={key}
-                  key={key}
-                  player={player}
-                  screenX={clamp(pos.x, SAFE_SIDE, 100 - SAFE_SIDE)}
-                  screenY={clamp(toScreenY(teamIndex, pos.y), SAFE_TOP, SAFE_BOTTOM)}
-                  side={teamIndex}
-                />
-              );
-            }),
-          )}
         </div>
       </DndContext>
     </div>
