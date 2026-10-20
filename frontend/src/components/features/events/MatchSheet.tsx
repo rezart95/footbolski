@@ -332,7 +332,7 @@ export function MatchSheet({ event }: { event: EventSummary }) {
               </div>
             </div>
           ) : teams?.length ? (
-            <div className="mt-5 grid gap-5">
+            <div className="mt-5 grid grid-cols-[minmax(0,1fr)] gap-5">
               <TeamDisplay
                 editable={isCreator}
                 onUpdateFormation={(payload) => teamActions.formation.mutate(payload)}

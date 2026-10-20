@@ -23,7 +23,7 @@ export function TeamDisplay({ teams, playersPerSide, editable, onUpdateFormation
   ].filter(Boolean) as Team[];
 
   return (
-    <div className="grid gap-6">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-6">
       <div className="-mx-4 grid sm:mx-0 sm:grid-cols-2">
         {ordered.map((team, index) => (
           <div className={cn("px-5 py-5 text-paper", TEAM_FIELDS[index % 2])} key={team.id}>
