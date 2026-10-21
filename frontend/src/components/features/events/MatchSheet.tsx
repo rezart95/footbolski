@@ -356,7 +356,7 @@ export function MatchSheet({ event }: { event: EventSummary }) {
             <p className="mt-3 text-[17px] text-fg/80">
               {isCreator
                 ? `You can split the teams once all ${event.max_players} spots are filled.`
-                : `Teams are split once all ${event.max_players} spots are filled.`}
+                : "Teams are split once everyone has paid."}
             </p>
           )}
           {teamActions.generate.isError ? (
