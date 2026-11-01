@@ -23,6 +23,7 @@ is the single source of truth for that order — change a template's parameters
 there and in the Twilio Content Template together.
 """
 
+from decimal import Decimal
 from typing import Final
 
 DEFAULT_LANGUAGE: Final = "en"
@@ -158,6 +159,20 @@ def first_name(display_name: str | None) -> str:
     if not display_name or not display_name.strip():
         return "there"
     return display_name.strip().split()[0]
+
+
+def format_amount(amount: float | Decimal | None) -> str:
+    """A zloty amount for a message: "28.50 zł", or "25 zł" when it's whole.
+
+    `None` becomes a neutral fallback so a reminder never says "None zł"; callers
+    that cannot name an amount should not be sending a payment message at all.
+    """
+    if amount is None:
+        return "your share"
+    text = f"{Decimal(str(amount)):.2f}"
+    if text.endswith(".00"):
+        text = text[:-3]
+    return f"{text} zł"
 
 
 def winner_names(names: list[str]) -> str:

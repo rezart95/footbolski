@@ -16,7 +16,7 @@ from sqlalchemy.orm import selectinload
 from app.core.config import get_settings
 from app.models import Event, Registration, ReminderChannel, ReminderKind
 from app.schemas.reminder import ReminderResult
-from app.services import localised_dates, message_delivery, message_log, message_templates
+from app.services import event_service, localised_dates, message_delivery, message_log, message_templates
 from app.services.message_outcome import DeliveryOutcome, DeliveryReason
 
 #: How each refusal is reported to the organiser pressing the button.
@@ -66,7 +66,7 @@ def _payment_fields(registration: Registration, language: str | None) -> dict:
     return {
         "name": message_templates.first_name(registration.display_name),
         "when": localised_dates.format_when(event.event_date, event.event_time, language),
-        "amount": f"{event.price_per_person:g} zł" if event.price_per_person else "your share",
+        "amount": message_templates.format_amount(event.price_per_person),
         "handle": event.payment_details or event.pay_to_name or "the organiser",
         "method": (event.payment_method or "transfer").replace("_", " "),
         "link": f"{settings.app_public_url}/events/{event.id}",
@@ -80,14 +80,10 @@ def _raise_for(outcome: DeliveryOutcome) -> None:
 
 
 def _assert_is_creator(event: Event, creator_name: str) -> None:
-    """Only the organiser may send payment reminders — they're the one who
-    owes the venue, so they're the one who decides when to chase people.
-    Matched case-insensitively, and on first name alone, because the session
-    name is free text with no auth (same rule as cancelling or splitting
-    teams)."""
-    claimed = creator_name.casefold()
-    stored = event.created_by_name.casefold()
-    if claimed != stored and claimed != stored.split()[0]:
+    """Only the organiser may send payment reminders: they are the one who owes
+    the venue, so they decide when to chase people. The rule (case-insensitive,
+    first name allowed) is shared with the other organiser actions."""
+    if not event_service.is_creator(event, creator_name):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the event creator can send reminders")
 
 
@@ -105,6 +101,11 @@ async def send_reminder(
 
     if registration.has_paid:
         raise HTTPException(status.HTTP_409_CONFLICT, "This player has already paid.")
+    if registration.event.price_per_person is None:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "There is no amount to ask for yet. Enter what the pitch cost first.",
+        )
     if not registration.player_id or not registration.player:
         raise HTTPException(
             status.HTTP_409_CONFLICT,

@@ -3,6 +3,7 @@ import { format, parseISO } from "date-fns";
 import { Check, MapPin, Share2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AddToCalendar } from "./AddToCalendar";
+import { EventCostPanel } from "./EventCostPanel";
 import { PaymentHandle } from "./PaymentHandle";
 import { AIInsightsPanel } from "../teams/AIInsightsPanel";
 import { TeamDisplay } from "../teams/TeamDisplay";
@@ -23,13 +24,10 @@ import { useShareEvent } from "../../../hooks/useShareEvent";
 import { useTeamActions, useTeams } from "../../../hooks/useTeams";
 import { errorMessage } from "../../../lib/errors";
 import { mapsUrl, streetAddress } from "../../../lib/maps";
+import { formatPrice } from "../../../lib/money";
 import { cn } from "../../../lib/utils";
 import { PAYMENT_METHOD_LABELS, type EventSummary } from "../../../types/event.types";
 import type { Registration } from "../../../types/registration.types";
-
-function formatPrice(price: number) {
-  return `${price % 1 === 0 ? price.toFixed(0) : price.toFixed(2)} zł`;
-}
 
 function ordinal(n: number) {
   const tens = n % 100;
@@ -80,6 +78,8 @@ export function MatchSheet({ event }: { event: EventSummary }) {
   const canSplit = isCreator && isUpcoming && isFull && !event.teams_generated;
   // API may serialize Decimal as a string — normalise defensively.
   const price = event.price_per_person != null ? Number(event.price_per_person) : null;
+  // Matches priced after full time (Fame Sport): the organiser enters the bill once the match is over.
+  const canSetCost = isCreator && isCompleted && (event.total_cost != null || price == null);
   const busy = actions.join.isPending || actions.leave.isPending;
   const date = parseISO(event.event_date);
 
@@ -141,7 +141,7 @@ export function MatchSheet({ event }: { event: EventSummary }) {
   })();
 
   const openSpots = isUpcoming ? Math.max(event.max_players - confirmedCount, 0) : 0;
-  const hasMoney = price != null || event.payment_method || event.pay_to_name || event.payment_details;
+  const hasMoney = price != null || canSetCost || event.payment_method || event.pay_to_name || event.payment_details;
 
   return (
     <article className="grid grid-cols-[minmax(0,1fr)] gap-8">
@@ -219,7 +219,11 @@ export function MatchSheet({ event }: { event: EventSummary }) {
           </p>
         </div>
         {isCreator && confirmed.some((r) => !r.has_paid) ? (
-          <p className="mt-2 text-[15px] text-fg/75">Tap &ldquo;Paid?&rdquo; when someone pays. The bell sends them a reminder.</p>
+          <p className="mt-2 text-[15px] text-fg/75">
+            {price != null
+              ? "Tap “Paid?” when someone pays. The bell sends them a reminder."
+              : "Tap “Paid?” when someone pays."}
+          </p>
         ) : null}
         <ol>
           {confirmed.map((registration) => {
@@ -237,7 +241,7 @@ export function MatchSheet({ event }: { event: EventSummary }) {
                   {registration.display_name}
                   {isMe ? <span className="ml-2 align-middle text-[12px] font-bold uppercase tracking-wider">You</span> : null}
                 </span>
-                {isCreator && !registration.has_paid ? (
+                {isCreator && !registration.has_paid && price != null ? (
                   <RemindButton
                     inverse={isMe}
                     disabled={actions.payment.isPending}
@@ -290,7 +294,7 @@ export function MatchSheet({ event }: { event: EventSummary }) {
           {price != null ? (
             <p className="t-numeral text-[3.75rem]">{formatPrice(price)}</p>
           ) : (
-            <p className="t-headline text-[2rem]">Amount set after the match</p>
+            <p className="t-headline text-[2rem]">{isCompleted ? "The amount isn’t in yet" : "Amount set after the match"}</p>
           )}
           <p className="mt-1 text-[17px] font-semibold">
             {price != null ? "per person" : null}
@@ -307,6 +311,7 @@ export function MatchSheet({ event }: { event: EventSummary }) {
               <PaymentHandle method={event.payment_method} value={event.payment_details} />
             </div>
           ) : null}
+          <EventCostPanel canEdit={canSetCost} confirmedCount={confirmedCount} event={event} />
           {confirmedCount > 0 && registrationsLoaded ? (
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t-2 border-ink pt-3">
               <p className="text-[16px] font-bold tabular-nums">

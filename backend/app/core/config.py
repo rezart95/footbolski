@@ -58,6 +58,11 @@ class Settings(BaseSettings):
     # Payment reminder fires this many days before kickoff.
     payment_reminder_days_before: int = 1
 
+    # For matches priced after full time: the WhatsApp payment request goes out
+    # this many hours after the organiser enters the amount (and never outside
+    # quiet hours, so it can land a little later).
+    payment_request_delay_hours: int = 12
+
     # Man of the Match: ballot opens this long after kickoff and stays open
     # for this many hours, or until every confirmed player has voted.
     motm_open_after_minutes: int = 100

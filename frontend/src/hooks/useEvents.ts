@@ -1,5 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { cancelEvent, createEvent, deleteEvent, getEvent, getUpcomingEvent, listEvents, listVenues } from "../services/events.service";
+import {
+  cancelEvent,
+  createEvent,
+  deleteEvent,
+  getEvent,
+  getUpcomingEvent,
+  listEvents,
+  listVenues,
+  setEventCost
+} from "../services/events.service";
 
 export function useVenues() {
   return useQuery({ queryKey: ["venues"], queryFn: listVenues, retry: false });
@@ -29,6 +38,15 @@ export function useCancelEvent(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (createdByName: string) => cancelEvent(id, createdByName),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["events"] })
+  });
+}
+
+export function useSetEventCost(id: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ createdByName, totalCost }: { createdByName: string; totalCost: number }) =>
+      setEventCost(id, createdByName, totalCost),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["events"] })
   });
 }

@@ -1,4 +1,6 @@
 import uuid
+from datetime import UTC, datetime
+from decimal import ROUND_CEILING, Decimal
 
 from fastapi import HTTPException, status
 from sqlalchemy import and_, desc, func, or_, select
@@ -7,7 +9,18 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
 from app.core import clock
-from app.models import Event, EventStatus, ListStatus, Registration, Team, TeamPlayer, Venue
+from app.models import (
+    Event,
+    EventStatus,
+    ListStatus,
+    Registration,
+    Reminder,
+    ReminderKind,
+    ReminderStatus,
+    Team,
+    TeamPlayer,
+    Venue,
+)
 from app.schemas.event import EventCreate
 
 
@@ -51,6 +64,8 @@ async def as_read(session: AsyncSession, event: Event) -> dict:
         "pay_to_name": event.pay_to_name,
         "payment_method": event.payment_method,
         "payment_details": event.payment_details,
+        "total_cost": event.total_cost,
+        "cost_set_at": event.cost_set_at,
     }
 
 
@@ -113,6 +128,75 @@ async def create_event(session: AsyncSession, payload: EventCreate) -> dict:
         await session.rollback()
         raise HTTPException(status.HTTP_409_CONFLICT, "You already have an event on that date") from exc
     event.venue = venue
+    return await as_read(session, event)
+
+
+def is_creator(event: Event, name: str) -> bool:
+    """Whether `name` is the organiser of `event`.
+
+    Matched case-insensitively and on first name alone, because the session name
+    is free text with no auth (the same rule the Remind button uses).
+    """
+    claimed = name.strip().casefold()
+    stored = event.created_by_name.strip().casefold()
+    return bool(claimed) and (claimed == stored or claimed == stored.split()[0])
+
+
+def split_cost(total_cost: Decimal, players: int) -> Decimal:
+    """Each player's share of `total_cost`, rounded up to the next grosz.
+
+    Rounding up means the group never collects less than the bill: 1000 zł over
+    13 players is 76.93 each (1000.09 in total), not 76.92 (999.96).
+    """
+    return (Decimal(total_cost) / players).quantize(Decimal("0.01"), rounding=ROUND_CEILING)
+
+
+async def _payment_requests_sent(session: AsyncSession, event_id: uuid.UUID) -> bool:
+    stmt = select(func.count()).select_from(Reminder).where(
+        Reminder.event_id == event_id,
+        Reminder.kind == ReminderKind.PAYMENT,
+        Reminder.status == ReminderStatus.SENT,
+    )
+    return bool(await session.scalar(stmt))
+
+
+async def set_total_cost(
+    session: AsyncSession, event_id: uuid.UUID, creator_name: str, total_cost: Decimal
+) -> dict:
+    """Record what the pitch actually cost and derive the per-person price.
+
+    Used for matches priced after full time (Fame Sport, where Multisport cards
+    change the bill every week). The split is over the confirmed players, so it is
+    only allowed once the match is over and the list can no longer change. The
+    WhatsApp payment request is scheduled from `cost_set_at`.
+    """
+    event = await get_event(session, event_id)
+    if not is_creator(event, creator_name):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Only the event creator can set the amount")
+
+    current = effective_status(event)
+    if current == EventStatus.CANCELLED:
+        raise HTTPException(status.HTTP_409_CONFLICT, "A cancelled match has no cost")
+    if current != EventStatus.COMPLETED:
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "Set the amount after the match, so it is split over everyone who played",
+        )
+    if event.total_cost is None and event.price_per_person is not None:
+        raise HTTPException(status.HTTP_409_CONFLICT, "This match has a fixed price per person")
+
+    players = await _count(session, event.id, ListStatus.CONFIRMED)
+    if players == 0:
+        raise HTTPException(status.HTTP_409_CONFLICT, "Nobody played, so there is nothing to split")
+    if await _payment_requests_sent(session, event.id):
+        raise HTTPException(
+            status.HTTP_409_CONFLICT, "Payment requests have already gone out, so the amount can't change"
+        )
+
+    event.total_cost = total_cost
+    event.price_per_person = split_cost(total_cost, players)
+    event.cost_set_at = datetime.now(UTC)
+    await session.commit()
     return await as_read(session, event)
 
 

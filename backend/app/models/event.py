@@ -44,6 +44,12 @@ class Event(Base):
     pay_to_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
     payment_method: Mapped[str | None] = mapped_column(String(20), nullable=True)
     payment_details: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # For matches priced after full time (e.g. Fame Sport, where Multisport cards
+    # lower the pitch bill): the amount the organiser actually paid, and when they
+    # entered it. `price_per_person` is then derived from it. `cost_set_at` is what
+    # schedules the WhatsApp payment request.
+    total_cost: Mapped[float | None] = mapped_column(Numeric(8, 2), nullable=True)
+    cost_set_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     venue: Mapped["Venue"] = relationship(back_populates="events")

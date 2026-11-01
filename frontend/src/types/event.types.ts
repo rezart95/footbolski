@@ -53,6 +53,10 @@ export interface EventSummary {
   pay_to_name: string | null;
   payment_method: PaymentMethod | null;
   payment_details: string | null;
+  /** What the pitch actually cost, for matches priced after full time. */
+  total_cost: number | null;
+  /** When the organiser entered `total_cost`; the WhatsApp request follows 12 h later. */
+  cost_set_at: string | null;
 }
 
 export interface EventPayload {

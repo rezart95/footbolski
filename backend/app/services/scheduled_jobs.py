@@ -10,6 +10,7 @@ matching kind for payment.
 """
 
 import uuid
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -79,11 +80,13 @@ async def run_invite_ladder(session: AsyncSession, event: Event) -> dict:
     return {"event": str(event.id), "rung": rung.index, "days_before": rung.days_before, **tally}
 
 
-async def run_payment_reminders(session: AsyncSession, event: Event) -> dict:
-    """One reminder per unpaid confirmed player, at T-1."""
-    if clock.now_local() < ladder_schedule.payment_reminder_due_at(event.event_date):
-        return {}
+async def _send_payment_messages(session: AsyncSession, event: Event) -> dict:
+    """One payment message per unpaid confirmed player who hasn't had one.
 
+    Shared by the pre-match reminder and the post-match request: the wording is
+    the same template, only the timing differs. Callers have already established
+    that an amount is known.
+    """
     registrations = await session.scalars(
         select(Registration)
         .options(selectinload(Registration.player))
@@ -111,7 +114,7 @@ async def run_payment_reminders(session: AsyncSession, event: Event) -> dict:
         fields = {
             "name": message_templates.first_name(registration.display_name),
             "when": localised_dates.format_when(event.event_date, event.event_time, language),
-            "amount": f"{event.price_per_person:g} zł" if event.price_per_person else "your share",
+            "amount": message_templates.format_amount(event.price_per_person),
             "handle": event.payment_details or event.pay_to_name or "the organiser",
             "method": (event.payment_method or "transfer").replace("_", " "),
             "link": f"{settings.app_public_url}/events/{event.id}",
@@ -130,6 +133,35 @@ async def run_payment_reminders(session: AsyncSession, event: Event) -> dict:
         tally[outcome.reason.value] = tally.get(outcome.reason.value, 0) + 1
 
     return {"event": str(event.id), **tally} if tally else {}
+
+
+async def run_payment_reminders(session: AsyncSession, event: Event) -> dict:
+    """One reminder per unpaid confirmed player, at T-1, for matches with a fixed price.
+
+    A match priced after full time has no amount to ask for yet, so it is left
+    to `run_payment_requests`. Asking for "your share" of an unknown sum helps
+    nobody.
+    """
+    if event.price_per_person is None:
+        return {}
+    if clock.now_local() < ladder_schedule.payment_reminder_due_at(event.event_date):
+        return {}
+    return await _send_payment_messages(session, event)
+
+
+async def run_payment_requests(session: AsyncSession, event: Event) -> dict:
+    """Ask for the money once the organiser has entered the amount.
+
+    Fires `payment_request_delay_hours` after the amount was entered. The caller
+    only runs this inside quiet hours, so a request that falls due overnight goes
+    out the next morning.
+    """
+    if event.cost_set_at is None or event.price_per_person is None:
+        return {}
+    due_at = event.cost_set_at + timedelta(hours=get_settings().payment_request_delay_hours)
+    if datetime.now(UTC) < due_at:
+        return {}
+    return await _send_payment_messages(session, event)
 
 
 async def run_motm_ballots(session: AsyncSession, event: Event) -> dict:

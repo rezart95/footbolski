@@ -1,5 +1,6 @@
 import uuid
-from datetime import date, time
+from datetime import date, datetime, time
+from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -21,6 +22,13 @@ class EventCreate(BaseModel):
 
 class CreatorAction(BaseModel):
     created_by_name: str = Field(min_length=1, max_length=255)
+
+
+class EventCostUpdate(BaseModel):
+    """The amount actually paid for the pitch, entered by the organiser after full time."""
+
+    created_by_name: str = Field(min_length=1, max_length=255)
+    total_cost: Decimal = Field(gt=0, le=Decimal("99999.99"), max_digits=7, decimal_places=2)
 
 
 class SwapOption(BaseModel):
@@ -45,5 +53,7 @@ class EventRead(BaseModel):
     pay_to_name: str | None = None
     payment_method: PaymentMethod | None = None
     payment_details: str | None = None
+    total_cost: float | None = None
+    cost_set_at: datetime | None = None
 
     model_config = ConfigDict(from_attributes=True)

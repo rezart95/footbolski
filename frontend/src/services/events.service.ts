@@ -31,6 +31,11 @@ export async function cancelEvent(id: string, created_by_name: string) {
   return data;
 }
 
+export async function setEventCost(id: string, created_by_name: string, total_cost: number) {
+  const { data } = await api.patch<EventSummary>(`/events/${id}/cost`, { created_by_name, total_cost });
+  return data;
+}
+
 export async function deleteEvent(id: string, created_by_name: string) {
   await api.delete(`/events/${id}`, { data: { created_by_name } });
 }

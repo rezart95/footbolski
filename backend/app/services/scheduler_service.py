@@ -1,4 +1,4 @@
-"""The periodic tick that drives invites, payment reminders and ballots.
+"""The periodic tick that drives invites, payment messages and ballots.
 
 Triggered externally by a Coolify scheduled task calling the internal endpoint,
 rather than by an in-process timer: the homeserver is a laptop that reboots, and
@@ -31,7 +31,7 @@ from app.services import ladder_schedule, scheduled_jobs
 logger = logging.getLogger(__name__)
 
 RECENT_EVENTS_FOR_BALLOTS = 5
-"""How far back to look for matches whose ballot may still be due."""
+"""How far back to look for matches whose ballot or payment request may still be due."""
 
 
 async def _record_heartbeat(session: AsyncSession) -> None:
@@ -127,6 +127,13 @@ async def run_tick(session: AsyncSession) -> dict:
         except Exception:
             await session.rollback()
             logger.exception("Ballot dispatch failed on event %s", event.id)
+        try:
+            # Matches priced after full time: ask for the money once the amount is in.
+            if result := await scheduled_jobs.run_payment_requests(session, event):
+                payments.append(result)
+        except Exception:
+            await session.rollback()
+            logger.exception("Payment request failed on event %s", event.id)
 
     report["invites"] = invites
     report["payment_reminders"] = payments

@@ -4,7 +4,7 @@ from fastapi import APIRouter, Query, Response
 
 from app.dependencies import SessionDep
 from app.models import EventStatus
-from app.schemas.event import CreatorAction, EventCreate, EventRead
+from app.schemas.event import CreatorAction, EventCostUpdate, EventCreate, EventRead
 from app.services import calendar_service, event_service
 
 router = APIRouter(prefix="/events", tags=["events"])
@@ -44,6 +44,12 @@ async def event_calendar(event_id: uuid.UUID, session: SessionDep) -> Response:
         media_type="text/calendar; charset=utf-8",
         headers={"Content-Disposition": f'inline; filename="footbolski-{event.event_date}.ics"'},
     )
+
+
+@router.patch("/{event_id}/cost", response_model=EventRead)
+async def set_event_cost(event_id: uuid.UUID, payload: EventCostUpdate, session: SessionDep) -> dict:
+    """Enter what the pitch cost after the match; the per-person price is derived."""
+    return await event_service.set_total_cost(session, event_id, payload.created_by_name, payload.total_cost)
 
 
 @router.patch("/{event_id}/cancel", response_model=EventRead)
